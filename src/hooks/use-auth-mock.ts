@@ -63,7 +63,7 @@ export const useAuthMock = (): AuthState => {
         userId: newUserId,
         profileSetupComplete: false 
       }));
-    } catch (error)_ {
+    } catch (error) {
       console.error("Failed to set mockAuth in localStorage", error);
     }
   }, []);
@@ -103,3 +103,4 @@ export const useAuthMock = (): AuthState => {
 
   return { isAuthenticated, userType, username, userId, profileSetupComplete, isLoading, login, logout, markProfileComplete };
 };
+
