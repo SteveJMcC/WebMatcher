@@ -1,23 +1,15 @@
+
 "use client";
 
 import { UserProfileForm } from "@/components/forms/user-profile-form";
 import { useAuthMock } from "@/hooks/use-auth-mock";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Metadata } from "next";
+// import { Metadata } from "next"; // Metadata is for server components primarily
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 
-// Note: Metadata export like this is for Server Components.
-// For client components, you'd typically use `useEffect` to set document.title
-// or a higher-order component if using a library for metadata management.
-// For simplicity in this mock setup, we'll leave it, but it won't be applied dynamically
-// by Next.js in the same way as for a server component.
-// export const metadata: Metadata = {
-//   title: "Setup Client Profile - WebConnect",
-//   description: "Complete your client profile to start posting jobs on WebConnect.",
-// };
 
 export default function SetupUserProfilePage() {
   const { isAuthenticated, userType, isLoading: authIsLoading, profileSetupComplete } = useAuthMock();
@@ -25,7 +17,8 @@ export default function SetupUserProfilePage() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-        document.title = "Setup Client Profile - WebConnect";
+        // Update title based on whether profile is being set up or updated
+        document.title = profileSetupComplete ? "Update Client Profile - WebConnect" : "Setup Client Profile - WebConnect";
     }
 
     if (!authIsLoading) {
@@ -33,9 +26,10 @@ export default function SetupUserProfilePage() {
         router.push('/login?redirect=/user/setup-profile');
       } else if (userType !== 'user') {
         router.push('/'); // Not a client, redirect to home or relevant dashboard
-      } else if (profileSetupComplete) {
-        router.push('/user-dashboard'); // Profile already set up
       }
+      // Removed: else if (profileSetupComplete) { router.push('/user-dashboard'); }
+      // Now users can access this page to update their profile even if it's complete.
+      // The UserProfileForm will need to handle whether it's an initial setup or an update.
     }
   }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router]);
 
@@ -53,7 +47,7 @@ export default function SetupUserProfilePage() {
     );
   }
 
-  if (!isAuthenticated || userType !== 'user' || profileSetupComplete) {
+  if (!isAuthenticated || userType !== 'user') {
     // This content will be briefly shown while redirecting or if stuck.
     return (
       <div className="container mx-auto px-4 py-12 text-center">
@@ -62,24 +56,10 @@ export default function SetupUserProfilePage() {
     );
   }
   
-  if (userType === 'user' && !profileSetupComplete) {
-    return (
-      <div className="container mx-auto px-4 py-12">
-        <UserProfileForm />
-      </div>
-    );
-  }
-
-  // Fallback, should ideally not be reached if logic above is correct
+  // User is authenticated and is a 'user'. They can set up or update profile.
   return (
-     <div className="container mx-auto px-4 py-12">
-        <Alert variant="destructive">
-            <Terminal className="h-4 w-4" />
-            <AlertTitle>Access Denied</AlertTitle>
-            <AlertDescription>
-                You do not have permission to view this page or an error occurred.
-            </AlertDescription>
-        </Alert>
-     </div>
+    <div className="container mx-auto px-4 py-12">
+      <UserProfileForm />
+    </div>
   );
 }

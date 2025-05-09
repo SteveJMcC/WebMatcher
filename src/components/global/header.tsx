@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -57,7 +58,7 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${username}`} alt={username || 'User'} />
+                    <AvatarImage src={`https://i.pravatar.cc/150?u=${username}`} alt={username || 'User'} data-ai-hint="user avatar" />
                     <AvatarFallback>{getInitials(username)}</AvatarFallback>
                   </Avatar>
                 </Button>
@@ -78,9 +79,9 @@ export function Header() {
                     Dashboard
                   </Link>
                 </DropdownMenuItem>
-                {userType === 'designer' && (
+                {(userType === 'designer' || userType === 'user') && (
                   <DropdownMenuItem asChild>
-                    <Link href="/designer/setup-profile">
+                    <Link href={userType === 'designer' ? "/designer/setup-profile" : "/user/setup-profile"}>
                       <UserCircle className="mr-2 h-4 w-4" />
                       My Profile
                     </Link>
