@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, type FormEvent, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,10 +13,19 @@ import Link from 'next/link';
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuthMock();
   const [username, setUsername] = useState('');
-  const [userType, setUserType] = useState<'user' | 'designer'>('user');
+  const [userType, setUserType] = useState<'user' | 'designer'>('user'); // Default to 'user'
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    const typeFromQuery = searchParams.get('userType');
+    if (typeFromQuery === 'designer' || typeFromQuery === 'user') {
+      setUserType(typeFromQuery);
+    }
+  }, [searchParams]);
+
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -60,7 +69,7 @@ export default function SignupPage() {
             <div className="space-y-2">
               <Label>Sign up as</Label>
               <RadioGroup
-                value={userType}
+                value={userType} // Controlled component
                 onValueChange={(value: 'user' | 'designer') => setUserType(value)}
                 className="flex space-x-4"
               >
@@ -84,7 +93,8 @@ export default function SignupPage() {
           <p className="text-sm text-muted-foreground">
             Already have an account?{' '}
             <Button variant="link" asChild className="p-0 text-primary">
-              <Link href="/login">Log in</Link>
+              {/* Pass userType back to login if maintaining context */}
+              <Link href={`/login?userType=${userType}`}>Log in</Link>
             </Button>
           </p>
         </CardFooter>

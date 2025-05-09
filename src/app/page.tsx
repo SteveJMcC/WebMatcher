@@ -58,10 +58,10 @@ export default function HomePage() {
           </p>
           <div className="space-x-4">
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/login">Login as a Client</Link>
+              <Link href="/login?userType=user">Login as a Client</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="border-primary text-primary hover:bg-primary/10">
-              <Link href="/login">Login as a Web Pro</Link>
+              <Link href="/login?userType=designer">Login as a Web Pro</Link>
             </Button>
           </div>
         </div>
