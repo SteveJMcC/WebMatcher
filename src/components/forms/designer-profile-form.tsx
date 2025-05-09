@@ -74,11 +74,15 @@ export function DesignerProfileForm() {
 
   const initialFormValues = React.useMemo(() => {
     if (profileSetupComplete) {
+      // If profile is already set up, use mock data for update scenario
+      // In a real app, this would be fetched data
       return mockProfileData; 
     }
+    // For new profile setup
     return {
       ...STABLE_EMPTY_PROFILE_VALUES,
-      name: username || STABLE_EMPTY_PROFILE_VALUES.name,
+      name: username || STABLE_EMPTY_PROFILE_VALUES.name, // Pre-fill name from auth if available
+      email: STABLE_EMPTY_PROFILE_VALUES.email, // Ensure email is initialized, e.g. from auth or empty
     };
   }, [profileSetupComplete, username]);
 
@@ -89,10 +93,11 @@ export function DesignerProfileForm() {
 
   const form = useForm<DesignerProfileFormData>({
     resolver: zodResolver(DesignerProfileSchema),
-    // defaultValues: initialFormValues, // Removed: Rely on useEffect + form.reset
+    defaultValues: initialFormValues, 
   });
   
   useEffect(() => {
+    // Reset form if initialFormValues change (e.g., user logs in/out or profile status changes)
     form.reset(initialFormValues);
     setSelectedSkills(initialFormValues.skills || []);
     setAvatarPreview(initialFormValues.avatarUrl);
@@ -154,14 +159,14 @@ export function DesignerProfileForm() {
                 <FormField
                   control={form.control}
                   name="avatarUrl" 
-                  render={({ field }) => (
+                  render={({ field }) => ( // field.value here will be "" or a URL from defaultValues
                   <FormItem className="w-full max-w-xs">
                      <FormLabel className="text-base">Avatar URL (or upload below)</FormLabel>
                     <FormControl>
                       <Input 
                         type="text" 
                         placeholder="https://example.com/avatar.jpg" 
-                        {...field} 
+                        {...field} // value will be field.value which is now controlled from start
                         onChange={(e) => {
                             field.onChange(e); 
                             setAvatarPreview(e.target.value); 
