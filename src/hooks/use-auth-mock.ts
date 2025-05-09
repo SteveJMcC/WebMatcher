@@ -7,21 +7,21 @@ import type { Tag } from '@/lib/types';
 
 type UserType = 'user' | 'designer' | null;
 
+// Define keys for localStorage
+const PROFILES_STORAGE_KEY = 'mockUserProfiles';
+const ACTIVE_USER_KEY_STORAGE_KEY = 'activeMockUserKey';
+
 interface StoredAuthData {
-  isAuthenticated: boolean;
+  isAuthenticated: boolean; // May become redundant if we solely rely on activeUserKey for session state
   userType: UserType;
   username: string | null; 
   userId: string | null;
   profileSetupComplete: boolean;
 
-  // Shared profile name, set from either client or designer profile
   displayName?: string; 
 
-  // Client specific
   companyName?: string; 
 
-  // Designer specific
-  // designerName is stored in displayName if userType is 'designer'
   designerHeadline?: string;
   designerAvatarUrl?: string;
   designerSkills?: Tag[];
@@ -40,12 +40,10 @@ export interface AuthState {
   profileSetupComplete: boolean;
   isLoading: boolean;
   
-  displayName: string | null; // Actual name from profile (client or designer)
+  displayName: string | null;
   
-  // Client specific
   companyName: string | null; 
 
-  // Designer specific
   designerHeadline: string | null;
   designerAvatarUrl: string | null;
   designerSkills: Tag[] | null;
@@ -70,11 +68,7 @@ export const useAuthMock = (): AuthState => {
   const [isLoading, setIsLoading] = useState(true);
   
   const [displayName, setDisplayName] = useState<string | null>(null);
-  
-  // Client specific
   const [companyName, setCompanyName] = useState<string | null>(null);
-
-  // Designer specific
   const [designerHeadline, setDesignerHeadline] = useState<string | null>(null);
   const [designerAvatarUrl, setDesignerAvatarUrl] = useState<string | null>(null);
   const [designerSkills, setDesignerSkills] = useState<Tag[] | null>(null);
@@ -84,133 +78,130 @@ export const useAuthMock = (): AuthState => {
   const [designerBudgetMax, setDesignerBudgetMax] = useState<number | null>(null);
   const [designerEmail, setDesignerEmail] = useState<string | null>(null);
 
+  const [allProfiles, setAllProfiles] = useState<Record<string, StoredAuthData>>({});
 
   useEffect(() => {
+    setIsLoading(true);
     try {
-      const storedAuthString = localStorage.getItem('mockAuth');
-      if (storedAuthString) {
-        const storedAuth: StoredAuthData = JSON.parse(storedAuthString);
-        setIsAuthenticated(storedAuth.isAuthenticated);
-        setUserType(storedAuth.userType);
-        setUsername(storedAuth.username);
-        setUserId(storedAuth.userId || null);
-        setProfileSetupComplete(storedAuth.profileSetupComplete || false);
-        
-        setDisplayName(storedAuth.displayName || storedAuth.username);
+      const storedProfilesString = localStorage.getItem(PROFILES_STORAGE_KEY);
+      const profiles: Record<string, StoredAuthData> = storedProfilesString ? JSON.parse(storedProfilesString) : {};
+      setAllProfiles(profiles);
 
-        if (storedAuth.userType === 'user' && storedAuth.profileSetupComplete) {
-          setCompanyName(storedAuth.companyName || null);
-        } else if (storedAuth.userType === 'designer' && storedAuth.profileSetupComplete) {
-          setDesignerHeadline(storedAuth.designerHeadline || null);
-          setDesignerAvatarUrl(storedAuth.designerAvatarUrl || null);
-          setDesignerSkills(storedAuth.designerSkills || null);
-          setDesignerBio(storedAuth.designerBio || null);
-          setDesignerPortfolioLinks(storedAuth.designerPortfolioLinks || null);
-          setDesignerBudgetMin(storedAuth.designerBudgetMin ?? null);
-          setDesignerBudgetMax(storedAuth.designerBudgetMax ?? null);
-          setDesignerEmail(storedAuth.designerEmail || null);
+      const activeUserKey = localStorage.getItem(ACTIVE_USER_KEY_STORAGE_KEY);
+      
+      if (activeUserKey && profiles[activeUserKey]) {
+        const activeUserProfile = profiles[activeUserKey];
+        setIsAuthenticated(true);
+        setUserType(activeUserProfile.userType);
+        setUsername(activeUserProfile.username);
+        setUserId(activeUserProfile.userId);
+        setProfileSetupComplete(activeUserProfile.profileSetupComplete);
+        setDisplayName(activeUserProfile.displayName || activeUserProfile.username);
+
+        if (activeUserProfile.userType === 'user') {
+          setCompanyName(activeUserProfile.companyName || null);
+        } else if (activeUserProfile.userType === 'designer') {
+          setDesignerHeadline(activeUserProfile.designerHeadline || null);
+          setDesignerAvatarUrl(activeUserProfile.designerAvatarUrl || null);
+          setDesignerSkills(activeUserProfile.designerSkills || null);
+          setDesignerBio(activeUserProfile.designerBio || null);
+          setDesignerPortfolioLinks(activeUserProfile.designerPortfolioLinks || null);
+          setDesignerBudgetMin(activeUserProfile.designerBudgetMin ?? null);
+          setDesignerBudgetMax(activeUserProfile.designerBudgetMax ?? null);
+          setDesignerEmail(activeUserProfile.designerEmail || null);
         }
       }
     } catch (error) {
-      console.error("Failed to parse mockAuth from localStorage", error);
-      localStorage.removeItem('mockAuth');
+      console.error("Failed to load auth state from localStorage", error);
+      localStorage.removeItem(PROFILES_STORAGE_KEY);
+      localStorage.removeItem(ACTIVE_USER_KEY_STORAGE_KEY);
     }
     setIsLoading(false);
   }, []);
 
   const login = useCallback((type: 'user' | 'designer', loginUsername: string, id?: string) => {
-    const newUserId = id || `mock-${type}-${loginUsername}-${Date.now()}`; // Ensure more unique ID
-    
-    let pscFromStorage = false;
-    let finalDisplayName = loginUsername;
-    let finalCompanyName: string | null = null;
-    
-    let finalDesignerHeadline: string | null = null;
-    let finalDesignerAvatarUrl: string | null = null;
-    let finalDesignerSkills: Tag[] | null = null;
-    let finalDesignerBio: string | null = null;
-    let finalDesignerPortfolioLinks: { title: string; url: string }[] | null = null;
-    let finalDesignerBudgetMin: number | null = null;
-    let finalDesignerBudgetMax: number | null = null;
-    let finalDesignerEmail: string | null = null;
+    const userKey = `${loginUsername}_${type}`;
+    const existingProfile = allProfiles[userKey];
+    const effectiveUserId = id || existingProfile?.userId || `mock-${type}-${loginUsername}`;
 
-    try {
-        const storedAuthString = localStorage.getItem('mockAuth');
-        if (storedAuthString) {
-            const stored: StoredAuthData = JSON.parse(storedAuthString);
-            // Check if logging in as the same user that was previously stored
-            if (stored.username === loginUsername && stored.userType === type) {
-                pscFromStorage = stored.profileSetupComplete;
-                finalDisplayName = stored.displayName || loginUsername;
-                if (type === 'user') {
-                   finalCompanyName = stored.companyName || null;
-                } else if (type === 'designer') {
-                   finalDesignerHeadline = stored.designerHeadline || null;
-                   finalDesignerAvatarUrl = stored.designerAvatarUrl || null;
-                   finalDesignerSkills = stored.designerSkills || null;
-                   finalDesignerBio = stored.designerBio || null;
-                   finalDesignerPortfolioLinks = stored.designerPortfolioLinks || null;
-                   finalDesignerBudgetMin = stored.designerBudgetMin ?? null;
-                   finalDesignerBudgetMax = stored.designerBudgetMax ?? null;
-                   finalDesignerEmail = stored.designerEmail || null;
-                }
-            } else {
-              // Logging in as a new user or different type, reset profile specific fields
-              // pscFromStorage remains false
-            }
-        }
-    } catch (e) { /* ignore parsing error, will use defaults */ }
-    
+    let psc = false;
+    let dispName = loginUsername;
+    let compName: string | null = null;
+    let desHeadline: string | null = null;
+    let desAvatar: string | null = null;
+    let desSkills: Tag[] | null = null;
+    let desBio: string | null = null;
+    let desPortfolio: { title: string; url: string }[] | null = null;
+    let desBudgetMin: number | null = null;
+    let desBudgetMax: number | null = null;
+    let desEmail: string | null = null;
+
+    if (existingProfile) {
+      psc = existingProfile.profileSetupComplete;
+      dispName = existingProfile.displayName || loginUsername;
+      if (type === 'user') {
+        compName = existingProfile.companyName || null;
+      } else if (type === 'designer') {
+        desHeadline = existingProfile.designerHeadline || null;
+        desAvatar = existingProfile.designerAvatarUrl || null;
+        desSkills = existingProfile.designerSkills || null;
+        desBio = existingProfile.designerBio || null;
+        desPortfolio = existingProfile.designerPortfolioLinks || null;
+        desBudgetMin = existingProfile.designerBudgetMin ?? null;
+        desBudgetMax = existingProfile.designerBudgetMax ?? null;
+        desEmail = existingProfile.designerEmail || null;
+      }
+    }
+
     setIsAuthenticated(true);
     setUserType(type);
     setUsername(loginUsername);
-    setUserId(newUserId);
-    setProfileSetupComplete(pscFromStorage);
-    setDisplayName(finalDisplayName);
+    setUserId(effectiveUserId);
+    setProfileSetupComplete(psc);
+    setDisplayName(dispName);
 
     if (type === 'user') {
-      setCompanyName(finalCompanyName);
-      // Clear designer fields if switching
+      setCompanyName(compName);
       setDesignerHeadline(null); setDesignerAvatarUrl(null); setDesignerSkills(null); setDesignerBio(null); setDesignerPortfolioLinks(null); setDesignerBudgetMin(null); setDesignerBudgetMax(null); setDesignerEmail(null);
     } else if (type === 'designer') {
-      setDesignerHeadline(finalDesignerHeadline);
-      setDesignerAvatarUrl(finalDesignerAvatarUrl);
-      setDesignerSkills(finalDesignerSkills);
-      setDesignerBio(finalDesignerBio);
-      setDesignerPortfolioLinks(finalDesignerPortfolioLinks);
-      setDesignerBudgetMin(finalDesignerBudgetMin);
-      setDesignerBudgetMax(finalDesignerBudgetMax);
-      setDesignerEmail(finalDesignerEmail);
-      // Clear client fields if switching
+      setDesignerHeadline(desHeadline);
+      setDesignerAvatarUrl(desAvatar);
+      setDesignerSkills(desSkills);
+      setDesignerBio(desBio);
+      setDesignerPortfolioLinks(desPortfolio);
+      setDesignerBudgetMin(desBudgetMin);
+      setDesignerBudgetMax(desBudgetMax);
+      setDesignerEmail(desEmail);
       setCompanyName(null);
     }
 
     try {
-      const dataToStore: StoredAuthData = {
+      const updatedProfileData: StoredAuthData = {
+        ...(existingProfile || {}),
         isAuthenticated: true,
         userType: type,
         username: loginUsername,
-        userId: newUserId,
-        profileSetupComplete: pscFromStorage,
-        displayName: finalDisplayName,
-        // Client specific
-        companyName: type === 'user' ? finalCompanyName : undefined,
-        // Designer specific (displayName already covers designer's name)
-        designerHeadline: type === 'designer' ? finalDesignerHeadline : undefined,
-        designerAvatarUrl: type === 'designer' ? finalDesignerAvatarUrl : undefined,
-        designerSkills: type === 'designer' ? finalDesignerSkills : undefined,
-        designerBio: type === 'designer' ? finalDesignerBio : undefined,
-        designerPortfolioLinks: type === 'designer' ? finalDesignerPortfolioLinks : undefined,
-        designerBudgetMin: type === 'designer' ? finalDesignerBudgetMin : undefined,
-        designerBudgetMax: type === 'designer' ? finalDesignerBudgetMax : undefined,
-        designerEmail: type === 'designer' ? finalDesignerEmail : undefined,
+        userId: effectiveUserId,
+        profileSetupComplete: psc,
+        displayName: dispName,
+        companyName: type === 'user' ? compName : undefined,
+        designerHeadline: type === 'designer' ? desHeadline : undefined,
+        designerAvatarUrl: type === 'designer' ? desAvatar : undefined,
+        designerSkills: type === 'designer' ? desSkills : undefined,
+        designerBio: type === 'designer' ? desBio : undefined,
+        designerPortfolioLinks: type === 'designer' ? desPortfolio : undefined,
+        designerBudgetMin: type === 'designer' ? desBudgetMin : undefined,
+        designerBudgetMax: type === 'designer' ? desBudgetMax : undefined,
+        designerEmail: type === 'designer' ? desEmail : undefined,
       };
-      localStorage.setItem('mockAuth', JSON.stringify(dataToStore));
+      const newAllProfiles = { ...allProfiles, [userKey]: updatedProfileData };
+      setAllProfiles(newAllProfiles); // Update state
+      localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(newAllProfiles));
+      localStorage.setItem(ACTIVE_USER_KEY_STORAGE_KEY, userKey);
     } catch (error) {
-      console.error("Failed to set mockAuth in localStorage during login", error);
+      console.error("Failed to update localStorage during login", error);
     }
-  }, []);
-
+  }, [allProfiles]);
 
   const logout = useCallback(() => {
     setIsAuthenticated(false);
@@ -228,10 +219,11 @@ export const useAuthMock = (): AuthState => {
     setDesignerBudgetMin(null);
     setDesignerBudgetMax(null);
     setDesignerEmail(null);
+
     try {
-      localStorage.removeItem('mockAuth');
+      localStorage.removeItem(ACTIVE_USER_KEY_STORAGE_KEY);
     } catch (error) {
-      console.error("Failed to remove mockAuth from localStorage", error);
+      console.error("Failed to clear active user from localStorage", error);
     }
     if (typeof window !== 'undefined') {
       window.location.href = '/'; 
@@ -239,72 +231,74 @@ export const useAuthMock = (): AuthState => {
   }, []);
 
   const saveClientProfile = useCallback((profileData: UserProfileFormData) => {
-    if (isAuthenticated && userType === 'user') {
+    if (isAuthenticated && userType === 'user' && username && userId) {
+      const userKey = `${username}_${userType}`;
+      const updatedProfile: StoredAuthData = {
+        ...(allProfiles[userKey] || {}),
+        isAuthenticated: true,
+        userType: 'user',
+        username: username,
+        userId: userId,
+        profileSetupComplete: true,
+        displayName: profileData.name,
+        companyName: profileData.companyName || undefined,
+        designerHeadline: undefined,
+        designerAvatarUrl: undefined,
+        designerSkills: undefined,
+        designerBio: undefined,
+        designerPortfolioLinks: undefined,
+        designerBudgetMin: undefined,
+        designerBudgetMax: undefined,
+        designerEmail: undefined,
+      };
+
+      const newAllProfiles = { ...allProfiles, [userKey]: updatedProfile };
+      setAllProfiles(newAllProfiles); // Update state
+      localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(newAllProfiles));
+      
       setDisplayName(profileData.name);
       setCompanyName(profileData.companyName || null);
       setProfileSetupComplete(true);
-      try {
-        const currentDataString = localStorage.getItem('mockAuth');
-        const currentData: StoredAuthData = currentDataString ? JSON.parse(currentDataString) : {} as StoredAuthData;
-
-        const dataToStore: StoredAuthData = {
-          ...currentData,
-          isAuthenticated: true,
-          userType: 'user',
-          username, 
-          userId,
-          profileSetupComplete: true,
-          displayName: profileData.name,
-          companyName: profileData.companyName || undefined,
-        };
-        localStorage.setItem('mockAuth', JSON.stringify(dataToStore));
-      } catch (error) {
-        console.error("Failed to save client profile to localStorage", error);
-      }
     }
-  }, [isAuthenticated, userType, username, userId]);
+  }, [isAuthenticated, userType, username, userId, allProfiles]);
 
   const saveDesignerProfile = useCallback((profileData: DesignerProfileFormData) => {
-    if (isAuthenticated && userType === 'designer') {
-      setDisplayName(profileData.name); // Designer's name is the displayName
-      setDesignerHeadline(profileData.headline);
-      setDesignerAvatarUrl(profileData.avatarUrl || null);
-      setDesignerSkills(profileData.skills);
-      setDesignerBio(profileData.bio);
-      setDesignerPortfolioLinks(profileData.portfolioLinks || null);
-      setDesignerBudgetMin(profileData.budgetMin);
-      setDesignerBudgetMax(profileData.budgetMax);
-      setDesignerEmail(profileData.email || null);
-      setProfileSetupComplete(true);
-
-      try {
-        const currentDataString = localStorage.getItem('mockAuth');
-        const currentData: StoredAuthData = currentDataString ? JSON.parse(currentDataString) : {} as StoredAuthData;
-
-        const dataToStore: StoredAuthData = {
-          ...currentData,
-          isAuthenticated: true,
-          userType: 'designer',
-          username,
-          userId,
-          profileSetupComplete: true,
-          displayName: profileData.name,
-          // Designer specific fields
-          designerHeadline: profileData.headline,
-          designerAvatarUrl: profileData.avatarUrl || undefined,
-          designerSkills: profileData.skills,
-          designerBio: profileData.bio,
-          designerPortfolioLinks: profileData.portfolioLinks || undefined,
-          designerBudgetMin: profileData.budgetMin,
-          designerBudgetMax: profileData.budgetMax,
-          designerEmail: profileData.email || undefined,
+    if (isAuthenticated && userType === 'designer' && username && userId ) {
+        const userKey = `${username}_${userType}`;
+        const updatedProfile: StoredAuthData = {
+            ...(allProfiles[userKey] || {}),
+            isAuthenticated: true,
+            userType: 'designer',
+            username: username,
+            userId: userId,
+            profileSetupComplete: true,
+            displayName: profileData.name,
+            companyName: undefined,
+            designerHeadline: profileData.headline,
+            designerAvatarUrl: profileData.avatarUrl || undefined,
+            designerSkills: profileData.skills,
+            designerBio: profileData.bio,
+            designerPortfolioLinks: profileData.portfolioLinks || undefined,
+            designerBudgetMin: profileData.budgetMin,
+            designerBudgetMax: profileData.budgetMax,
+            designerEmail: profileData.email || undefined,
         };
-        localStorage.setItem('mockAuth', JSON.stringify(dataToStore));
-      } catch (error) {
-        console.error("Failed to save designer profile to localStorage", error);
-      }
+        const newAllProfiles = { ...allProfiles, [userKey]: updatedProfile };
+        setAllProfiles(newAllProfiles); // Update state
+        localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(newAllProfiles));
+
+        setDisplayName(profileData.name);
+        setDesignerHeadline(profileData.headline);
+        setDesignerAvatarUrl(profileData.avatarUrl || null);
+        setDesignerSkills(profileData.skills);
+        setDesignerBio(profileData.bio);
+        setDesignerPortfolioLinks(profileData.portfolioLinks || null);
+        setDesignerBudgetMin(profileData.budgetMin);
+        setDesignerBudgetMax(profileData.budgetMax);
+        setDesignerEmail(profileData.email || null);
+        setProfileSetupComplete(true);
     }
-  }, [isAuthenticated, userType, username, userId]);
+  }, [isAuthenticated, userType, username, userId, allProfiles]);
 
 
   return { 
