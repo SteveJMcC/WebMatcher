@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, Users, Lightbulb, CheckCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { Briefcase, Users, Lightbulb, CheckCircle, ShieldCheck, Sparkles, UserCircle, Search, MessageSquare, Award } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -57,10 +57,10 @@ export default function HomePage() {
           </p>
           <div className="space-x-4">
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/post-job">Get Started as a Client</Link>
+              <Link href="/post-job">Client</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="border-primary text-primary hover:bg-primary/10">
-              <Link href="/designer/setup-profile">Join as a Designer</Link>
+              <Link href="/designer/setup-profile">Web Professional</Link>
             </Button>
           </div>
         </div>
@@ -152,32 +152,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-// Placeholder icons if not already in lucide-react
-const UserCircle = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"></circle>
-    <circle cx="12" cy="10" r="3"></circle>
-    <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path>
-  </svg>
-);
-
-const Search = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="11" cy="11" r="8"></circle>
-    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-  </svg>
-);
-
-const MessageSquare = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-  </svg>
-);
-
-const Award = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="8" r="7"></circle>
-    <polyline points="8.21 13.89 7 23 12 17 17 23 15.79 13.88"></polyline>
-  </svg>
-);
