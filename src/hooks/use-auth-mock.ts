@@ -12,7 +12,7 @@ const PROFILES_STORAGE_KEY = 'mockUserProfiles';
 const ACTIVE_USER_KEY_STORAGE_KEY = 'activeMockUserKey';
 
 interface StoredAuthData {
-  isAuthenticated: boolean; // May become redundant if we solely rely on activeUserKey for session state
+  isAuthenticated: boolean; 
   userType: UserType;
   username: string | null; 
   userId: string | null;
@@ -110,11 +110,44 @@ export const useAuthMock = (): AuthState => {
           setDesignerBudgetMax(activeUserProfile.designerBudgetMax ?? null);
           setDesignerEmail(activeUserProfile.designerEmail || null);
         }
+      } else {
+        // Reset to a logged-out state if no active user or profile mismatch
+        setIsAuthenticated(false);
+        setUserType(null);
+        setUsername(null);
+        setUserId(null);
+        setProfileSetupComplete(false);
+        setDisplayName(null);
+        setCompanyName(null);
+        setDesignerHeadline(null);
+        setDesignerAvatarUrl(null);
+        setDesignerSkills(null);
+        setDesignerBio(null);
+        setDesignerPortfolioLinks(null);
+        setDesignerBudgetMin(null);
+        setDesignerBudgetMax(null);
+        setDesignerEmail(null);
       }
     } catch (error) {
       console.error("Failed to load auth state from localStorage", error);
       localStorage.removeItem(PROFILES_STORAGE_KEY);
       localStorage.removeItem(ACTIVE_USER_KEY_STORAGE_KEY);
+      // Reset to a logged-out state on error
+      setIsAuthenticated(false);
+      setUserType(null);
+      setUsername(null);
+      setUserId(null);
+      setProfileSetupComplete(false);
+      setDisplayName(null);
+      setCompanyName(null);
+      setDesignerHeadline(null);
+      setDesignerAvatarUrl(null);
+      setDesignerSkills(null);
+      setDesignerBio(null);
+      setDesignerPortfolioLinks(null);
+      setDesignerBudgetMin(null);
+      setDesignerBudgetMax(null);
+      setDesignerEmail(null);
     }
     setIsLoading(false);
   }, []);
@@ -195,7 +228,7 @@ export const useAuthMock = (): AuthState => {
         designerEmail: type === 'designer' ? desEmail : undefined,
       };
       const newAllProfiles = { ...allProfiles, [userKey]: updatedProfileData };
-      setAllProfiles(newAllProfiles); // Update state
+      setAllProfiles(newAllProfiles); 
       localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(newAllProfiles));
       localStorage.setItem(ACTIVE_USER_KEY_STORAGE_KEY, userKey);
     } catch (error) {
@@ -253,7 +286,7 @@ export const useAuthMock = (): AuthState => {
       };
 
       const newAllProfiles = { ...allProfiles, [userKey]: updatedProfile };
-      setAllProfiles(newAllProfiles); // Update state
+      setAllProfiles(newAllProfiles); 
       localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(newAllProfiles));
       
       setDisplayName(profileData.name);
@@ -284,7 +317,7 @@ export const useAuthMock = (): AuthState => {
             designerEmail: profileData.email || undefined,
         };
         const newAllProfiles = { ...allProfiles, [userKey]: updatedProfile };
-        setAllProfiles(newAllProfiles); // Update state
+        setAllProfiles(newAllProfiles); 
         localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(newAllProfiles));
 
         setDisplayName(profileData.name);
@@ -324,4 +357,3 @@ export const useAuthMock = (): AuthState => {
     saveDesignerProfile,
   };
 };
-
