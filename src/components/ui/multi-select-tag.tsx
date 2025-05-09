@@ -4,9 +4,9 @@ import * as React from "react";
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Command, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
-import { Command as CommandPrimitive, useCommandState } from "cmdk";
+import { Command as CommandPrimitive } from "cmdk"; // Removed useCommandState as it's not used
 import { cn } from "@/lib/utils";
-import type { Tag } from "@/lib/types"; // Assuming Tag type is defined here
+import type { Tag } from "@/lib/types";
 
 interface MultiSelectProps {
   value: Tag[];
@@ -56,13 +56,17 @@ export function MultiSelect({
     },
     [handleUnselect, selected]
   );
-  
-  const selectables = options.filter(
-    (option) => !selected.some((s) => s.id === option.id)
-  );
+
+  const selectables = React.useMemo(() => {
+    return options.filter(
+      (option) => !selected.some((s) => s.id === option.id)
+    );
+  }, [options, selected]);
 
   // Custom filtering logic for suggestions
-  const [filteredOptions, setFilteredOptions] = React.useState(selectables);
+  // Initialize with the first 5 selectables or all if less than 5.
+  const [filteredOptions, setFilteredOptions] = React.useState<Tag[]>(() => selectables.slice(0, 5));
+
 
   React.useEffect(() => {
     if (inputValue === "") {
@@ -71,11 +75,11 @@ export function MultiSelect({
     }
     const lowercasedInput = inputValue.toLowerCase();
     setFilteredOptions(
-      selectables.filter(option => 
+      selectables.filter(option =>
         option.text.toLowerCase().includes(lowercasedInput)
       ).slice(0, 5) // Limit suggestions
     );
-  }, [inputValue, selectables, options]);
+  }, [inputValue, selectables]);
 
 
   return (
