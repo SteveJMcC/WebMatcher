@@ -23,7 +23,7 @@ import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palett
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag } from "@/lib/types";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 const allSkillsOptions: Tag[] = [
   { id: "react", text: "React" }, { id: "nextjs", text: "Next.js" }, { id: "vue", text: "Vue.js" },
@@ -59,18 +59,20 @@ export function DesignerProfileForm() {
   const { markProfileComplete, username, userId, profileSetupComplete } = useAuthMock();
   const router = useRouter();
 
-  // For a real app, you'd fetch existing profile data if userId exists and profileSetupComplete is true
-  const initialData = profileSetupComplete ? mockProfileData : { // Use mock data if updating, or empty for new
-      name: username || "", // Pre-fill with signup username if new
-      headline: "",
-      avatarUrl: "",
-      skills: [],
-      bio: "",
-      portfolioLinks: [{ title: "", url: "" }],
-      budgetMin: 0,
-      budgetMax: 0,
-      email: "", // Pre-fill from auth if available/desired
-  };
+  const initialData = React.useMemo(() => {
+    return profileSetupComplete ? mockProfileData : {
+        name: username || "",
+        headline: "",
+        avatarUrl: "",
+        skills: [],
+        bio: "",
+        portfolioLinks: [{ title: "", url: "" }],
+        budgetMin: 0,
+        budgetMax: 0,
+        email: "",
+    };
+  }, [profileSetupComplete, username]);
+
 
   const [selectedSkills, setSelectedSkills] = useState<Tag[]>(initialData.skills || []);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(initialData.avatarUrl);
@@ -82,11 +84,10 @@ export function DesignerProfileForm() {
   });
   
   useEffect(() => {
-    // Reset form if initial data changes (e.g. user logs in/out)
     form.reset(initialData);
     setSelectedSkills(initialData.skills || []);
     setAvatarPreview(initialData.avatarUrl);
-  }, [username, profileSetupComplete, form, initialData]);
+  }, [form, initialData]);
 
 
   const { fields, append, remove } = useFieldArray({
@@ -99,14 +100,16 @@ export function DesignerProfileForm() {
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log("Designer profile data: ", {userId, ...data});
     
-    markProfileComplete();
+    markProfileComplete(); // Corrected from markProfileComplete('designer');
 
     toast({
       title: profileSetupComplete ? "Profile Updated!" : "Profile Set Up!",
       description: `Your designer profile has been successfully ${profileSetupComplete ? 'updated' : 'created'}.`,
       variant: "default",
     });
-    router.push("/designer-dashboard");
+    
+    const redirectUrl = new URLSearchParams(window.location.search).get('redirect');
+    router.push(redirectUrl || "/designer-dashboard");
   }
 
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
