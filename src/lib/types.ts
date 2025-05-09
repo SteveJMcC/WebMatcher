@@ -3,7 +3,7 @@ export interface JobPostingCore {
   description: string;
   budgetMin: number;
   budgetMax: number;
-  skillsRequired: string[];
+  skillsRequired: Tag[]; // Changed from string[] to Tag[]
   limitContacts?: number;
 }
 
@@ -19,18 +19,27 @@ export interface DesignerProfileCore {
   name: string;
   headline: string;
   avatarUrl?: string;
-  skills: string[];
+  skills: Tag[]; // Changed from string[] to Tag[]
   bio: string;
   portfolioLinks: { title: string; url: string }[];
   budgetMin: number;
   budgetMax: number;
+  email?: string;
 }
 
 export interface DesignerProfile extends DesignerProfileCore {
-  id: string; // Corresponds to user ID of the designer
+  id: string; 
   userId: string;
-  tokens: number; // Number of tokens the designer has
-  email?: string; // Optional email for contact
+  tokens: number; 
+  joinedDate: string; 
+}
+
+export interface UserProfile {
+  id: string; // Corresponds to user ID of the client/user
+  userId: string;
+  name: string;
+  companyName?: string;
+  email?: string; // from auth
   joinedDate: string; // ISO date string
 }
 
@@ -44,30 +53,27 @@ export interface Bid extends BidCore {
   id: string;
   jobId: string;
   designerId: string;
-  designerName: string; // For easier display
-  designerAvatar?: string; // For easier display
-  submittedAt: string; // ISO date string
+  designerName: string; 
+  designerAvatar?: string; 
+  submittedAt: string; 
   aiSummary?: string;
   rank?: number; 
 }
 
-// For AI Ranker Input (matching src/ai/flows/summarize-bids.ts)
 export interface BidForSummary {
-  designerProfile: string; // A string summary of the designer's profile for the AI
+  designerProfile: string; 
   bidAmount: number;
   experienceSummary: string;
   coverLetter: string;
 }
 
-// For AI Ranker Input (matching src/ai/flows/summarize-bids.ts SummarizeBidsInput)
 export interface SummarizeBidsServiceInput {
   jobDescription: string;
   bids: BidForSummary[];
 }
 
-// For AI Ranker Output (matching src/ai/flows/summarize-bids.ts SummarizeBidsOutput items)
 export interface SummarizedBidOutput {
-  designerProfile: string; // The same string passed in, used for matching.
+  designerProfile: string; 
   summary: string;
 }
 

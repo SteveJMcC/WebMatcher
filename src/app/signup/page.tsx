@@ -25,8 +25,13 @@ export default function SignupPage() {
       return;
     }
     setError('');
-    login(userType, username.trim());
-    router.push(userType === 'designer' ? '/designer/setup-profile' : '/user-dashboard');
+    login(userType, username.trim()); // This sets profileSetupComplete to false
+    
+    if (userType === 'designer') {
+      router.push('/designer/setup-profile');
+    } else {
+      router.push('/user/setup-profile');
+    }
   };
 
   return (
@@ -55,7 +60,7 @@ export default function SignupPage() {
             <div className="space-y-2">
               <Label>Sign up as</Label>
               <RadioGroup
-                defaultValue="user"
+                value={userType}
                 onValueChange={(value: 'user' | 'designer') => setUserType(value)}
                 className="flex space-x-4"
               >

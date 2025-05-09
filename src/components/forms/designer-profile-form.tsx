@@ -17,11 +17,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DesignerProfileSchema, type DesignerProfileFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useRouter } from "next/navigation";
 import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palette, Mail } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag } from "@/lib/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const allSkillsOptions: Tag[] = [
   { id: "react", text: "React" }, { id: "nextjs", text: "Next.js" }, { id: "vue", text: "Vue.js" },
@@ -35,8 +37,8 @@ const allSkillsOptions: Tag[] = [
 ];
 
 
-// Mock existing profile data
-const mockProfile: DesignerProfileFormData = {
+// Mock existing profile data - can be used for updates. For new setup, fields would be empty.
+const mockProfileData: Partial<DesignerProfileFormData> = {
   name: "Alex Johnson",
   headline: "Creative UI/UX Designer specializing in SaaS applications.",
   avatarUrl: "https://picsum.photos/seed/alexj/200/200",
@@ -54,14 +56,12 @@ const mockProfile: DesignerProfileFormData = {
 
 export function DesignerProfileForm() {
   const { toast } = useToast();
-  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(mockProfile.skills || []);
-  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(mockProfile.avatarUrl);
+  const { markProfileComplete, username, userId, profileSetupComplete } = useAuthMock();
+  const router = useRouter();
 
-
-  const form = useForm<DesignerProfileFormData>({
-    resolver: zodResolver(DesignerProfileSchema),
-    defaultValues: mockProfile || { // Use mockProfile or empty defaults
-      name: "",
+  // For a real app, you'd fetch existing profile data if userId exists and profileSetupComplete is true
+  const initialData = profileSetupComplete ? mockProfileData : { // Use mock data if updating, or empty for new
+      name: username || "", // Pre-fill with signup username if new
       headline: "",
       avatarUrl: "",
       skills: [],
@@ -69,9 +69,25 @@ export function DesignerProfileForm() {
       portfolioLinks: [{ title: "", url: "" }],
       budgetMin: 0,
       budgetMax: 0,
-      email: "",
-    },
+      email: "", // Pre-fill from auth if available/desired
+  };
+
+  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(initialData.skills || []);
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(initialData.avatarUrl);
+
+
+  const form = useForm<DesignerProfileFormData>({
+    resolver: zodResolver(DesignerProfileSchema),
+    defaultValues: initialData,
   });
+  
+  useEffect(() => {
+    // Reset form if initial data changes (e.g. user logs in/out)
+    form.reset(initialData);
+    setSelectedSkills(initialData.skills || []);
+    setAvatarPreview(initialData.avatarUrl);
+  }, [username, profileSetupComplete, form, initialData]);
+
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -81,12 +97,16 @@ export function DesignerProfileForm() {
   async function onSubmit(data: DesignerProfileFormData) {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log(data);
+    console.log("Designer profile data: ", {userId, ...data});
+    
+    markProfileComplete();
+
     toast({
-      title: "Profile Updated!",
-      description: "Your designer profile has been successfully updated.",
+      title: profileSetupComplete ? "Profile Updated!" : "Profile Set Up!",
+      description: `Your designer profile has been successfully ${profileSetupComplete ? 'updated' : 'created'}.`,
       variant: "default",
     });
+    router.push("/designer-dashboard");
   }
 
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,9 +115,7 @@ export function DesignerProfileForm() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string);
-        // For actual upload, you'd set this to a URL after uploading to a server
-        // For now, we'll just use the preview. If you have a URL field for avatar, update it here.
-        // form.setValue('avatarUrl', reader.result as string); // This would be if avatarUrl was the base64 or server URL
+        form.setValue('avatarUrl', reader.result as string); // Or store base64 / handle upload and set URL
       };
       reader.readAsDataURL(file);
     }
@@ -108,7 +126,7 @@ export function DesignerProfileForm() {
     <Card className="w-full max-w-3xl mx-auto shadow-2xl">
       <CardHeader className="text-center">
         <UserCircle className="mx-auto h-12 w-12 text-primary mb-2" />
-        <CardTitle className="text-3xl font-bold">Set Up Your Designer Profile</CardTitle>
+        <CardTitle className="text-3xl font-bold">{profileSetupComplete ? "Update Your Designer Profile" : "Set Up Your Designer Profile"}</CardTitle>
         <CardDescription>Showcase your skills and attract clients.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -140,7 +158,6 @@ export function DesignerProfileForm() {
                        />
                     </FormControl>
                     <FormMessage />
-                    {/* Basic file input for demo, consider a proper upload component */}
                     <Input type="file" accept="image/*" onChange={handleAvatarChange} className="text-sm"/>
                     <FormDescription className="text-xs">Enter URL or upload an image (max 2MB).</FormDescription>
                   </FormItem>
@@ -293,7 +310,7 @@ export function DesignerProfileForm() {
                     <div className="relative">
                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                        <FormControl>
-                        <Input type="number" placeholder="500" {...field} className="pl-10 text-base py-6" />
+                        <Input type="number" placeholder="500" {...field} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
                       </FormControl>
                     </div>
                     <FormDescription>Your preferred minimum project budget in USD.</FormDescription>
@@ -310,7 +327,7 @@ export function DesignerProfileForm() {
                      <div className="relative">
                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                        <FormControl>
-                        <Input type="number" placeholder="10000" {...field} className="pl-10 text-base py-6" />
+                        <Input type="number" placeholder="10000" {...field} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
                       </FormControl>
                     </div>
                     <FormDescription>Your preferred maximum project budget in USD (or leave blank for no max).</FormDescription>
@@ -322,7 +339,7 @@ export function DesignerProfileForm() {
 
 
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-lg py-6" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Saving Profile..." : "Save Profile"}
+              {form.formState.isSubmitting ? "Saving Profile..." : (profileSetupComplete ? "Update Profile" : "Save Profile")}
             </Button>
           </form>
         </Form>

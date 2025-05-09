@@ -1,14 +1,22 @@
+"use client";
+
 import { DesignerJobList } from "@/components/features/designer-job-list";
 import type { JobPosting } from "@/lib/types";
-import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { LayoutDashboard, Search, Settings } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Terminal } from "lucide-react";
 
-// Mock data fetching function
+
+// Mock data fetching functions
 async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
-  // In a real app, fetch jobs matched to the designer's profile
+  console.log("Fetching matched jobs for designer ID:", designerId);
   return [
     {
       id: "job-match-1",
@@ -36,6 +44,7 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
 }
 
 async function getGeneralJobs(): Promise<JobPosting[]> {
+    console.log("Fetching general jobs");
     return [
      {
       id: "job-gen-1",
@@ -51,23 +60,87 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
   ];
 }
 
+// export const metadata: Metadata = {
+//   title: "Designer Dashboard - My Opportunities | WebConnect",
+//   description: "Find new job opportunities, manage your applications, and update your profile on WebConnect.",
+// };
 
-export const metadata: Metadata = {
-  title: "Designer Dashboard - My Opportunities | WebConnect",
-  description: "Find new job opportunities, manage your applications, and update your profile on WebConnect.",
-};
+export default function DesignerDashboardPage() {
+  const { isAuthenticated, userType, userId: authDesignerId, isLoading: authIsLoading, profileSetupComplete } = useAuthMock();
+  const router = useRouter();
 
-export default async function DesignerDashboardPage() {
-  // In a real app, get designerId from auth state
-  const mockDesignerId = "mock-designer-123"; 
-  const matchedJobs = await getMatchedJobs(mockDesignerId);
-  const generalJobs = await getGeneralJobs(); // Could be jobs from followed categories or general pool
+  const [matchedJobs, setMatchedJobs] = useState<JobPosting[]>([]);
+  const [generalJobs, setGeneralJobs] = useState<JobPosting[]>([]);
+  const [pageLoading, setPageLoading] = useState(true);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+        document.title = "Designer Dashboard - My Opportunities | WebConnect";
+    }
+
+    if (!authIsLoading) {
+      if (!isAuthenticated) {
+        router.push('/login?redirect=/designer-dashboard');
+      } else if (userType !== 'designer') {
+        router.push('/'); // Not a designer, redirect
+      } else if (!profileSetupComplete) {
+        router.push('/designer/setup-profile?redirect=/designer-dashboard');
+      }
+    }
+  }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router]);
+
+  useEffect(() => {
+    if (isAuthenticated && userType === 'designer' && profileSetupComplete && authDesignerId) {
+      setPageLoading(true);
+      Promise.all([
+        getMatchedJobs(authDesignerId),
+        getGeneralJobs()
+      ]).then(([matched, general]) => {
+        setMatchedJobs(matched);
+        setGeneralJobs(general);
+        setPageLoading(false);
+      }).catch(error => {
+        console.error("Failed to fetch designer jobs:", error);
+        setPageLoading(false);
+      });
+    } else if (!authIsLoading) {
+        setPageLoading(false);
+    }
+  }, [isAuthenticated, userType, profileSetupComplete, authDesignerId, authIsLoading]);
 
   const mockDesignerStats = {
     profileViews: 156,
     activeApplications: 3,
-    tokensRemaining: 25,
+    tokensRemaining: 25, // This would come from the designer's profile data in a real app
   };
+
+  if (authIsLoading) {
+    return (
+       <div className="container mx-auto px-4 py-12 space-y-10">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
+                <Skeleton className="h-16 w-3/5" />
+                <div className="flex gap-2">
+                    <Skeleton className="h-10 w-32" />
+                    <Skeleton className="h-10 w-36" />
+                </div>
+            </div>
+            <div className="grid md:grid-cols-3 gap-6 mb-10">
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+                <Skeleton className="h-32 w-full" />
+            </div>
+            <Skeleton className="h-64 w-full" />
+        </div>
+    );
+  }
+
+  if (!isAuthenticated || userType !== 'designer' || !profileSetupComplete) {
+    return (
+      <div className="container mx-auto px-4 py-12 text-center">
+        <p>Verifying access or redirecting...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -92,7 +165,6 @@ export default async function DesignerDashboardPage() {
         </div>
       </div>
 
-    {/* Stats Overview */}
     <div className="grid md:grid-cols-3 gap-6 mb-10">
         <Card className="shadow-md">
             <CardHeader>
@@ -121,10 +193,23 @@ export default async function DesignerDashboardPage() {
         </Card>
     </div>
       
-      <div className="space-y-12">
-        <DesignerJobList jobs={matchedJobs} title="Jobs Matched For You" emptyStateMessage="No jobs specifically matched to your profile yet. Broaden your skills or check general listings." />
-        <DesignerJobList jobs={generalJobs} title="Recently Posted Jobs" />
-      </div>
+    {pageLoading ? (
+        <div className="space-y-12">
+            <div>
+                <Skeleton className="h-8 w-1/3 mb-6" />
+                <Skeleton className="h-48 w-full" />
+            </div>
+            <div>
+                <Skeleton className="h-8 w-1/3 mb-6" />
+                <Skeleton className="h-48 w-full" />
+            </div>
+        </div>
+    ) : (
+         <div className="space-y-12">
+            <DesignerJobList jobs={matchedJobs} title="Jobs Matched For You" emptyStateMessage="No jobs specifically matched to your profile yet. Broaden your skills or check general listings." />
+            <DesignerJobList jobs={generalJobs} title="Recently Posted Jobs" />
+        </div>
+    )}
     </div>
   );
 }

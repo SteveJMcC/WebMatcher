@@ -30,5 +30,12 @@ export const DesignerProfileSchema = z.object({
   path: ["budgetMax"],
 });
 
+export const UserProfileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters.").max(50, "Name must be at most 50 characters."),
+  companyName: z.string().max(100, "Company name must be at most 100 characters.").optional().or(z.literal('')),
+  // email field is typically part of auth, not editable profile details here unless it's a *public* contact email
+});
+
 export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
 export type DesignerProfileFormData = z.infer<typeof DesignerProfileSchema>;
+export type UserProfileFormData = z.infer<typeof UserProfileSchema>;
