@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,9 +20,10 @@ import { JobPostingSchema, type JobPostingFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, DollarSign, Users, TagIcon } from "lucide-react";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
-import type { Tag } from "@/lib/types";
+import type { Tag, JobPosting } from "@/lib/types";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthMock } from "@/hooks/use-auth-mock";
 
 const allSkillsOptions: Tag[] = [
   { id: "react", text: "React" },
@@ -54,6 +56,7 @@ const allSkillsOptions: Tag[] = [
 export function JobPostingForm() {
   const { toast } = useToast();
   const router = useRouter();
+  const { userId: authUserId } = useAuthMock();
   const [selectedSkills, setSelectedSkills] = useState<Tag[]>([]);
 
   const form = useForm<JobPostingFormData>({
@@ -68,17 +71,51 @@ export function JobPostingForm() {
   });
 
  async function onSubmit(data: JobPostingFormData) {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log(data);
-    toast({
-      title: "Job Posted Successfully!",
-      description: `Your job "${data.title}" has been posted.`,
-      variant: "default",
-    });
-    form.reset();
-    setSelectedSkills([]); // Reset skills in UI
-    router.push('/user-dashboard'); // Redirect to user dashboard
+    if (!authUserId) {
+      toast({
+        title: "Error",
+        description: "User not authenticated. Cannot post job.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const newJob: JobPosting = {
+      id: `job-${Date.now()}`,
+      userId: authUserId,
+      title: data.title,
+      description: data.description,
+      budget: data.budget,
+      skillsRequired: data.skillsRequired,
+      limitContacts: data.limitContacts,
+      createdAt: new Date().toISOString(),
+      status: "open",
+      bidsCount: 0,
+    };
+
+    try {
+      const storageKey = `userJobs_${authUserId}`;
+      const existingJobsString = localStorage.getItem(storageKey);
+      const existingJobs: JobPosting[] = existingJobsString ? JSON.parse(existingJobsString) : [];
+      existingJobs.push(newJob);
+      localStorage.setItem(storageKey, JSON.stringify(existingJobs));
+      
+      toast({
+        title: "Job Posted Successfully!",
+        description: `Your job "${newJob.title}" has been posted.`,
+        variant: "default",
+      });
+      form.reset();
+      setSelectedSkills([]); 
+      router.push('/user-dashboard');
+    } catch (error) {
+      console.error("Failed to save job to localStorage", error);
+      toast({
+        title: "Storage Error",
+        description: "Could not save job posting. Please try again.",
+        variant: "destructive",
+      });
+    }
   }
 
   return (
@@ -160,7 +197,7 @@ export function JobPostingForm() {
                         value={selectedSkills}
                         onChange={(newSkills) => {
                           setSelectedSkills(newSkills);
-                          field.onChange(newSkills); // Update RHF state
+                          field.onChange(newSkills); 
                         }}
                         options={allSkillsOptions}
                         placeholder="Add required skills..."

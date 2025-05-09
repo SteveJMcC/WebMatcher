@@ -1,3 +1,4 @@
+
 "use client";
 
 import { UserJobList } from "@/components/features/user-job-list";
@@ -9,46 +10,26 @@ import { useAuthMock } from "@/hooks/use-auth-mock";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
 
-
-// Mock data fetching function - keep async for potential future real API
 async function getUserJobs(userId: string): Promise<JobPosting[]> {
-  // In a real app, fetch jobs for the logged-in user
-  console.log("Fetching jobs for user ID:", userId); // For debugging
-  return [
-    {
-      id: "job-1",
-      userId: userId, // Use actual userId
-      title: "E-commerce Platform Redesign",
-      description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends.",
-      budget: 3500, 
-      skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
-      limitContacts: 15,
-      createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
-      status: "open",
-      bidsCount: 5,
-    },
-    {
-      id: "job-2",
-      userId: userId,
-      title: "Mobile App Splash Screens",
-      description: "Need a set of creative and engaging splash screens for our new mobile application. Theme is futuristic and minimalist.",
-      budget: 550, 
-      skillsRequired: [{id:"graphic-design", text:"Graphic Design"}, {id:"illustration", text:"Illustration"}, {id:"mobile-app-design", text:"Mobile App Design"}],
-      createdAt: new Date('2023-09-15T14:30:00.000Z').toISOString(),
-      status: "in-progress",
-      bidsCount: 3,
-    },
-  ];
+  console.log("Fetching jobs for user ID:", userId);
+  if (typeof window !== 'undefined') {
+    try {
+      const storageKey = `userJobs_${userId}`;
+      const jobsString = localStorage.getItem(storageKey);
+      if (jobsString) {
+        const parsedJobs = JSON.parse(jobsString) as JobPosting[];
+        // Sort jobs by creation date, newest first
+        return parsedJobs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      }
+    } catch (error) {
+      console.error("Failed to get user jobs from localStorage", error);
+      return []; // Return empty array on error
+    }
+  }
+  return []; // Return empty array if localStorage is not available or no jobs found
 }
 
-// Metadata for client components
-// export const metadata: Metadata = {
-//   title: "My Jobs - Client Dashboard | WebConnect",
-//   description: "Manage your job postings and view applications on WebConnect.",
-// };
 
 export default function UserDashboardPage() {
   const { isAuthenticated, userType, userId: authUserId, isLoading: authIsLoading, profileSetupComplete } = useAuthMock();
@@ -65,7 +46,7 @@ export default function UserDashboardPage() {
       if (!isAuthenticated) {
         router.push('/login?redirect=/user-dashboard');
       } else if (userType !== 'user') {
-        router.push('/'); // Or designer dashboard if that's more appropriate
+        router.push('/'); 
       } else if (!profileSetupComplete) {
         router.push('/user/setup-profile?redirect=/user-dashboard');
       }
@@ -73,7 +54,6 @@ export default function UserDashboardPage() {
   }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router]);
 
   useEffect(() => {
-    // Fetch data only if authorized and profile is complete
     if (isAuthenticated && userType === 'user' && profileSetupComplete && authUserId) {
       setPageLoading(true);
       getUserJobs(authUserId).then(data => {
@@ -82,13 +62,11 @@ export default function UserDashboardPage() {
       }).catch(error => {
         console.error("Failed to fetch user jobs:", error);
         setPageLoading(false);
-        // Optionally, show a toast or error message
       });
     } else if (!authIsLoading) {
-        // If auth checks fail and not already loading auth state, stop page loading.
         setPageLoading(false);
     }
-  }, [isAuthenticated, userType, profileSetupComplete, authUserId, authIsLoading]); // authIsLoading dependency ensures we wait for auth state
+  }, [isAuthenticated, userType, profileSetupComplete, authUserId, authIsLoading]);
 
   if (authIsLoading) {
     return (
