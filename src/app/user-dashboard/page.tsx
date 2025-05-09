@@ -23,7 +23,7 @@ async function getUserJobs(userId: string): Promise<JobPosting[]> {
       userId: userId, // Use actual userId
       title: "E-commerce Platform Redesign",
       description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends.",
-      budget: 3500, // Changed from budgetMin/budgetMax
+      budget: 3500, 
       skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
       limitContacts: 15,
       createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
@@ -35,7 +35,7 @@ async function getUserJobs(userId: string): Promise<JobPosting[]> {
       userId: userId,
       title: "Mobile App Splash Screens",
       description: "Need a set of creative and engaging splash screens for our new mobile application. Theme is futuristic and minimalist.",
-      budget: 550, // Changed from budgetMin/budgetMax
+      budget: 550, 
       skillsRequired: [{id:"graphic-design", text:"Graphic Design"}, {id:"illustration", text:"Illustration"}, {id:"mobile-app-design", text:"Mobile App Design"}],
       createdAt: new Date('2023-09-15T14:30:00.000Z').toISOString(),
       status: "in-progress",
@@ -46,7 +46,7 @@ async function getUserJobs(userId: string): Promise<JobPosting[]> {
 
 // Metadata for client components
 // export const metadata: Metadata = {
-//   title: "My Jobs - User Dashboard | WebConnect",
+//   title: "My Jobs - Client Dashboard | WebConnect",
 //   description: "Manage your job postings and view applications on WebConnect.",
 // };
 
@@ -58,7 +58,7 @@ export default function UserDashboardPage() {
 
   useEffect(() => {
      if (typeof document !== 'undefined') {
-        document.title = "My Jobs - User Dashboard | WebConnect";
+        document.title = "My Jobs - Client Dashboard | WebConnect";
     }
 
     if (!authIsLoading) {
@@ -115,7 +115,7 @@ export default function UserDashboardPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
         <div className="mb-4 sm:mb-0">
           <h1 className="text-4xl font-bold tracking-tight text-primary flex items-center">
-            <LayoutDashboard className="mr-3 h-10 w-10" /> User Dashboard
+            <LayoutDashboard className="mr-3 h-10 w-10" /> Client Dashboard
           </h1>
           <p className="text-lg text-muted-foreground mt-1">Manage your job postings and view designer bids.</p>
         </div>

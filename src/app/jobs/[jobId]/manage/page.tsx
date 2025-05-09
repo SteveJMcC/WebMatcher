@@ -14,7 +14,7 @@ async function getJobDetails(jobId: string): Promise<JobPosting | null> {
       userId: "mock-user-123",
       title: "E-commerce Platform Redesign",
       description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends. The project involves creating a new visual identity, a full set of responsive page designs (homepage, product listings, product details, cart, checkout), and a style guide. We expect collaboration with our development team to ensure design feasibility. Please include examples of similar e-commerce projects in your application.",
-      budget: 3500, // Changed from budgetMin/budgetMax
+      budget: 3500, 
       skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
       limitContacts: 15,
       createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
@@ -95,7 +95,7 @@ export default async function ManageJobPage({ params }: PageProps) {
         <h1 className="text-3xl font-bold mb-4">Job Not Found</h1>
         <p className="text-muted-foreground">The job you're looking for doesn't exist or couldn't be loaded.</p>
         <Button asChild className="mt-6">
-            <Link href="/user-dashboard">Back to Dashboard</Link>
+            <Link href="/user-dashboard">Back to Client Dashboard</Link>
         </Button>
       </div>
     );
