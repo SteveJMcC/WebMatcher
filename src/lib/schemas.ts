@@ -1,0 +1,34 @@
+import { z } from 'zod';
+
+export const JobPostingSchema = z.object({
+  title: z.string().min(5, "Title must be at least 5 characters long.").max(100, "Title must be at most 100 characters."),
+  description: z.string().min(20, "Description must be at least 20 characters long.").max(2000, "Description must be at most 2000 characters."),
+  budgetMin: z.coerce.number().min(0, "Minimum budget must be a positive number."),
+  budgetMax: z.coerce.number().min(0, "Maximum budget must be a positive number."),
+  skillsRequired: z.array(z.object({ id: z.string(), text: z.string() })).min(1, "At least one skill is required."),
+  limitContacts: z.coerce.number().int().min(1, "Limit must be at least 1").max(50, "Limit cannot exceed 50").optional(),
+}).refine(data => data.budgetMax >= data.budgetMin, {
+  message: "Maximum budget cannot be less than minimum budget.",
+  path: ["budgetMax"],
+});
+
+export const DesignerProfileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters.").max(50, "Name must be at most 50 characters."),
+  headline: z.string().min(10, "Headline must be at least 10 characters.").max(150, "Headline must be at most 150 characters."),
+  avatarUrl: z.string().url("Avatar URL must be a valid URL.").optional().or(z.literal('')),
+  skills: z.array(z.object({ id: z.string(), text: z.string() })).min(1, "At least one skill is required."),
+  bio: z.string().min(50, "Bio must be at least 50 characters long.").max(2000, "Bio must be at most 2000 characters."),
+  portfolioLinks: z.array(z.object({
+    title: z.string().min(1, "Link title cannot be empty.").max(50, "Link title too long."),
+    url: z.string().url("Link URL must be a valid URL."),
+  })).max(5, "You can add up to 5 portfolio links.").optional(),
+  budgetMin: z.coerce.number().min(0, "Minimum budget must be a positive number."),
+  budgetMax: z.coerce.number().min(0, "Maximum budget must be a positive number."),
+  email: z.string().email("Invalid email address.").optional().or(z.literal('')),
+}).refine(data => data.budgetMax >= data.budgetMin, {
+  message: "Maximum budget cannot be less than minimum budget.",
+  path: ["budgetMax"],
+});
+
+export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
+export type DesignerProfileFormData = z.infer<typeof DesignerProfileSchema>;
