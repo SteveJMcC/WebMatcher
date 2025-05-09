@@ -3,9 +3,10 @@
 import type { PricingPlan } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Sparkles, Star } from "lucide-react";
+import { CheckCircle, Sparkles, Star, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge"; // Added import for Badge
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 const plans: PricingPlan[] = [
   {
@@ -92,13 +93,16 @@ export function PricingPlans() {
               </CardContent>
               <CardFooter>
                 <Button
+                  asChild
                   size="lg"
                   className={cn(
                     "w-full text-lg py-6",
                     plan.isPopular ? "bg-accent hover:bg-accent/90 text-accent-foreground" : "bg-primary hover:bg-primary/90"
                   )}
                 >
-                  Purchase Tokens
+                  <Link href={`/payment?planId=${plan.id}&planName=${encodeURIComponent(plan.name)}&price=${plan.price}&tokens=${plan.tokens}`}>
+                    <CreditCard className="mr-2 h-5 w-5" /> Purchase Tokens
+                  </Link>
                 </Button>
               </CardFooter>
             </Card>
