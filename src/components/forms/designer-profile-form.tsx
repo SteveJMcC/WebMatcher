@@ -38,7 +38,7 @@ const allSkillsOptions: Tag[] = [
 
 
 // Mock existing profile data - can be used for updates. For new setup, fields would be empty.
-const mockProfileData: Partial<DesignerProfileFormData> = {
+const mockProfileData: DesignerProfileFormData = {
   name: "Alex Johnson",
   headline: "Creative UI/UX Designer specializing in SaaS applications.",
   avatarUrl: "https://picsum.photos/seed/alexj/200/200",
@@ -53,41 +53,55 @@ const mockProfileData: Partial<DesignerProfileFormData> = {
   email: "alex.johnson@example.com"
 };
 
+// Stable reference for an empty profile to avoid re-creating objects/arrays in useMemo
+const STABLE_EMPTY_PROFILE_VALUES: DesignerProfileFormData = {
+  name: "",
+  headline: "",
+  avatarUrl: "",
+  skills: [],
+  bio: "",
+  portfolioLinks: [{ title: "", url: "" }],
+  budgetMin: 0,
+  budgetMax: 0,
+  email: "",
+};
+
 
 export function DesignerProfileForm() {
   const { toast } = useToast();
   const { markProfileComplete, username, userId, profileSetupComplete } = useAuthMock();
   const router = useRouter();
 
-  const initialData = React.useMemo(() => {
-    return profileSetupComplete ? mockProfileData : {
-        name: username || "",
-        headline: "",
-        avatarUrl: "",
-        skills: [],
-        bio: "",
-        portfolioLinks: [{ title: "", url: "" }],
-        budgetMin: 0,
-        budgetMax: 0,
-        email: "",
+  const initialFormValues = React.useMemo(() => {
+    if (profileSetupComplete) {
+      return mockProfileData; // This is a stable reference if mockProfileData is a const
+    }
+    // For new profile setup, use the stable empty object but fill in username
+    return {
+      ...STABLE_EMPTY_PROFILE_VALUES,
+      name: username || STABLE_EMPTY_PROFILE_VALUES.name,
+      // skills and portfolioLinks will be from STABLE_EMPTY_PROFILE_VALUES, ensuring stable references
+      // for these arrays if username hasn't changed.
     };
   }, [profileSetupComplete, username]);
 
 
-  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(initialData.skills || []);
-  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(initialData.avatarUrl);
+  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(initialFormValues.skills || []);
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(initialFormValues.avatarUrl);
 
 
   const form = useForm<DesignerProfileFormData>({
     resolver: zodResolver(DesignerProfileSchema),
-    defaultValues: initialData,
+    defaultValues: initialFormValues,
   });
   
   useEffect(() => {
-    form.reset(initialData);
-    setSelectedSkills(initialData.skills || []);
-    setAvatarPreview(initialData.avatarUrl);
-  }, [form, initialData]);
+    // This effect now runs only when initialFormValues reference *actually* changes
+    // (i.e., when profileSetupComplete or username changes), not on every render.
+    form.reset(initialFormValues);
+    setSelectedSkills(initialFormValues.skills || []);
+    setAvatarPreview(initialFormValues.avatarUrl);
+  }, [form, initialFormValues]);
 
 
   const { fields, append, remove } = useFieldArray({
@@ -100,7 +114,7 @@ export function DesignerProfileForm() {
     await new Promise(resolve => setTimeout(resolve, 1000));
     console.log("Designer profile data: ", {userId, ...data});
     
-    markProfileComplete(); // Corrected from markProfileComplete('designer');
+    markProfileComplete(); 
 
     toast({
       title: profileSetupComplete ? "Profile Updated!" : "Profile Set Up!",
@@ -118,7 +132,7 @@ export function DesignerProfileForm() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string);
-        form.setValue('avatarUrl', reader.result as string); // Or store base64 / handle upload and set URL
+        form.setValue('avatarUrl', reader.result as string); 
       };
       reader.readAsDataURL(file);
     }
@@ -154,8 +168,8 @@ export function DesignerProfileForm() {
                         placeholder="https://example.com/avatar.jpg" 
                         {...field} 
                         onChange={(e) => {
-                            field.onChange(e);
-                            setAvatarPreview(e.target.value);
+                            field.onChange(e); // RHF's onChange
+                            setAvatarPreview(e.target.value); // Update local preview
                         }}
                         className="text-base py-3"
                        />
@@ -350,3 +364,4 @@ export function DesignerProfileForm() {
     </Card>
   );
 }
+
