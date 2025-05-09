@@ -36,24 +36,6 @@ const allSkillsOptions: Tag[] = [
   { id: "illustrator", text: "Illustrator" }, { id: "user-research", text: "User Research" }, { id: "prototyping", text: "Prototyping" },
 ];
 
-
-// Mock existing profile data - can be used for updates. For new setup, fields would be empty.
-const mockProfileData: DesignerProfileFormData = {
-  name: "Alex Johnson",
-  headline: "Creative UI/UX Designer specializing in SaaS applications.",
-  avatarUrl: "https://picsum.photos/seed/alexj/200/200",
-  skills: [ {id: "ui-design", text: "UI Design"}, {id: "figma", text: "Figma"}, {id: "react", text: "React"} ],
-  bio: "With over 5 years of experience, I help businesses create intuitive and engaging digital experiences. My expertise lies in user-centered design, prototyping, and collaborating with development teams to bring ideas to life. I'm passionate about clean aesthetics and functional design.",
-  portfolioLinks: [
-    { title: "Personal Website", url: "https://alexjdesign.com" },
-    { title: "Dribbble", url: "https://dribbble.com/alexj" },
-  ],
-  budgetMin: 1000,
-  budgetMax: 5000,
-  email: "alex.johnson@example.com"
-};
-
-// Stable reference for an empty profile to avoid re-creating objects/arrays in useMemo
 const STABLE_EMPTY_PROFILE_VALUES: DesignerProfileFormData = {
   name: "",
   headline: "",
@@ -69,22 +51,42 @@ const STABLE_EMPTY_PROFILE_VALUES: DesignerProfileFormData = {
 
 export function DesignerProfileForm() {
   const { toast } = useToast();
-  const { markProfileComplete, username, userId, profileSetupComplete } = useAuthMock();
+  const auth = useAuthMock();
   const router = useRouter();
 
   const initialFormValues = React.useMemo(() => {
-    if (profileSetupComplete) {
-      // If profile is already set up, use mock data for update scenario
-      // In a real app, this would be fetched data
-      return mockProfileData; 
+    if (auth.profileSetupComplete && auth.userType === 'designer') {
+      return {
+        name: auth.displayName || auth.username || "", // Use displayName which is derived from designer's profile name
+        headline: auth.designerHeadline || "",
+        avatarUrl: auth.designerAvatarUrl || "",
+        skills: auth.designerSkills || [],
+        bio: auth.designerBio || "",
+        portfolioLinks: auth.designerPortfolioLinks && auth.designerPortfolioLinks.length > 0 ? auth.designerPortfolioLinks : [{ title: "", url: "" }],
+        budgetMin: auth.designerBudgetMin ?? 0,
+        budgetMax: auth.designerBudgetMax ?? 0,
+        email: auth.designerEmail || "",
+      };
     }
-    // For new profile setup
     return {
       ...STABLE_EMPTY_PROFILE_VALUES,
-      name: username || STABLE_EMPTY_PROFILE_VALUES.name, // Pre-fill name from auth if available
-      email: STABLE_EMPTY_PROFILE_VALUES.email, // Ensure email is initialized, e.g. from auth or empty
+      name: auth.username || STABLE_EMPTY_PROFILE_VALUES.name,
+      email: auth.designerEmail || STABLE_EMPTY_PROFILE_VALUES.email,
     };
-  }, [profileSetupComplete, username]);
+  }, [
+    auth.profileSetupComplete, 
+    auth.userType, 
+    auth.username, 
+    auth.displayName,
+    auth.designerHeadline, 
+    auth.designerAvatarUrl, 
+    auth.designerSkills, 
+    auth.designerBio, 
+    auth.designerPortfolioLinks, 
+    auth.designerBudgetMin, 
+    auth.designerBudgetMax, 
+    auth.designerEmail
+  ]);
 
 
   const [selectedSkills, setSelectedSkills] = useState<Tag[]>(initialFormValues.skills || []);
@@ -97,10 +99,9 @@ export function DesignerProfileForm() {
   });
   
   useEffect(() => {
-    // Reset form if initialFormValues change (e.g., user logs in/out or profile status changes)
     form.reset(initialFormValues);
     setSelectedSkills(initialFormValues.skills || []);
-    setAvatarPreview(initialFormValues.avatarUrl);
+    setAvatarPreview(initialFormValues.avatarUrl || "");
   }, [form, initialFormValues]);
 
 
@@ -110,15 +111,14 @@ export function DesignerProfileForm() {
   });
 
   async function onSubmit(data: DesignerProfileFormData) {
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("Designer profile data: ", {userId, ...data});
+    console.log("Designer profile data: ", {userId: auth.userId, ...data});
     
-    markProfileComplete(); 
+    auth.saveDesignerProfile(data); 
 
     toast({
-      title: profileSetupComplete ? "Profile Updated!" : "Profile Set Up!",
-      description: `Your designer profile has been successfully ${profileSetupComplete ? 'updated' : 'created'}.`,
+      title: auth.profileSetupComplete ? "Profile Updated!" : "Profile Set Up!",
+      description: `Your designer profile has been successfully ${auth.profileSetupComplete ? 'updated' : 'created'}.`,
       variant: "default",
     });
     
@@ -131,8 +131,9 @@ export function DesignerProfileForm() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setAvatarPreview(reader.result as string);
-        form.setValue('avatarUrl', reader.result as string); 
+        const result = reader.result as string;
+        setAvatarPreview(result);
+        form.setValue('avatarUrl', result, { shouldValidate: true, shouldDirty: true }); 
       };
       reader.readAsDataURL(file);
     }
@@ -143,7 +144,7 @@ export function DesignerProfileForm() {
     <Card className="w-full max-w-3xl mx-auto shadow-2xl">
       <CardHeader className="text-center">
         <UserCircle className="mx-auto h-12 w-12 text-primary mb-2" />
-        <CardTitle className="text-3xl font-bold">{profileSetupComplete ? "Update Your Designer Profile" : "Set Up Your Designer Profile"}</CardTitle>
+        <CardTitle className="text-3xl font-bold">{auth.profileSetupComplete ? "Update Your Designer Profile" : "Set Up Your Designer Profile"}</CardTitle>
         <CardDescription>Showcase your skills and attract clients.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -153,22 +154,23 @@ export function DesignerProfileForm() {
                 <Avatar className="h-32 w-32 border-4 border-primary/20">
                   <AvatarImage src={avatarPreview || form.watch('avatarUrl')} alt={form.watch('name')} data-ai-hint="designer avatar" />
                   <AvatarFallback className="text-4xl">
-                    {form.watch('name')?.charAt(0)?.toUpperCase() || 'D'}
+                    {(form.watch('name') || initialFormValues.name)?.charAt(0)?.toUpperCase() || 'D'}
                   </AvatarFallback>
                 </Avatar>
                 <FormField
                   control={form.control}
                   name="avatarUrl" 
-                  render={({ field }) => ( // field.value here will be "" or a URL from defaultValues
+                  render={({ field }) => (
                   <FormItem className="w-full max-w-xs">
                      <FormLabel className="text-base">Avatar URL (or upload below)</FormLabel>
                     <FormControl>
                       <Input 
                         type="text" 
                         placeholder="https://example.com/avatar.jpg" 
-                        {...field} // value will be field.value which is now controlled from start
+                        {...field}
+                        value={field.value || ""}
                         onChange={(e) => {
-                            field.onChange(e); 
+                            field.onChange(e.target.value); 
                             setAvatarPreview(e.target.value); 
                         }}
                         className="text-base py-3"
@@ -188,7 +190,7 @@ export function DesignerProfileForm() {
                 <FormItem>
                   <FormLabel className="text-lg">Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Alex Johnson" {...field} className="text-base py-6" />
+                    <Input placeholder="e.g., Alex Johnson" {...field} value={field.value || ""} className="text-base py-6" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -202,7 +204,7 @@ export function DesignerProfileForm() {
                 <FormItem>
                   <FormLabel className="text-lg">Headline</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., Creative UI/UX Designer specializing in SaaS" {...field} className="text-base py-6" />
+                    <Input placeholder="e.g., Creative UI/UX Designer specializing in SaaS" {...field} value={field.value || ""} className="text-base py-6" />
                   </FormControl>
                   <FormDescription>A catchy one-liner to describe your expertise.</FormDescription>
                   <FormMessage />
@@ -219,7 +221,7 @@ export function DesignerProfileForm() {
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <FormControl>
-                      <Input type="email" placeholder="your.email@example.com" {...field} className="pl-10 text-base py-6" />
+                      <Input type="email" placeholder="your.email@example.com" {...field} value={field.value || ""} className="pl-10 text-base py-6" />
                     </FormControl>
                   </div>
                   <FormMessage />
@@ -262,6 +264,7 @@ export function DesignerProfileForm() {
                       placeholder="Tell clients about your experience, design philosophy, and what makes you unique..."
                       className="min-h-[150px] text-base py-4"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -280,7 +283,7 @@ export function DesignerProfileForm() {
                       <FormItem className="flex-grow">
                         <FormLabel className="text-sm">Link Title</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Personal Website, Dribbble" {...field} className="text-base py-3" />
+                          <Input placeholder="e.g., Personal Website, Dribbble" {...field} value={field.value || ""} className="text-base py-3" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -293,7 +296,7 @@ export function DesignerProfileForm() {
                       <FormItem className="flex-grow">
                         <FormLabel className="text-sm">Link URL</FormLabel>
                         <FormControl>
-                          <Input type="url" placeholder="https://example.com" {...field} className="text-base py-3" />
+                          <Input type="url" placeholder="https://example.com" {...field} value={field.value || ""} className="text-base py-3" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -327,7 +330,7 @@ export function DesignerProfileForm() {
                     <div className="relative">
                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                        <FormControl>
-                        <Input type="number" placeholder="500" {...field} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
+                        <Input type="number" placeholder="500" {...field} value={field.value ?? ""} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
                       </FormControl>
                     </div>
                     <FormDescription>Your preferred minimum project budget in USD.</FormDescription>
@@ -344,7 +347,7 @@ export function DesignerProfileForm() {
                      <div className="relative">
                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                        <FormControl>
-                        <Input type="number" placeholder="10000" {...field} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
+                        <Input type="number" placeholder="10000" {...field} value={field.value ?? ""} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
                       </FormControl>
                     </div>
                     <FormDescription>Your preferred maximum project budget in USD (or leave blank for no max).</FormDescription>
@@ -356,7 +359,7 @@ export function DesignerProfileForm() {
 
 
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-lg py-6" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Saving Profile..." : (profileSetupComplete ? "Update Profile" : "Save Profile")}
+              {form.formState.isSubmitting ? "Saving Profile..." : (auth.profileSetupComplete ? "Update Profile" : "Save Profile")}
             </Button>
           </form>
         </Form>
