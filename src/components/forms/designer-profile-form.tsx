@@ -74,14 +74,11 @@ export function DesignerProfileForm() {
 
   const initialFormValues = React.useMemo(() => {
     if (profileSetupComplete) {
-      return mockProfileData; // This is a stable reference if mockProfileData is a const
+      return mockProfileData; 
     }
-    // For new profile setup, use the stable empty object but fill in username
     return {
       ...STABLE_EMPTY_PROFILE_VALUES,
       name: username || STABLE_EMPTY_PROFILE_VALUES.name,
-      // skills and portfolioLinks will be from STABLE_EMPTY_PROFILE_VALUES, ensuring stable references
-      // for these arrays if username hasn't changed.
     };
   }, [profileSetupComplete, username]);
 
@@ -92,12 +89,10 @@ export function DesignerProfileForm() {
 
   const form = useForm<DesignerProfileFormData>({
     resolver: zodResolver(DesignerProfileSchema),
-    defaultValues: initialFormValues,
+    // defaultValues: initialFormValues, // Removed: Rely on useEffect + form.reset
   });
   
   useEffect(() => {
-    // This effect now runs only when initialFormValues reference *actually* changes
-    // (i.e., when profileSetupComplete or username changes), not on every render.
     form.reset(initialFormValues);
     setSelectedSkills(initialFormValues.skills || []);
     setAvatarPreview(initialFormValues.avatarUrl);
@@ -168,8 +163,8 @@ export function DesignerProfileForm() {
                         placeholder="https://example.com/avatar.jpg" 
                         {...field} 
                         onChange={(e) => {
-                            field.onChange(e); // RHF's onChange
-                            setAvatarPreview(e.target.value); // Update local preview
+                            field.onChange(e); 
+                            setAvatarPreview(e.target.value); 
                         }}
                         className="text-base py-3"
                        />
@@ -364,4 +359,3 @@ export function DesignerProfileForm() {
     </Card>
   );
 }
-
