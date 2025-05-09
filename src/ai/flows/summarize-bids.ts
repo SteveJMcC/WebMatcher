@@ -13,6 +13,7 @@ import {z} from 'genkit';
 
 const SummarizeBidsInputSchema = z.object({
   jobDescription: z.string().describe('The description of the job posted by the user.'),
+  jobBudget: z.number().describe('The budget for the job posted by the user.'), // Added jobBudget
   bids: z
     .array(
       z.object({
@@ -49,7 +50,9 @@ const summarizeBidsPrompt = ai.definePrompt({
   The user has provided the following job description:
   {{jobDescription}}
 
-  For each bid, create a concise summary (maximum 150 words) that highlights the designer's relevant experience, how well their proposed budget fits the project, and any other factors that would help the user rank the bids effectively.  The bid summaries must all be in the same language as the job description.
+  The project budget set by the client is: {{jobBudget}}.
+
+  For each bid, create a concise summary (maximum 150 words) that highlights the designer's relevant experience, how well their proposed bid amount ({{this.bidAmount}}) fits the project budget ({{jobBudget}}), and any other factors that would help the user rank the bids effectively. The bid summaries must all be in the same language as the job description.
 
   The bids are as follows:
   {{#each bids}}

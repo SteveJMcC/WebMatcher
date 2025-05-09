@@ -1,16 +1,15 @@
 export interface JobPostingCore {
   title: string;
   description: string;
-  budgetMin: number;
-  budgetMax: number;
-  skillsRequired: Tag[]; // Changed from string[] to Tag[]
+  budget: number; // Changed from budgetMin/budgetMax
+  skillsRequired: Tag[]; 
   limitContacts?: number;
 }
 
 export interface JobPosting extends JobPostingCore {
   id: string;
-  userId: string; // ID of the user (client) who posted the job
-  createdAt: string; // ISO date string
+  userId: string; 
+  createdAt: string; 
   status: 'open' | 'in-progress' | 'closed';
   bidsCount?: number;
 }
@@ -19,7 +18,7 @@ export interface DesignerProfileCore {
   name: string;
   headline: string;
   avatarUrl?: string;
-  skills: Tag[]; // Changed from string[] to Tag[]
+  skills: Tag[]; 
   bio: string;
   portfolioLinks: { title: string; url: string }[];
   budgetMin: number;
@@ -35,12 +34,12 @@ export interface DesignerProfile extends DesignerProfileCore {
 }
 
 export interface UserProfile {
-  id: string; // Corresponds to user ID of the client/user
+  id: string; 
   userId: string;
   name: string;
   companyName?: string;
-  email?: string; // from auth
-  joinedDate: string; // ISO date string
+  email?: string; 
+  joinedDate: string; 
 }
 
 export interface BidCore {
@@ -69,6 +68,7 @@ export interface BidForSummary {
 
 export interface SummarizeBidsServiceInput {
   jobDescription: string;
+  jobBudget: number; // Added jobBudget
   bids: BidForSummary[];
 }
 
@@ -90,3 +90,4 @@ export type Tag = {
   id: string;
   text: string;
 };
+

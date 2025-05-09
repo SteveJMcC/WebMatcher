@@ -23,8 +23,7 @@ async function getUserJobs(userId: string): Promise<JobPosting[]> {
       userId: userId, // Use actual userId
       title: "E-commerce Platform Redesign",
       description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends.",
-      budgetMin: 2000,
-      budgetMax: 5000,
+      budget: 3500, // Changed from budgetMin/budgetMax
       skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
       limitContacts: 15,
       createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
@@ -36,8 +35,7 @@ async function getUserJobs(userId: string): Promise<JobPosting[]> {
       userId: userId,
       title: "Mobile App Splash Screens",
       description: "Need a set of creative and engaging splash screens for our new mobile application. Theme is futuristic and minimalist.",
-      budgetMin: 300,
-      budgetMax: 800,
+      budget: 550, // Changed from budgetMin/budgetMax
       skillsRequired: [{id:"graphic-design", text:"Graphic Design"}, {id:"illustration", text:"Illustration"}, {id:"mobile-app-design", text:"Mobile App Design"}],
       createdAt: new Date('2023-09-15T14:30:00.000Z').toISOString(),
       status: "in-progress",

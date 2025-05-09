@@ -65,6 +65,7 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
 
       const aiInput: SummarizeBidsServiceInput = {
         jobDescription: job.description,
+        jobBudget: job.budget, // Pass the job's budget
         bids: [{
           designerProfile: designerProfileString, // This is the string representation
           bidAmount: bidToSummarize.bidAmount,
@@ -123,30 +124,26 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
 
         const aiInput: SummarizeBidsServiceInput = {
             jobDescription: job.description,
+            jobBudget: job.budget, // Pass the job's budget
             bids: bidsToProcess,
         };
 
         const summariesOutput = await summarizeBids(aiInput);
 
         const updatedBids = displayBids.map(originalBid => {
-            // Find the designerProfile string that was sent for this originalBid
-            const inputProfileStringForThisBid = bidsToProcess.find(bp => {
-                 // This matching logic assumes you can re-generate or retrieve the *exact*
-                 // designerProfile string that was sent to the AI for this originalBid.
-                 // This is brittle. A better way is if bidsToProcess also included originalBid.id
-                 // or if the AI returned an ID.
-                 // For now, we'll try to match based on what `summarizeBids` returns.
-                 // The AI returns `designerProfile` which should be the one we passed in.
-                 // So, we find which input `designerProfile` matches an output `designerProfile`.
+            const summaryForThisBid = summariesOutput.find(s => {
+                // Attempt to find the corresponding input bid that generated this summary
+                // This relies on designerProfile string being unique enough or on order.
+                const matchingProcessedBid = bidsToProcess.find(pBid => pBid.designerProfile === s.designerProfile);
+                if (!matchingProcessedBid) return false;
 
-                 // We need to find the *original* profile string for *this* originalBid
-                 // This requires `getDesignerProfileString(originalBid.designerId)` to be deterministic
-                 // or that we stored it when constructing `bidsToProcess`.
-                 // A simpler (but potentially slow) approach: find the summary that matches the string for current originalBid.
-                return summariesOutput.some(s => s.designerProfile === /* what getDesignerProfileString(originalBid.designerId) would produce */ designerProfileStringForMatching(originalBid, bidsToProcess));
+                // Further check: Does this processed bid loosely match the originalBid?
+                // This is a heuristic if designerProfile isn't perfectly unique or if re-generation differs slightly.
+                // Ideally, pass an ID through the AI flow if possible for robust matching.
+                return matchingProcessedBid.bidAmount === originalBid.bidAmount &&
+                       matchingProcessedBid.coverLetter.startsWith(originalBid.coverLetter.substring(0,20));
             });
-            
-            const summaryForThisBid = summariesOutput.find(s => s.designerProfile === designerProfileStringForMatching(originalBid, bidsToProcess));
+
 
             if (summaryForThisBid) {
                 return { ...originalBid, aiSummaryText: summaryForThisBid.summary, isLoadingSummary: false };
@@ -154,29 +151,6 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
             return { ...originalBid, isLoadingSummary: false }; // No summary found or already had one
         });
         
-        // Helper to find the profile string used in AI input for a given original bid
-        // This is tricky because bidsToProcess doesn't directly map 1:1 if some bids were filtered out.
-        // Let's assume bidsToProcess items retain enough info or that their `designerProfile` strings are unique.
-        function designerProfileStringForMatching(originalBid: DisplayBid, bidsToProcess: BidForSummary[]): string | undefined {
-            // This function needs to deterministically find the `designerProfile` string
-            // that was generated for `originalBid` and included in `bidsToProcess`.
-            // This is a conceptual placeholder. In a real scenario, you'd ensure a robust way to map
-            // AI output back to specific bids, e.g., by including IDs in the AI request/response if possible,
-            // or by ensuring the order is preserved and matching by index.
-            // For this example, we'll assume the `designerProfile` string in `bidsToProcess` is unique enough
-            // or we can re-generate it.
-            const matchingProcessedBid = bidsToProcess.find(pBid => {
-                // A more robust match would be if bidsToProcess stored originalBid.id
-                // For now, we rely on the profile string itself.
-                // This part needs careful implementation based on how `getDesignerProfileString` works.
-                // If `getDesignerProfileString(originalBid.designerId)` is consistent, we can use that.
-                // This example will be simplified and assume direct match is possible or order is preserved.
-                // A simple but potentially fragile match:
-                return pBid.bidAmount === originalBid.bidAmount && pBid.coverLetter.startsWith(originalBid.coverLetter.substring(0,10));
-            });
-            return matchingProcessedBid?.designerProfile;
-        }
-
 
         setDisplayBids(updatedBids);
         toast({ title: "Summaries Generated", description: `AI summaries created for applicable bids.`});

@@ -48,7 +48,7 @@ export function DesignerJobList({
                     </CardDescription>
                 </div>
                 <Badge variant="secondary" className="mt-2 md:mt-0 text-sm bg-primary/10 text-primary border-primary/30">
-                    Client Budget: ${job.budgetMin} - ${job.budgetMax}
+                    Client Budget: ${job.budget.toLocaleString()}
                 </Badge>
              </div>
           </CardHeader>

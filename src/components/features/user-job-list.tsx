@@ -55,7 +55,7 @@ export function UserJobList({ jobs }: UserJobListProps) {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center text-muted-foreground">
                     <DollarSign className="h-4 w-4 mr-1.5 text-primary" /> 
-                    Budget: ${job.budgetMin} - ${job.budgetMax}
+                    Budget: ${job.budget.toLocaleString()}
                 </div>
                 <div className="flex items-center text-muted-foreground">
                     <Users className="h-4 w-4 mr-1.5 text-primary" /> 

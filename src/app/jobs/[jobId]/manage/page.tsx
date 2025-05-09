@@ -14,8 +14,7 @@ async function getJobDetails(jobId: string): Promise<JobPosting | null> {
       userId: "mock-user-123",
       title: "E-commerce Platform Redesign",
       description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends. The project involves creating a new visual identity, a full set of responsive page designs (homepage, product listings, product details, cart, checkout), and a style guide. We expect collaboration with our development team to ensure design feasibility. Please include examples of similar e-commerce projects in your application.",
-      budgetMin: 2000,
-      budgetMax: 5000,
+      budget: 3500, // Changed from budgetMin/budgetMax
       skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
       limitContacts: 15,
       createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
@@ -135,7 +134,7 @@ export default async function ManageJobPage({ params }: PageProps) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground">Budget</h4>
-                    <p className="text-lg font-semibold text-foreground">${job.budgetMin.toLocaleString()} - ${job.budgetMax.toLocaleString()}</p>
+                    <p className="text-lg font-semibold text-foreground">${job.budget.toLocaleString()}</p>
                 </div>
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground">Skills Required</h4>

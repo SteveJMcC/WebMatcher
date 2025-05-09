@@ -54,8 +54,7 @@ export function JobPostingForm() {
     defaultValues: {
       title: "",
       description: "",
-      budgetMin: 0,
-      budgetMax: 0,
+      budget: 0, // Changed from budgetMin/budgetMax
       skillsRequired: [],
       limitContacts: 10,
     },
@@ -118,42 +117,29 @@ export function JobPostingForm() {
               )}
             />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <FormField
-                control={form.control}
-                name="budgetMin"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-lg">Minimum Budget</FormLabel>
-                    <div className="relative">
-                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                       <FormControl>
-                        <Input type="number" placeholder="500" {...field} className="pl-10 text-base py-6" />
-                      </FormControl>
-                    </div>
-                    <FormDescription>Your minimum budget in USD.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="budgetMax"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-lg">Maximum Budget</FormLabel>
-                     <div className="relative">
-                       <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                       <FormControl>
-                        <Input type="number" placeholder="2000" {...field} className="pl-10 text-base py-6" />
-                      </FormControl>
-                    </div>
-                    <FormDescription>Your maximum budget in USD.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="budget"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg">Project Budget</FormLabel>
+                  <div className="relative">
+                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                     <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="1000" 
+                        {...field} 
+                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)} 
+                        className="pl-10 text-base py-6" 
+                      />
+                    </FormControl>
+                  </div>
+                  <FormDescription>Your estimated budget for this project in USD.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

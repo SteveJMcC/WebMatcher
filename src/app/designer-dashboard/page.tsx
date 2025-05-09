@@ -23,8 +23,7 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
       userId: "client-abc",
       title: "Urgent: Landing Page UI/UX for SaaS Product",
       description: "We are launching a new SaaS product and need a compelling landing page design. Must be modern, responsive, and conversion-focused. Experience with Figma and A/B testing design concepts is a plus. Quick turnaround needed.",
-      budgetMin: 800,
-      budgetMax: 1500,
+      budget: 1200, // Changed from budgetMin/budgetMax
       skillsRequired: [{id:"ui-design", text:"UI Design"}, {id:"ux-design", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"landing-page", text:"Landing Page Design"}],
       createdAt: new Date('2023-10-10T09:00:00.000Z').toISOString(),
       status: "open",
@@ -34,8 +33,7 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
       userId: "client-def",
       title: "Illustrated Icons for Children's Educational App",
       description: "Seeking a talented illustrator to create a set of 50 unique, friendly, and colorful icons for an educational app targeting children aged 4-7. Style should be playful and engaging.",
-      budgetMin: 500,
-      budgetMax: 1200,
+      budget: 800, // Changed from budgetMin/budgetMax
       skillsRequired: [{id:"illustration", text:"Illustration"}, {id:"icon-design", text:"Icon Design"}, {id:"graphic-design", text:"Graphic Design"}],
       createdAt: new Date('2023-10-08T16:20:00.000Z').toISOString(),
       status: "open",
@@ -51,8 +49,7 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
       userId: "client-xyz",
       title: "Website Redesign for Non-Profit Organization",
       description: "Our non-profit needs a fresh, accessible, and easy-to-navigate website. We want to better showcase our mission and impact. Experience with designing for non-profits and accessibility standards (WCAG) is highly valued.",
-      budgetMin: 1000,
-      budgetMax: 3000,
+      budget: 2000, // Changed from budgetMin/budgetMax
       skillsRequired: [{id:"web-design", text:"Web Design"}, {id:"ui-design", text:"UI Design"}, {id:"accessibility", text:"Accessibility (WCAG)"}, {id:"wordpress", text:"WordPress"}],
       createdAt: new Date('2023-10-05T11:00:00.000Z').toISOString(),
       status: "open",
