@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, Users, Lightbulb, CheckCircle, ShieldCheck, Sparkles, UserCircle, Search, MessageSquare, Award } from "lucide-react";
@@ -57,10 +58,10 @@ export default function HomePage() {
           </p>
           <div className="space-x-4">
             <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Link href="/post-job">Client</Link>
+              <Link href="/login">Login as a Client</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="border-primary text-primary hover:bg-primary/10">
-              <Link href="/designer/setup-profile">Web Professional</Link>
+              <Link href="/login">Login as a Web Pro</Link>
             </Button>
           </div>
         </div>
@@ -152,3 +153,4 @@ export default function HomePage() {
     </div>
   );
 }
+
