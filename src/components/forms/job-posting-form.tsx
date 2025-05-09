@@ -21,6 +21,7 @@ import { Briefcase, DollarSign, Users, TagIcon } from "lucide-react";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag } from "@/lib/types";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const allSkillsOptions: Tag[] = [
   { id: "react", text: "React" },
@@ -39,14 +40,20 @@ const allSkillsOptions: Tag[] = [
   { id: "ux-design", text: "UX Design" },
   { id: "graphic-design", text: "Graphic Design" },
   { id: "branding", text: "Branding" },
-  { id: "log-design", text: "Logo Design" },
+  { id: "logo-design", text: "Logo Design" },
   { id: "web-design", text: "Web Design" },
   { id: "motion-design", text: "Motion Design" },
+  { id: "illustration", text: "Illustration" },
+  { id: "photoshop", text: "Photoshop" },
+  { id: "illustrator", text: "Illustrator" },
+  { id: "user-research", text: "User Research" },
+  { id: "prototyping", text: "Prototyping" },
 ];
 
 
 export function JobPostingForm() {
   const { toast } = useToast();
+  const router = useRouter();
   const [selectedSkills, setSelectedSkills] = useState<Tag[]>([]);
 
   const form = useForm<JobPostingFormData>({
@@ -54,7 +61,7 @@ export function JobPostingForm() {
     defaultValues: {
       title: "",
       description: "",
-      budget: 0, // Changed from budgetMin/budgetMax
+      budget: 0,
       skillsRequired: [],
       limitContacts: 10,
     },
@@ -71,6 +78,7 @@ export function JobPostingForm() {
     });
     form.reset();
     setSelectedSkills([]); // Reset skills in UI
+    router.push('/user-dashboard'); // Redirect to user dashboard
   }
 
   return (
