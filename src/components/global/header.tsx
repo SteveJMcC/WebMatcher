@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Briefcase, Users, Tag, UserCircle, LogIn, LogOut, Settings, LayoutDashboard, Sparkles } from 'lucide-react';
+import { Briefcase, Users, Tag, UserCircle, LogIn, LogOut, Settings, LayoutDashboard, Sparkles, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -17,12 +17,16 @@ import { useAuthMock } from '@/hooks/use-auth-mock';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function Header() {
-  const { isAuthenticated, userType, username, isLoading, logout } = useAuthMock();
+  const { isAuthenticated, userType, username, displayName, isLoading, logout } = useAuthMock();
 
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
-    return name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const nameToUse = name || 'User';
+    return nameToUse.split(' ').map(n => n[0]).join('').toUpperCase();
   };
+  
+  const currentDisplayName = displayName || username;
+
 
   return (
     <header className="bg-background border-b sticky top-0 z-50 shadow-sm">
@@ -58,15 +62,15 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${username}`} alt={username || 'User'} data-ai-hint="user avatar" />
-                    <AvatarFallback>{getInitials(username)}</AvatarFallback>
+                    <AvatarImage src={`https://i.pravatar.cc/150?u=${username}`} alt={currentDisplayName || 'User'} data-ai-hint="user avatar" />
+                    <AvatarFallback>{getInitials(currentDisplayName)}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{username}</p>
+                    <p className="text-sm font-medium leading-none">{currentDisplayName}</p>
                     <p className="text-xs leading-none text-muted-foreground">
                       {userType === 'designer' ? 'Designer' : 'Client'}
                     </p>
@@ -110,12 +114,12 @@ export function Header() {
               </Button>
             </>
           )}
-           {/* Mobile Menu Trigger (Optional) */}
+           {/* Mobile Menu Trigger */}
            <div className="md:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" x2="21" y1="6" y2="6"></line><line x1="3" x2="21" y1="12" y2="12"></line><line x1="3" x2="21" y1="18" y2="18"></line></svg>
+                  <Menu className="h-5 w-5"/>
                   <span className="sr-only">Toggle menu</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -123,6 +127,29 @@ export function Header() {
                 <DropdownMenuItem asChild><Link href="/post-job">Post a Job</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/designers">Find Talent</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/pricing">Pricing</Link></DropdownMenuItem>
+                 <DropdownMenuSeparator />
+                 {isAuthenticated ? (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href={userType === 'designer' ? "/designer-dashboard" : "/user-dashboard"}>
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                       <DropdownMenuItem asChild>
+                        <Link href={userType === 'designer' ? "/designer/setup-profile" : "/user/setup-profile"}>
+                          My Profile
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={logout}>
+                        Log out
+                      </DropdownMenuItem>
+                    </>
+                 ) : (
+                    <>
+                      <DropdownMenuItem asChild><Link href="/login">Login</Link></DropdownMenuItem>
+                      <DropdownMenuItem asChild><Link href="/signup">Sign Up</Link></DropdownMenuItem>
+                    </>
+                 )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

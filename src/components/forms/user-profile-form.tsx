@@ -20,35 +20,28 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuthMock } from "@/hooks/use-auth-mock";
 import { useRouter } from "next/navigation";
 import { UserCircle, Building } from "lucide-react";
-import React from "react"; // Import React for useMemo
-
-// Mock existing profile data for update scenario
-const mockExistingClientProfile: UserProfileFormData = {
-  name: "John Client Doe",
-  companyName: "Client Innovations Inc.",
-};
+import React from "react"; 
 
 
 export function UserProfileForm() {
   const { toast } = useToast();
-  const { markProfileComplete, username, userId, profileSetupComplete } = useAuthMock(); 
+  const auth = useAuthMock(); 
   const router = useRouter();
 
   const initialFormValues = React.useMemo(() => {
-    if (profileSetupComplete) {
-      // If profile is complete, load existing data (mocked for now)
-      // In a real app, this would be fetched from a backend
+    if (auth.profileSetupComplete && auth.userType === 'user') {
+      // Profile is complete, load existing data from auth state
       return {
-        name: mockExistingClientProfile.name || username || "",
-        companyName: mockExistingClientProfile.companyName || "",
+        name: auth.displayName || auth.username || "", // Prioritize displayName from profile
+        companyName: auth.companyName || "",
       };
     }
-    // For new profile setup
+    // For new profile setup or if data not available (though it should be if psc is true)
     return {
-      name: username || "", 
+      name: auth.username || "", // Pre-fill with login username if available
       companyName: "",
     };
-  }, [profileSetupComplete, username]);
+  }, [auth.profileSetupComplete, auth.userType, auth.username, auth.displayName, auth.companyName]);
 
 
   const form = useForm<UserProfileFormData>({
@@ -56,7 +49,7 @@ export function UserProfileForm() {
     defaultValues: initialFormValues,
   });
 
-  // Effect to reset form if initial values change (e.g., profile status changes)
+  // Effect to reset form if initial values change (e.g., profile status changes or user changes)
   React.useEffect(() => {
     form.reset(initialFormValues);
   }, [form, initialFormValues]);
@@ -65,15 +58,12 @@ export function UserProfileForm() {
   async function onSubmit(data: UserProfileFormData) {
     // Simulate API call to save user profile
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("User profile data:", { userId, ...data });
     
-    if (!profileSetupComplete) {
-      markProfileComplete(); 
-    }
+    auth.saveClientProfile(data); // This will also mark profile as complete and save to localStorage
     
     toast({
-      title: profileSetupComplete ? "Profile Updated!" : "Profile Set Up!",
-      description: `Your client profile has been successfully ${profileSetupComplete ? 'updated' : 'created'}.`,
+      title: auth.profileSetupComplete ? "Profile Updated!" : "Profile Set Up!", // Check old status for message
+      description: `Your client profile has been successfully ${auth.profileSetupComplete ? 'updated' : 'created'}.`,
       variant: "default",
     });
     
@@ -86,10 +76,10 @@ export function UserProfileForm() {
       <CardHeader className="text-center">
         <UserCircle className="mx-auto h-12 w-12 text-primary mb-2" />
         <CardTitle className="text-3xl font-bold">
-          {profileSetupComplete ? "Update Your Profile" : "Set Up Your Profile"}
+          {auth.profileSetupComplete ? "Update Your Profile" : "Set Up Your Profile"}
         </CardTitle>
         <CardDescription>
-          {profileSetupComplete ? "Keep your information current." : "Tell us a bit about yourself or your company."}
+          {auth.profileSetupComplete ? "Keep your information current." : "Tell us a bit about yourself or your company."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -118,7 +108,7 @@ export function UserProfileForm() {
                   <div className="relative">
                     <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <FormControl>
-                      <Input placeholder="e.g., Acme Corp" {...field} className="pl-10 text-base py-6" />
+                      <Input placeholder="e.g., Acme Corp" {...field} value={field.value ?? ""} className="pl-10 text-base py-6" />
                     </FormControl>
                   </div>
                   <FormDescription>If you're hiring for a company.</FormDescription>
@@ -129,8 +119,8 @@ export function UserProfileForm() {
 
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-lg py-6" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting 
-                ? (profileSetupComplete ? "Updating Profile..." : "Saving Profile...") 
-                : (profileSetupComplete ? "Update Profile" : "Save and Continue")
+                ? (auth.profileSetupComplete ? "Updating Profile..." : "Saving Profile...") 
+                : (auth.profileSetupComplete ? "Update Profile" : "Save and Continue")
               }
             </Button>
           </form>
