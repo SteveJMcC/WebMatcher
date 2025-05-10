@@ -26,6 +26,8 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
       skillsRequired: [{id:"ui-design", text:"UI Design"}, {id:"ux-design", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"landing-page", text:"Landing Page Design"}],
       createdAt: new Date('2023-10-10T09:00:00.000Z').toISOString(),
       status: "open",
+      clientEmail: "client.saas@example.com",
+      clientPhone: "+15559876543",
     },
     {
       id: "job-match-2",
@@ -36,6 +38,8 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
       skillsRequired: [{id:"illustration", text:"Illustration"}, {id:"icon-design", text:"Icon Design"}, {id:"graphic-design", text:"Graphic Design"}],
       createdAt: new Date('2023-10-08T16:20:00.000Z').toISOString(),
       status: "open",
+      clientEmail: "kids.app.client@example.com",
+      // clientPhone intentionally omitted
     },
   ];
 }
@@ -52,6 +56,8 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
       skillsRequired: [{id:"web-design", text:"Web Design"}, {id:"ui-design", text:"UI Design"}, {id:"accessibility", text:"Accessibility (WCAG)"}, {id:"wordpress", text:"WordPress"}],
       createdAt: new Date('2023-10-05T11:00:00.000Z').toISOString(),
       status: "open",
+      clientEmail: "nonprofit.contact@example.org",
+      clientPhone: "+15551122334",
     },
     {
       id: "job-gen-2",
@@ -62,6 +68,8 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
       skillsRequired: [{ id: "mobile-app-design", text: "Mobile App Design" }, { id: "ui-design", text: "UI Design" }, { id: "ux-design", text: "UX Design" }, { id: "prototyping", text: "Prototyping" }],
       createdAt: new Date('2023-10-12T14:00:00.000Z').toISOString(),
       status: "open",
+      clientEmail: "fitness.startup@example.io",
+      clientPhone: "+15555550000",
     },
   ];
 }
@@ -102,12 +110,6 @@ export default function DesignerDashboardPage() {
       ]).then(([matched, general]) => {
         setMatchedJobs(matched);
         setGeneralJobs(general);
-        // Optionally select the first job by default
-        // if (matched.length > 0) {
-        //   setSelectedJob(matched[0]);
-        // } else if (general.length > 0) {
-        //   setSelectedJob(general[0]);
-        // }
         setPageLoading(false);
       }).catch(error => {
         console.error("Failed to fetch designer jobs:", error);
@@ -125,7 +127,7 @@ export default function DesignerDashboardPage() {
   const mockDesignerStats = {
     profileViews: 156,
     activeApplications: 3,
-    tokensRemaining: designerTokens ?? 25, 
+    tokensRemaining: designerTokens ?? 0, 
   };
 
   if (authIsLoading || (!authIsLoading && (!isAuthenticated || userType !== 'designer' || !profileSetupComplete))) {

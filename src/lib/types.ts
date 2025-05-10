@@ -9,6 +9,8 @@ export interface JobPostingCore {
 export interface JobPosting extends JobPostingCore {
   id: string;
   userId: string; 
+  clientEmail?: string; // Added for client contact info
+  clientPhone?: string; // Added for client contact info
   createdAt: string; 
   status: 'open' | 'in-progress' | 'closed';
   bidsCount?: number;
