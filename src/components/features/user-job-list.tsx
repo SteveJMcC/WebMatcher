@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { JobPosting } from "@/lib/types";
@@ -69,7 +70,7 @@ export function UserJobList({ jobs }: UserJobListProps) {
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
             <Button variant="outline" asChild>
-              <Link href={`/jobs/${job.id}/edit`}> {/* Placeholder edit link */}
+              <Link href={`/jobs/${job.id}/edit`}> 
                 <Edit3 className="mr-2 h-4 w-4" /> Edit Job
               </Link>
             </Button>

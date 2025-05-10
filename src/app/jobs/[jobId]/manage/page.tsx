@@ -1,17 +1,39 @@
+
+"use client"; // This page uses client-side hooks and state for bids
+
 import { JobBidsDisplay } from "@/components/features/job-bids-display";
 import type { JobPosting, Bid, DesignerProfile } from "@/lib/types";
-import { Metadata } from "next";
+// import { Metadata } from "next"; // Metadata cannot be dynamic in client components like this
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Briefcase, DollarSign, Edit3, Settings, Share2, Users } from "lucide-react";
+import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuth } from "@/context/auth-context";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Mock data fetching functions
-async function getJobDetails(jobId: string): Promise<JobPosting | null> {
+// Mock data fetching functions - these would be API calls in a real app
+
+async function getJobDetails(jobId: string, userId: string): Promise<JobPosting | null> {
+   // Simulating fetching from localStorage as done in user-dashboard
+  if (typeof window !== 'undefined') {
+    try {
+      const storageKey = `userJobs_${userId}`;
+      const jobsString = localStorage.getItem(storageKey);
+      if (jobsString) {
+        const parsedJobs = JSON.parse(jobsString) as JobPosting[];
+        return parsedJobs.find(job => job.id === jobId) || null;
+      }
+    } catch (error) {
+      console.error("Failed to get job details from localStorage", error);
+    }
+  }
+  // Fallback mock for testing if localStorage fails or job not found
   if (jobId === "job-1") {
     return {
       id: "job-1",
-      userId: "mock-user-123",
+      userId: "mock-client-email@example.com_user", // Example based on new userKey logic
       title: "E-commerce Platform Redesign",
       description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends. The project involves creating a new visual identity, a full set of responsive page designs (homepage, product listings, product details, cart, checkout), and a style guide. We expect collaboration with our development team to ensure design feasibility. Please include examples of similar e-commerce projects in your application.",
       budget: 3500, 
@@ -19,13 +41,15 @@ async function getJobDetails(jobId: string): Promise<JobPosting | null> {
       limitContacts: 15,
       createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
       status: "open",
+      clientEmail: "client.user@example.com",
+      clientPhone: "+12345678900"
     };
   }
   return null;
 }
 
 async function getJobBids(jobId: string): Promise<Bid[]> {
- if (jobId === "job-1") {
+ if (jobId === "job-1") { // Example job ID
     return [
       {
         id: "bid-101", jobId: "job-1", designerId: "designer-A", designerName: "Alice Wonderland", bidAmount: 2500,
@@ -73,30 +97,95 @@ async function getFullDesignerProfile(designerId: string): Promise<DesignerProfi
     return profiles[designerId] || null;
 }
 
-interface PageProps {
-  params: { jobId: string };
-}
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const job = await getJobDetails(params.jobId);
-  if (!job) {
-    return {
-      title: "Job Not Found - WebConnect",
-    };
+export default function ManageJobPage() {
+  const params = useParams();
+  const router = useRouter();
+  const { isAuthenticated, userType, userId: authUserId, isLoading: authIsLoading, profileSetupComplete } = useAuth();
+  const jobId = params.jobId as string;
+
+  const [job, setJob] = useState<JobPosting | null>(null);
+  const [bids, setBids] = useState<Bid[]>([]);
+  const [pageLoading, setPageLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (job && typeof document !== 'undefined') {
+      document.title = `Manage Job: ${job.title} | WebConnect`;
+    } else if (!job && !pageLoading && typeof document !== 'undefined') {
+      document.title = `Job Not Found | WebConnect`;
+    }
+  }, [job, pageLoading]);
+
+  useEffect(() => {
+    if (!authIsLoading) {
+      if (!isAuthenticated) {
+        router.push(`/login?redirect=/jobs/${jobId}/manage&userType=user`);
+        return;
+      }
+      if (userType !== 'user') {
+        router.push('/designer-dashboard'); 
+        return;
+      }
+      if (!profileSetupComplete) {
+        router.push(`/user/setup-profile?redirect=/jobs/${jobId}/manage`);
+        return;
+      }
+
+      if (authUserId && jobId) {
+        setPageLoading(true);
+        setError(null);
+        Promise.all([
+          getJobDetails(jobId, authUserId),
+          getJobBids(jobId) // Assuming bids are public or jobId is enough
+        ]).then(([jobData, bidsData]) => {
+          if (jobData) {
+            setJob(jobData);
+            setBids(bidsData);
+          } else {
+            setError("Job not found or you don't have permission to view it.");
+          }
+          setPageLoading(false);
+        }).catch(err => {
+          console.error("Failed to load job or bids:", err);
+          setError("Failed to load job details. Please try again.");
+          setPageLoading(false);
+        });
+      } else {
+        setPageLoading(false);
+        if (!jobId) setError("Job ID is missing.");
+      }
+    }
+  }, [authIsLoading, isAuthenticated, userType, authUserId, profileSetupComplete, jobId, router]);
+
+
+  if (authIsLoading || pageLoading) {
+    return (
+      <div className="container mx-auto px-4 py-12 space-y-10">
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
   }
-  return {
-    title: `Manage Job: ${job.title} | WebConnect`,
-    description: `View bids and manage your job posting for "${job.title}".`,
-  };
-}
-
-export default async function ManageJobPage({ params }: PageProps) {
-  const job = await getJobDetails(params.jobId);
-  const bids = await getJobBids(params.jobId);
+  
+  if (error) {
+     return (
+      <div className="container mx-auto px-4 py-12 text-center">
+         <AlertTriangle className="mx-auto h-12 w-12 text-destructive mb-4" />
+        <h1 className="text-3xl font-bold mb-4">Error</h1>
+        <p className="text-muted-foreground">{error}</p>
+        <Button asChild className="mt-6">
+            <Link href="/user-dashboard">Back to Client Dashboard</Link>
+        </Button>
+      </div>
+    );
+  }
 
   if (!job) {
     return (
       <div className="container mx-auto px-4 py-12 text-center">
+        <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
         <h1 className="text-3xl font-bold mb-4">Job Not Found</h1>
         <p className="text-muted-foreground">The job you're looking for doesn't exist or couldn't be loaded.</p>
         <Button asChild className="mt-6">
@@ -121,7 +210,7 @@ export default async function ManageJobPage({ params }: PageProps) {
                 </div>
                 <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 items-start md:items-end self-start md:self-center lg:self-start">
                     <Button variant="outline" asChild>
-                        <Link href={`/jobs/${job.id}/edit`}> {/* Placeholder edit link */}
+                        <Link href={`/jobs/${job.id}/edit`}> 
                             <Edit3 className="mr-2 h-4 w-4" /> Edit Job
                         </Link>
                     </Button>
@@ -157,6 +246,12 @@ export default async function ManageJobPage({ params }: PageProps) {
                         {job.status}
                     </Badge>
                 </div>
+                 {job.limitContacts && (
+                     <div>
+                        <h4 className="text-sm font-medium text-muted-foreground">Contact Limit</h4>
+                        <p className="text-lg font-semibold text-foreground">{job.limitContacts} designers</p>
+                    </div>
+                 )}
             </div>
         </CardContent>
       </Card>
