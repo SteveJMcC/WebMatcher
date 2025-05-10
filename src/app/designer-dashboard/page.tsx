@@ -1,3 +1,4 @@
+
 "use client";
 
 import { DesignerJobList } from "@/components/features/designer-job-list";
@@ -59,7 +60,7 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
 
 
 export default function DesignerDashboardPage() {
-  const { isAuthenticated, userType, userId: authDesignerId, isLoading: authIsLoading, profileSetupComplete } = useAuth();
+  const { isAuthenticated, userType, userId: authDesignerId, isLoading: authIsLoading, profileSetupComplete, designerTokens } = useAuth();
   const router = useRouter();
 
   const [matchedJobs, setMatchedJobs] = useState<JobPosting[]>([]);
@@ -104,7 +105,7 @@ export default function DesignerDashboardPage() {
   const mockDesignerStats = {
     profileViews: 156,
     activeApplications: 3,
-    tokensRemaining: auth.designerTokens ?? 25, // Use actual tokens if available from auth context
+    tokensRemaining: designerTokens ?? 25, 
   };
 
   if (authIsLoading || (!authIsLoading && (!isAuthenticated || userType !== 'designer' || !profileSetupComplete))) {
@@ -199,3 +200,4 @@ export default function DesignerDashboardPage() {
     </div>
   );
 }
+

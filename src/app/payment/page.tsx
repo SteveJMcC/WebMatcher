@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Suspense } from 'react';
@@ -8,18 +9,20 @@ import { CreditCard, Sparkles, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/context/auth-context';
 
 function PaymentGatewayContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { toast } = useToast();
+  const { updateDesignerTokens } = useAuth();
 
   const planId = searchParams.get('planId');
   const planName = searchParams.get('planName');
   const price = searchParams.get('price');
-  const tokens = searchParams.get('tokens');
+  const tokensString = searchParams.get('tokens'); // Read as string
 
-  if (!planId || !planName || !price || !tokens) {
+  if (!planId || !planName || !price || !tokensString) {
     return (
       <Card className="w-full max-w-lg mx-auto shadow-xl">
         <CardHeader className="text-center">
@@ -36,17 +39,21 @@ function PaymentGatewayContent() {
     );
   }
 
+  const planTokens = parseInt(tokensString, 10);
+
   const handleConfirmPayment = () => {
     // Mock payment processing
+    if (planTokens > 0) {
+      updateDesignerTokens(planTokens);
+    }
+
     toast({
       title: "Payment Successful!",
-      description: `You have successfully purchased the ${planName} for $${price} (${tokens} tokens).`,
+      description: `You have successfully purchased the ${planName} for $${price} (${planTokens} tokens).`,
       variant: "default",
       duration: 5000,
       action: <CheckCircle className="text-green-500" />,
     });
-    // Potentially redirect to designer dashboard or confirmation page
-    // For now, let's redirect back to pricing or designer dashboard
     router.push('/designer-dashboard'); 
   };
 
@@ -61,7 +68,7 @@ function PaymentGatewayContent() {
         <div className="p-6 bg-secondary rounded-lg">
           <h3 className="text-xl font-semibold text-primary mb-2">{planName}</h3>
           <p className="text-2xl font-bold text-foreground">${price}</p>
-          <p className="text-md text-muted-foreground">{tokens} Tokens</p>
+          <p className="text-md text-muted-foreground">{planTokens} Tokens</p>
         </div>
         
         {/* Placeholder for payment form fields */}
@@ -103,3 +110,4 @@ export default function PaymentPage() {
     </div>
   );
 }
+
