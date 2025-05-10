@@ -1,7 +1,7 @@
 export interface JobPostingCore {
   title: string;
   description: string;
-  budget: number; // Changed from budgetMin/budgetMax
+  budget: number; 
   skillsRequired: Tag[]; 
   limitContacts?: number;
 }
@@ -24,6 +24,7 @@ export interface DesignerProfileCore {
   budgetMin: number;
   budgetMax: number;
   email?: string;
+  phone?: string; // Added phone field
 }
 
 export interface DesignerProfile extends DesignerProfileCore {
@@ -68,7 +69,7 @@ export interface BidForSummary {
 
 export interface SummarizeBidsServiceInput {
   jobDescription: string;
-  jobBudget: number; // Added jobBudget
+  jobBudget: number; 
   bids: BidForSummary[];
 }
 

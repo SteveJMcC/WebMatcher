@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, DollarSign, ExternalLink, Mail, MapPin, Palette, Star, CheckCircle, Award } from "lucide-react";
+import { Briefcase, DollarSign, ExternalLink, Mail, MapPin, Palette, Star, CheckCircle, Award, Phone, UserCircle as UserIconLucide } from "lucide-react";
 import Image from "next/image";
 
 interface DesignerProfileViewProps {
@@ -57,7 +57,7 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
         <div className="md:col-span-2 space-y-8">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="text-2xl flex items-center"><UserCircle className="mr-2 h-6 w-6 text-primary" /> About Me</CardTitle>
+              <CardTitle className="text-2xl flex items-center"><UserIconLucide className="mr-2 h-6 w-6 text-primary" /> About Me</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-foreground/90 whitespace-pre-line leading-relaxed">{profile.bio}</p>
@@ -69,7 +69,7 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
               <CardTitle className="text-2xl flex items-center"><Palette className="mr-2 h-6 w-6 text-primary" /> Skills</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
-              {profile.skills.map((skill: SkillTag | string) => ( // Handle both object and string skills
+              {profile.skills.map((skill: SkillTag | string) => ( 
                 <Badge key={typeof skill === 'string' ? skill : skill.id} variant="secondary" className="text-sm px-3 py-1 bg-primary/10 text-primary">
                   {typeof skill === 'string' ? skill : skill.text}
                 </Badge>
@@ -78,7 +78,7 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
           </Card>
         </div>
 
-        {/* Right Column: Budget, Portfolio, Stats */}
+        {/* Right Column: Budget, Portfolio, Stats, Contact */}
         <div className="space-y-8">
            <Card className="shadow-lg">
             <CardHeader>
@@ -116,6 +116,30 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
 
           <Card className="shadow-lg">
             <CardHeader>
+              <CardTitle className="text-xl flex items-center"><Mail className="mr-2 h-5 w-5 text-primary" /> Contact Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+              {profile.email && (
+                <div className="flex items-center">
+                  <Mail className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-foreground break-all">{profile.email}</span>
+                </div>
+              )}
+              {profile.phone && (
+                <div className="flex items-center">
+                  <Phone className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-foreground">{profile.phone}</span>
+                </div>
+              )}
+              {(!profile.email && !profile.phone) && (
+                <p className="text-muted-foreground italic">No contact details publicly shared.</p>
+              )}
+            </CardContent>
+          </Card>
+
+
+          <Card className="shadow-lg">
+            <CardHeader>
               <CardTitle className="text-xl flex items-center"><Award className="mr-2 h-5 w-5 text-primary" /> Stats</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
@@ -131,13 +155,3 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
     </div>
   );
 }
-
-// Placeholder for UserCircle if not in lucide
-const UserCircle = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <circle cx="12" cy="12" r="10"></circle>
-    <circle cx="12" cy="10" r="3"></circle>
-    <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path>
-  </svg>
-);
-

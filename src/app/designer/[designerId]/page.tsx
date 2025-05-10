@@ -1,7 +1,7 @@
 import { DesignerProfileView } from "@/components/features/designer-profile-view";
 import type { DesignerProfile } from "@/lib/types";
 import { Metadata } from "next";
-import { Mail, Globe } from "lucide-react";
+import { Mail, Globe, Phone } from "lucide-react"; // Added Phone
 import { Button } from "@/components/ui/button";
 
 // Mock data fetching function
@@ -32,6 +32,7 @@ async function getDesignerProfile(id: string): Promise<DesignerProfile | null> {
       budgetMax: 8000,
       tokens: 25,
       email: "elena.rodriguez@example.com",
+      phone: "+15551234567", // Added phone
       joinedDate: new Date('2021-06-15T10:00:00.000Z').toISOString(),
     };
   }

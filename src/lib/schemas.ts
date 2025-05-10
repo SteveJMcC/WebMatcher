@@ -21,6 +21,10 @@ export const DesignerProfileSchema = z.object({
   budgetMin: z.coerce.number().min(0, "Minimum budget must be a non-negative number."),
   budgetMax: z.coerce.number().min(0, "Maximum budget must be a non-negative number."),
   email: z.string().email("Invalid email address.").optional().or(z.literal('')),
+  phone: z.string()
+    .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format (e.g., +1234567890).")
+    .optional()
+    .or(z.literal('')),
 }).refine(data => data.budgetMax >= data.budgetMin, {
   message: "Maximum budget cannot be less than minimum budget.",
   path: ["budgetMax"],

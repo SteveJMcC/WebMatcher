@@ -1,15 +1,15 @@
 "use client";
 
 import type { Bid, JobPosting, SummarizedBidOutput, SummarizeBidsServiceInput, BidForSummary } from "@/lib/types";
-import type { DesignerProfile } from "@/lib/types"; // Assuming DesignerProfile is needed for context
+import type { DesignerProfile } from "@/lib/types"; 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { DollarSign, UserCircle, MessageSquare, ThumbsUp, ThumbsDown, Sparkles, Info, AlertTriangle, Loader2 } from "lucide-react";
-import { summarizeBids } from "@/ai/flows/summarize-bids"; // GenAI Flow
+import { DollarSign, UserCircle, MessageSquare, ThumbsUp, ThumbsDown, Sparkles, Info, AlertTriangle, Loader2, Mail, Phone } from "lucide-react";
+import { summarizeBids } from "@/ai/flows/summarize-bids"; 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import Image from "next/image";
@@ -17,9 +17,7 @@ import Image from "next/image";
 interface JobBidsDisplayProps {
   job: JobPosting;
   initialBids: Bid[];
-  // Mock function to get designer profile string for AI
   getDesignerProfileString: (designerId: string) => Promise<string>; 
-  // Mock function to get full designer profile for display
   getDesignerDetails: (designerId: string) => Promise<DesignerProfile | null>; 
 }
 
@@ -65,20 +63,18 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
 
       const aiInput: SummarizeBidsServiceInput = {
         jobDescription: job.description,
-        jobBudget: job.budget, // Pass the job's budget
+        jobBudget: job.budget, 
         bids: [{
-          designerProfile: designerProfileString, // This is the string representation
+          designerProfile: designerProfileString, 
           bidAmount: bidToSummarize.bidAmount,
           experienceSummary: bidToSummarize.experienceSummary,
           coverLetter: bidToSummarize.coverLetter,
         }]
       };
       
-      const summaries = await summarizeBids(aiInput); // Call the AI flow
+      const summaries = await summarizeBids(aiInput); 
 
       if (summaries && summaries.length > 0) {
-        // Match summary back. Since we send one bid, we expect one summary.
-        // The AI output `designerProfile` field should match the input `designerProfile` string.
         const matchedSummary = summaries.find(s => s.designerProfile === designerProfileString);
         if (matchedSummary) {
           setDisplayBids(prev => prev.map(b => b.id === bidId ? { ...b, aiSummaryText: matchedSummary.summary, isLoadingSummary: false } : b));
@@ -98,16 +94,16 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
   
   const handleSummarizeAllBids = async () => {
     setIsSummarizingAll(true);
-    setDisplayBids(prev => prev.map(b => ({ ...b, isLoadingSummary: !b.aiSummaryText }))); // Set loading for those without summary
+    setDisplayBids(prev => prev.map(b => ({ ...b, isLoadingSummary: !b.aiSummaryText }))); 
 
     try {
         const bidsToProcess: BidForSummary[] = await Promise.all(
             displayBids
-            .filter(bid => !bid.aiSummaryText) // Process only those not yet summarized
+            .filter(bid => !bid.aiSummaryText) 
             .map(async (bid) => {
                 const designerProfileString = await getDesignerProfileString(bid.designerId);
                 return {
-                    designerProfile: designerProfileString, // Key for matching later
+                    designerProfile: designerProfileString, 
                     bidAmount: bid.bidAmount,
                     experienceSummary: bid.experienceSummary,
                     coverLetter: bid.coverLetter,
@@ -124,7 +120,7 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
 
         const aiInput: SummarizeBidsServiceInput = {
             jobDescription: job.description,
-            jobBudget: job.budget, // Pass the job's budget
+            jobBudget: job.budget, 
             bids: bidsToProcess,
         };
 
@@ -132,14 +128,8 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
 
         const updatedBids = displayBids.map(originalBid => {
             const summaryForThisBid = summariesOutput.find(s => {
-                // Attempt to find the corresponding input bid that generated this summary
-                // This relies on designerProfile string being unique enough or on order.
                 const matchingProcessedBid = bidsToProcess.find(pBid => pBid.designerProfile === s.designerProfile);
                 if (!matchingProcessedBid) return false;
-
-                // Further check: Does this processed bid loosely match the originalBid?
-                // This is a heuristic if designerProfile isn't perfectly unique or if re-generation differs slightly.
-                // Ideally, pass an ID through the AI flow if possible for robust matching.
                 return matchingProcessedBid.bidAmount === originalBid.bidAmount &&
                        matchingProcessedBid.coverLetter.startsWith(originalBid.coverLetter.substring(0,20));
             });
@@ -148,7 +138,7 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
             if (summaryForThisBid) {
                 return { ...originalBid, aiSummaryText: summaryForThisBid.summary, isLoadingSummary: false };
             }
-            return { ...originalBid, isLoadingSummary: false }; // No summary found or already had one
+            return { ...originalBid, isLoadingSummary: false }; 
         });
         
 
@@ -180,11 +170,10 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
     );
   }
 
-  // Simple ranking: by bid amount (ascending), then by presence of AI summary.
   const rankedBids = [...displayBids].sort((a, b) => {
     if (a.bidAmount < b.bidAmount) return -1;
     if (a.bidAmount > b.bidAmount) return 1;
-    if (a.aiSummaryText && !b.aiSummaryText) return -1; // Bids with AI summary first
+    if (a.aiSummaryText && !b.aiSummaryText) return -1; 
     if (!a.aiSummaryText && b.aiSummaryText) return 1;
     return 0;
   }).map((bid, index) => ({...bid, rank: index + 1}));
@@ -262,7 +251,37 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                   <h4 className="font-semibold text-foreground mb-1">Experience Summary:</h4>
                   <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-line">{bid.experienceSummary}</p>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+
+                {/* Contact Information Section */}
+                {bid.designerDetails && (
+                    <Card className="bg-secondary/30 border-secondary">
+                      <CardHeader className="pb-2 pt-4">
+                        <CardTitle className="text-md flex items-center text-foreground">
+                          <UserCircle className="mr-2 h-5 w-5 text-primary"/> Designer Contact
+                        </CardTitle>
+                         <CardDescription className="text-xs">
+                            Contact information provided by the designer.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-1 pb-4">
+                        {bid.designerDetails.email && (
+                          <p className="text-sm text-muted-foreground flex items-center">
+                            <Mail className="mr-2 h-4 w-4 flex-shrink-0 text-primary/70" /> Email: {bid.designerDetails.email}
+                          </p>
+                        )}
+                        {bid.designerDetails.phone && (
+                          <p className="text-sm text-muted-foreground flex items-center mt-1">
+                            <Phone className="mr-2 h-4 w-4 flex-shrink-0 text-primary/70" /> Phone: {bid.designerDetails.phone}
+                          </p>
+                        )}
+                        {(!bid.designerDetails.email && !bid.designerDetails.phone) && (
+                            <p className="text-sm text-muted-foreground italic">Contact information not publicly shared by the designer.</p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t mt-4">
                   <Button asChild className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
                     <Link href={`/designer/${bid.designerId}/contact`}> {/* Placeholder contact link */}
                       <MessageSquare className="mr-2 h-4 w-4" /> Contact {bid.designerName.split(' ')[0]}

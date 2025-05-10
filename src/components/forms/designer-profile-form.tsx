@@ -19,7 +19,7 @@ import { DesignerProfileSchema, type DesignerProfileFormData } from "@/lib/schem
 import { useToast } from "@/hooks/use-toast";
 import { useAuthMock } from "@/hooks/use-auth-mock";
 import { useRouter } from "next/navigation";
-import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palette, Mail } from "lucide-react";
+import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palette, Mail, Phone } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag } from "@/lib/types";
@@ -46,6 +46,7 @@ const STABLE_EMPTY_PROFILE_VALUES: DesignerProfileFormData = {
   budgetMin: 0,
   budgetMax: 0,
   email: "",
+  phone: "",
 };
 
 
@@ -57,7 +58,7 @@ export function DesignerProfileForm() {
   const initialFormValues = React.useMemo(() => {
     if (auth.profileSetupComplete && auth.userType === 'designer') {
       return {
-        name: auth.displayName || auth.username || "", // Use displayName which is derived from designer's profile name
+        name: auth.displayName || auth.username || "", 
         headline: auth.designerHeadline || "",
         avatarUrl: auth.designerAvatarUrl || "",
         skills: auth.designerSkills || [],
@@ -66,12 +67,14 @@ export function DesignerProfileForm() {
         budgetMin: auth.designerBudgetMin ?? 0,
         budgetMax: auth.designerBudgetMax ?? 0,
         email: auth.designerEmail || "",
+        phone: auth.designerPhone || "",
       };
     }
     return {
       ...STABLE_EMPTY_PROFILE_VALUES,
       name: auth.username || STABLE_EMPTY_PROFILE_VALUES.name,
       email: auth.designerEmail || STABLE_EMPTY_PROFILE_VALUES.email,
+      phone: auth.designerPhone || STABLE_EMPTY_PROFILE_VALUES.phone,
     };
   }, [
     auth.profileSetupComplete, 
@@ -85,7 +88,8 @@ export function DesignerProfileForm() {
     auth.designerPortfolioLinks, 
     auth.designerBudgetMin, 
     auth.designerBudgetMax, 
-    auth.designerEmail
+    auth.designerEmail,
+    auth.designerPhone,
   ]);
 
 
@@ -224,6 +228,24 @@ export function DesignerProfileForm() {
                       <Input type="email" placeholder="your.email@example.com" {...field} value={field.value || ""} className="pl-10 text-base py-6" />
                     </FormControl>
                   </div>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg">Contact Phone (Optional)</FormLabel>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                    <FormControl>
+                      <Input type="tel" placeholder="+1234567890" {...field} value={field.value || ""} className="pl-10 text-base py-6" />
+                    </FormControl>
+                  </div>
+                  <FormDescription>Your contact phone number (e.g., +1234567890).</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

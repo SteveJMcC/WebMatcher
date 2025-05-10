@@ -23,6 +23,7 @@ const mockDesigners: DesignerProfile[] = [
     budgetMax: 8000,
     tokens: 25,
     email: "elena.rodriguez@example.com",
+    phone: "+15551234567",
     joinedDate: new Date('2021-06-15T10:00:00.000Z').toISOString(),
   },
   {
@@ -38,6 +39,7 @@ const mockDesigners: DesignerProfile[] = [
     budgetMax: 6000,
     tokens: 18,
     email: "marcus.chen@example.com",
+    phone: "+15557654321",
     joinedDate: new Date('2022-01-20T10:00:00.000Z').toISOString(),
   },
    {
@@ -53,6 +55,7 @@ const mockDesigners: DesignerProfile[] = [
     budgetMax: 10000,
     tokens: 30,
     email: "aisha.khan@example.com",
+    // phone intentionally omitted for this profile to test optional display
     joinedDate: new Date('2020-11-05T10:00:00.000Z').toISOString(),
   },
 ];

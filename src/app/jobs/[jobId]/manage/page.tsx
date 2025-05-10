@@ -51,19 +51,24 @@ async function getJobBids(jobId: string): Promise<Bid[]> {
 }
 
 async function getDesignerProfileForAI(designerId: string): Promise<string> {
-    // This mock function would create a string representation of the designer's profile.
-    // In a real app, you'd fetch relevant parts of the designer's profile.
     const designer = await getFullDesignerProfile(designerId);
     if (!designer) return "Designer profile not available.";
-    return `Name: ${designer.name}. Headline: ${designer.headline}. Skills: ${designer.skills.map(s => typeof s === 'string' ? s : s.text).join(', ')}. Experience: ${designer.bio.substring(0,100)}... Budget Range: $${designer.budgetMin}-$${designer.budgetMax}.`;
+    let profileString = `Name: ${designer.name}. Headline: ${designer.headline}. Skills: ${designer.skills.map(s => typeof s === 'string' ? s : s.text).join(', ')}. Experience: ${designer.bio.substring(0,100)}... Budget Range: $${designer.budgetMin}-$${designer.budgetMax}.`;
+    if (designer.email) {
+        profileString += ` Email: ${designer.email}.`;
+    }
+    if (designer.phone) {
+        profileString += ` Phone: ${designer.phone}.`;
+    }
+    return profileString;
 }
 
 async function getFullDesignerProfile(designerId: string): Promise<DesignerProfile | null> {
     // Mock: In a real app, fetch full profile from DB
     const profiles: Record<string, DesignerProfile> = {
-        "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design...", budgetMin: 2000, budgetMax: 6000, portfolioLinks: [], tokens: 10, joinedDate: new Date().toISOString() },
-        "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}], bio: "Building engaging mobile experiences...", budgetMin: 2500, budgetMax: 7000, portfolioLinks: [], tokens: 15, joinedDate: new Date().toISOString() },
-        "designer-C": { id: "designer-C", userId: "user-C", name: "Carol Danvers", headline: "Modern & Affordable Web Designer", avatarUrl: "https://picsum.photos/seed/carol/100/100", skills: [{id:"web-design", text:"Web Design"}, {id:"figma", text:"Figma"}], bio: "Fresh design perspectives at great value...", budgetMin: 1500, budgetMax: 4000, portfolioLinks: [], tokens: 5, joinedDate: new Date().toISOString() },
+        "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design...", budgetMin: 2000, budgetMax: 6000, email: "alice@example.com", phone: "+15550001111", portfolioLinks: [], tokens: 10, joinedDate: new Date().toISOString() },
+        "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}], bio: "Building engaging mobile experiences...", budgetMin: 2500, budgetMax: 7000, email: "bob@example.com", phone: "+15550002222", portfolioLinks: [], tokens: 15, joinedDate: new Date().toISOString() },
+        "designer-C": { id: "designer-C", userId: "user-C", name: "Carol Danvers", headline: "Modern & Affordable Web Designer", avatarUrl: "https://picsum.photos/seed/carol/100/100", skills: [{id:"web-design", text:"Web Design"}, {id:"figma", text:"Figma"}], bio: "Fresh design perspectives at great value...", budgetMin: 1500, budgetMax: 4000, email: "carol@example.com", phone: undefined, portfolioLinks: [], tokens: 5, joinedDate: new Date().toISOString() },
     };
     return profiles[designerId] || null;
 }

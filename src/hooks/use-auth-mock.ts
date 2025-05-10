@@ -30,6 +30,7 @@ interface StoredAuthData {
   designerBudgetMin?: number;
   designerBudgetMax?: number;
   designerEmail?: string; 
+  designerPhone?: string;
 }
 
 export interface AuthState {
@@ -52,6 +53,7 @@ export interface AuthState {
   designerBudgetMin: number | null;
   designerBudgetMax: number | null;
   designerEmail: string | null;
+  designerPhone: string | null;
 
   login: (type: 'user' | 'designer', username: string, id?: string) => void;
   logout: () => void;
@@ -77,6 +79,8 @@ export const useAuthMock = (): AuthState => {
   const [designerBudgetMin, setDesignerBudgetMin] = useState<number | null>(null);
   const [designerBudgetMax, setDesignerBudgetMax] = useState<number | null>(null);
   const [designerEmail, setDesignerEmail] = useState<string | null>(null);
+  const [designerPhone, setDesignerPhone] = useState<string | null>(null);
+
 
   const [allProfiles, setAllProfiles] = useState<Record<string, StoredAuthData>>({});
 
@@ -109,6 +113,7 @@ export const useAuthMock = (): AuthState => {
           setDesignerBudgetMin(activeUserProfile.designerBudgetMin ?? null);
           setDesignerBudgetMax(activeUserProfile.designerBudgetMax ?? null);
           setDesignerEmail(activeUserProfile.designerEmail || null);
+          setDesignerPhone(activeUserProfile.designerPhone || null);
         }
       } else {
         // Reset to a logged-out state if no active user or profile mismatch
@@ -127,6 +132,7 @@ export const useAuthMock = (): AuthState => {
         setDesignerBudgetMin(null);
         setDesignerBudgetMax(null);
         setDesignerEmail(null);
+        setDesignerPhone(null);
       }
     } catch (error) {
       console.error("Failed to load auth state from localStorage", error);
@@ -148,6 +154,7 @@ export const useAuthMock = (): AuthState => {
       setDesignerBudgetMin(null);
       setDesignerBudgetMax(null);
       setDesignerEmail(null);
+      setDesignerPhone(null);
     }
     setIsLoading(false);
   }, []);
@@ -168,6 +175,8 @@ export const useAuthMock = (): AuthState => {
     let desBudgetMin: number | null = null;
     let desBudgetMax: number | null = null;
     let desEmail: string | null = null;
+    let desPhone: string | null = null;
+
 
     if (existingProfile) {
       psc = existingProfile.profileSetupComplete;
@@ -183,6 +192,7 @@ export const useAuthMock = (): AuthState => {
         desBudgetMin = existingProfile.designerBudgetMin ?? null;
         desBudgetMax = existingProfile.designerBudgetMax ?? null;
         desEmail = existingProfile.designerEmail || null;
+        desPhone = existingProfile.designerPhone || null;
       }
     }
 
@@ -195,7 +205,7 @@ export const useAuthMock = (): AuthState => {
 
     if (type === 'user') {
       setCompanyName(compName);
-      setDesignerHeadline(null); setDesignerAvatarUrl(null); setDesignerSkills(null); setDesignerBio(null); setDesignerPortfolioLinks(null); setDesignerBudgetMin(null); setDesignerBudgetMax(null); setDesignerEmail(null);
+      setDesignerHeadline(null); setDesignerAvatarUrl(null); setDesignerSkills(null); setDesignerBio(null); setDesignerPortfolioLinks(null); setDesignerBudgetMin(null); setDesignerBudgetMax(null); setDesignerEmail(null); setDesignerPhone(null);
     } else if (type === 'designer') {
       setDesignerHeadline(desHeadline);
       setDesignerAvatarUrl(desAvatar);
@@ -205,6 +215,7 @@ export const useAuthMock = (): AuthState => {
       setDesignerBudgetMin(desBudgetMin);
       setDesignerBudgetMax(desBudgetMax);
       setDesignerEmail(desEmail);
+      setDesignerPhone(desPhone);
       setCompanyName(null);
     }
 
@@ -226,6 +237,7 @@ export const useAuthMock = (): AuthState => {
         designerBudgetMin: type === 'designer' ? desBudgetMin : undefined,
         designerBudgetMax: type === 'designer' ? desBudgetMax : undefined,
         designerEmail: type === 'designer' ? desEmail : undefined,
+        designerPhone: type === 'designer' ? desPhone : undefined,
       };
       const newAllProfiles = { ...allProfiles, [userKey]: updatedProfileData };
       setAllProfiles(newAllProfiles); 
@@ -252,6 +264,8 @@ export const useAuthMock = (): AuthState => {
     setDesignerBudgetMin(null);
     setDesignerBudgetMax(null);
     setDesignerEmail(null);
+    setDesignerPhone(null);
+
 
     try {
       localStorage.removeItem(ACTIVE_USER_KEY_STORAGE_KEY);
@@ -283,6 +297,7 @@ export const useAuthMock = (): AuthState => {
         designerBudgetMin: undefined,
         designerBudgetMax: undefined,
         designerEmail: undefined,
+        designerPhone: undefined,
       };
 
       const newAllProfiles = { ...allProfiles, [userKey]: updatedProfile };
@@ -315,6 +330,7 @@ export const useAuthMock = (): AuthState => {
             designerBudgetMin: profileData.budgetMin,
             designerBudgetMax: profileData.budgetMax,
             designerEmail: profileData.email || undefined,
+            designerPhone: profileData.phone || undefined,
         };
         const newAllProfiles = { ...allProfiles, [userKey]: updatedProfile };
         setAllProfiles(newAllProfiles); 
@@ -329,6 +345,7 @@ export const useAuthMock = (): AuthState => {
         setDesignerBudgetMin(profileData.budgetMin);
         setDesignerBudgetMax(profileData.budgetMax);
         setDesignerEmail(profileData.email || null);
+        setDesignerPhone(profileData.phone || null);
         setProfileSetupComplete(true);
     }
   }, [isAuthenticated, userType, username, userId, allProfiles]);
@@ -351,6 +368,7 @@ export const useAuthMock = (): AuthState => {
     designerBudgetMin,
     designerBudgetMax,
     designerEmail,
+    designerPhone,
     login, 
     logout, 
     saveClientProfile,
