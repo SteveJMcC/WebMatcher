@@ -60,7 +60,7 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
 
 
 export default function DesignerDashboardPage() {
-  const { isAuthenticated, userType, userId: authDesignerId, isLoading: authIsLoading, profileSetupComplete, designerTokens } = useAuth();
+  const { isAuthenticated, userType, userId: authDesignerId, isLoading: authIsLoading, profileSetupComplete, designerTokens, displayName } = useAuth();
   const router = useRouter();
 
   const [matchedJobs, setMatchedJobs] = useState<JobPosting[]>([]);
@@ -69,7 +69,7 @@ export default function DesignerDashboardPage() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-        document.title = "Designer Dashboard - My Opportunities | WebConnect";
+        document.title = `${displayName ? displayName + "'s" : 'Designer'} Dashboard - My Opportunities | WebConnect`;
     }
 
     if (!authIsLoading) {
@@ -81,7 +81,7 @@ export default function DesignerDashboardPage() {
         router.push('/designer/setup-profile?redirect=/designer-dashboard');
       }
     }
-  }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router]);
+  }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router, displayName]);
 
   useEffect(() => {
     if (isAuthenticated && userType === 'designer' && profileSetupComplete && authDesignerId) {
@@ -133,8 +133,9 @@ export default function DesignerDashboardPage() {
     <div className="container mx-auto px-4 py-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
         <div className="mb-4 sm:mb-0">
-            <h1 className="text-4xl font-bold tracking-tight text-primary flex items-center">
-                <LayoutDashboard className="mr-3 h-10 w-10" /> Designer Dashboard
+            <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center">
+                <LayoutDashboard className="mr-3 h-8 w-8" /> 
+                {displayName ? `${displayName}'s Designer Dashboard` : 'Designer Dashboard'}
             </h1>
             <p className="text-lg text-muted-foreground mt-1">Discover opportunities and manage your profile.</p>
         </div>
