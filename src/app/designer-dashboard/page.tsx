@@ -11,9 +11,7 @@ import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal } from "lucide-react";
-
+import { DesignerJobDetailPanel } from "@/components/features/designer-job-detail-panel";
 
 // Mock data fetching functions
 async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
@@ -55,6 +53,16 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
       createdAt: new Date('2023-10-05T11:00:00.000Z').toISOString(),
       status: "open",
     },
+    {
+      id: "job-gen-2",
+      userId: "client-lmn",
+      title: "Mobile App Design for Fitness Startup",
+      description: "We're a new fitness startup looking for a designer to create an intuitive and motivating mobile app interface. Key features include workout tracking, progress visualization, and social sharing. Experience with gamification is a bonus.",
+      budget: 2500,
+      skillsRequired: [{ id: "mobile-app-design", text: "Mobile App Design" }, { id: "ui-design", text: "UI Design" }, { id: "ux-design", text: "UX Design" }, { id: "prototyping", text: "Prototyping" }],
+      createdAt: new Date('2023-10-12T14:00:00.000Z').toISOString(),
+      status: "open",
+    },
   ];
 }
 
@@ -65,7 +73,8 @@ export default function DesignerDashboardPage() {
 
   const [matchedJobs, setMatchedJobs] = useState<JobPosting[]>([]);
   const [generalJobs, setGeneralJobs] = useState<JobPosting[]>([]);
-  const [pageLoading, setPageLoading] = useState(true); // For job data loading
+  const [pageLoading, setPageLoading] = useState(true);
+  const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -86,21 +95,32 @@ export default function DesignerDashboardPage() {
   useEffect(() => {
     if (isAuthenticated && userType === 'designer' && profileSetupComplete && authDesignerId) {
       setPageLoading(true);
+      setSelectedJob(null); // Reset selected job on user change or reload
       Promise.all([
         getMatchedJobs(authDesignerId),
         getGeneralJobs()
       ]).then(([matched, general]) => {
         setMatchedJobs(matched);
         setGeneralJobs(general);
+        // Optionally select the first job by default
+        // if (matched.length > 0) {
+        //   setSelectedJob(matched[0]);
+        // } else if (general.length > 0) {
+        //   setSelectedJob(general[0]);
+        // }
         setPageLoading(false);
       }).catch(error => {
         console.error("Failed to fetch designer jobs:", error);
         setPageLoading(false);
       });
-    } else if (!authIsLoading) { // If auth is done loading and conditions not met
-        setPageLoading(false); // Stop page loading indicator
+    } else if (!authIsLoading) { 
+        setPageLoading(false); 
     }
   }, [isAuthenticated, userType, profileSetupComplete, authDesignerId, authIsLoading]);
+
+  const handleJobSelect = (job: JobPosting) => {
+    setSelectedJob(job);
+  };
 
   const mockDesignerStats = {
     profileViews: 156,
@@ -123,7 +143,10 @@ export default function DesignerDashboardPage() {
                 <Skeleton className="h-32 w-full" />
                 <Skeleton className="h-32 w-full" />
             </div>
-            <Skeleton className="h-64 w-full" />
+            <div className="grid md:grid-cols-3 gap-6">
+                <Skeleton className="md:col-span-1 h-96 w-full" />
+                <Skeleton className="md:col-span-2 h-96 w-full" />
+            </div>
         </div>
     );
   }
@@ -133,20 +156,20 @@ export default function DesignerDashboardPage() {
     <div className="container mx-auto px-4 py-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
         <div className="mb-4 sm:mb-0">
-            <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center">
-                <LayoutDashboard className="mr-3 h-8 w-8" /> 
-                {displayName ? `${displayName}'s Designer Dashboard` : 'Designer Dashboard'}
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary flex items-center">
+                <LayoutDashboard className="mr-3 h-7 w-7 md:h-8 md:w-8" /> 
+                {displayName ? `${displayName}'s Dashboard` : 'Designer Dashboard'}
             </h1>
-            <p className="text-lg text-muted-foreground mt-1">Discover opportunities and manage your profile.</p>
+            <p className="text-md md:text-lg text-muted-foreground mt-1">Discover opportunities and manage your profile.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-4 sm:mt-0">
             <Button asChild variant="outline">
             <Link href="/designer/setup-profile">
                 <Settings className="mr-2 h-4 w-4" /> My Profile
             </Link>
             </Button>
             <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Link href="/jobs/search"> {/* Placeholder search page */}
+            <Link href="/jobs/search"> 
                 <Search className="mr-2 h-4 w-4" /> Find More Jobs
             </Link>
             </Button>
@@ -156,7 +179,7 @@ export default function DesignerDashboardPage() {
     <div className="grid md:grid-cols-3 gap-6 mb-10">
         <Card className="shadow-md">
             <CardHeader>
-                <CardTitle className="text-lg text-muted-foreground">Profile Views (Last 30d)</CardTitle>
+                <CardTitle className="text-lg text-muted-foreground">Profile Views (30d)</CardTitle>
             </CardHeader>
             <CardContent>
                 <p className="text-4xl font-bold text-primary">{mockDesignerStats.profileViews}</p>
@@ -181,21 +204,37 @@ export default function DesignerDashboardPage() {
         </Card>
     </div>
       
-    {pageLoading ? ( // This state is for job data loading, not auth loading
-        <div className="space-y-12">
-            <div>
-                <Skeleton className="h-8 w-1/3 mb-6" />
-                <Skeleton className="h-48 w-full" />
+    {pageLoading ? (
+        <div className="grid md:grid-cols-3 gap-6">
+             <div className="md:col-span-1 space-y-6">
+                <Skeleton className="h-8 w-2/3 mb-4" />
+                <Skeleton className="h-40 w-full" />
+                <Skeleton className="h-40 w-full" />
             </div>
-            <div>
-                <Skeleton className="h-8 w-1/3 mb-6" />
-                <Skeleton className="h-48 w-full" />
+            <div className="md:col-span-2">
+                 <Skeleton className="h-96 w-full" />
             </div>
         </div>
     ) : (
-         <div className="space-y-12">
-            <DesignerJobList jobs={matchedJobs} title="Jobs Matched For You" emptyStateMessage="No jobs specifically matched to your profile yet. Broaden your skills or check general listings." />
-            <DesignerJobList jobs={generalJobs} title="Recently Posted Jobs" />
+         <div className="grid lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-1 space-y-8 overflow-y-auto max-h-[calc(100vh-20rem)] pr-2"> {/* Scrollable job list */}
+                <DesignerJobList 
+                    jobs={matchedJobs} 
+                    title="Jobs Matched For You" 
+                    emptyStateMessage="No jobs specifically matched to your profile yet."
+                    onJobSelect={handleJobSelect}
+                    selectedJobId={selectedJob?.id}
+                />
+                <DesignerJobList 
+                    jobs={generalJobs} 
+                    title="Recently Posted Jobs"
+                    onJobSelect={handleJobSelect}
+                    selectedJobId={selectedJob?.id}
+                />
+            </div>
+            <div className="lg:col-span-2"> {/* Job detail panel */}
+                <DesignerJobDetailPanel job={selectedJob} />
+            </div>
         </div>
     )}
     </div>

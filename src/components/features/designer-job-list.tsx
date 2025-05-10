@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { JobPosting } from "@/lib/types";
@@ -6,72 +7,98 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Briefcase, CalendarDays, DollarSign, Tag, Eye } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface DesignerJobListProps {
   jobs: JobPosting[];
   title?: string;
   emptyStateMessage?: string;
+  onJobSelect?: (job: JobPosting) => void;
+  selectedJobId?: string | null;
 }
 
 export function DesignerJobList({ 
   jobs, 
   title = "Available Jobs",
-  emptyStateMessage = "No jobs currently match your profile or search. Check back soon!"
+  emptyStateMessage = "No jobs currently match your profile or search. Check back soon!",
+  onJobSelect,
+  selectedJobId,
 }: DesignerJobListProps) {
 
   if (jobs.length === 0) {
     return (
-      <div className="text-center py-12">
-        <Briefcase className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-        <h2 className="text-2xl font-semibold mb-2">{title}</h2>
-        <p className="text-muted-foreground mb-6">{emptyStateMessage}</p>
-         <Button asChild variant="outline">
-          <Link href="/designers/preferences">Update Preferences</Link> {/* Placeholder */}
-        </Button>
+      <div>
+        <h2 className="text-2xl font-semibold text-foreground mb-4">{title}</h2>
+        <div className="text-center py-8 border rounded-lg shadow-sm bg-card">
+          <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+          <p className="text-muted-foreground mb-4 text-sm">{emptyStateMessage}</p>
+          <Button asChild variant="link" size="sm" className="text-primary">
+            <Link href="/designer/setup-profile">Update Profile Preferences</Link> 
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-3xl font-semibold text-foreground mb-6">{title}</h2>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-semibold text-foreground mb-4">{title}</h2>
       {jobs.map((job) => (
-        <Card key={job.id} className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-          <CardHeader>
-             <div className="flex flex-col md:flex-row justify-between md:items-start">
+        <Card 
+          key={job.id} 
+          className={cn(
+            "shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer",
+            selectedJobId === job.id ? "ring-2 ring-primary border-primary shadow-xl" : "border-border"
+          )}
+          onClick={() => onJobSelect && onJobSelect(job)}
+        >
+          <CardHeader className="pb-3 pt-4 px-4">
+             <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
                 <div>
-                    <CardTitle className="text-2xl hover:text-primary">
-                        <Link href={`/jobs/${job.id}`}>{job.title}</Link> {/* Link to job details page */}
+                    <CardTitle className="text-lg font-semibold hover:text-primary leading-tight">
+                        {job.title}
                     </CardTitle>
-                    <CardDescription className="flex items-center text-sm text-muted-foreground mt-1">
-                        <CalendarDays className="h-4 w-4 mr-1.5" /> Posted on {new Date(job.createdAt).toLocaleDateString()}
+                    <CardDescription className="flex items-center text-xs text-muted-foreground mt-1">
+                        <CalendarDays className="h-3 w-3 mr-1" /> Posted {new Date(job.createdAt).toLocaleDateString()}
                     </CardDescription>
                 </div>
-                <Badge variant="secondary" className="mt-2 md:mt-0 text-sm bg-primary/10 text-primary border-primary/30">
-                    Client Budget: ${job.budget.toLocaleString()}
+                <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-primary/10 text-primary border-primary/20 self-start sm:self-center">
+                    Budget: ${job.budget.toLocaleString()}
                 </Badge>
              </div>
           </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground line-clamp-3 mb-4">{job.description}</p>
-            <div className="mb-3">
-              <h4 className="text-sm font-semibold uppercase text-muted-foreground mb-1 flex items-center">
-                <Tag className="h-4 w-4 mr-1.5 text-primary" />Required Skills
+          <CardContent className="px-4 pb-3">
+            <p className="text-muted-foreground text-sm line-clamp-2 mb-2">{job.description}</p>
+            <div className="mb-2">
+              <h4 className="text-xs font-medium uppercase text-muted-foreground mb-0.5 flex items-center">
+                <Tag className="h-3 w-3 mr-1 text-primary" />Skills
               </h4>
-              <div className="flex flex-wrap gap-2">
-                {job.skillsRequired.map((skill) => (
-                  <Badge key={typeof skill === 'string' ? skill : skill.id} variant="outline" className="text-xs">
+              <div className="flex flex-wrap gap-1">
+                {job.skillsRequired.slice(0, 3).map((skill) => ( // Show limited skills for brevity
+                  <Badge key={typeof skill === 'string' ? skill : skill.id} variant="outline" className="text-xs px-1.5 py-0.5">
                     {typeof skill === 'string' ? skill : skill.text}
                   </Badge>
                 ))}
+                {job.skillsRequired.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{job.skillsRequired.length-3} more</Badge>}
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button asChild className="bg-primary hover:bg-primary/90">
-              <Link href={`/jobs/${job.id}`}> {/* Link to job details / apply page */}
-                <Eye className="mr-2 h-4 w-4" /> View Details & Apply
-              </Link>
+          <CardFooter className="px-4 pb-4 pt-0 flex justify-end">
+            <Button 
+              size="sm" 
+              variant={selectedJobId === job.id ? "default" : "outline"}
+              className={cn(selectedJobId === job.id ? "bg-primary hover:bg-primary/90" : "")}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card click if button is clicked
+                if (onJobSelect) {
+                  onJobSelect(job);
+                } else {
+                  // Fallback or navigate if onJobSelect is not defined
+                  // router.push(`/jobs/${job.id}`);
+                }
+              }}
+            >
+              <Eye className="mr-1.5 h-4 w-4" /> View Details
             </Button>
           </CardFooter>
         </Card>
@@ -79,3 +106,4 @@ export function DesignerJobList({
     </div>
   );
 }
+
