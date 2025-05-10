@@ -5,7 +5,6 @@ import { UserProfileForm } from "@/components/forms/user-profile-form";
 import { useAuthMock } from "@/hooks/use-auth-mock";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-// import { Metadata } from "next"; // Metadata is for server components primarily
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
@@ -17,7 +16,6 @@ export default function SetupUserProfilePage() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-        // Update title based on whether profile is being set up or updated
         document.title = profileSetupComplete ? "Update Client Profile - WebConnect" : "Setup Client Profile - WebConnect";
     }
 
@@ -25,11 +23,8 @@ export default function SetupUserProfilePage() {
       if (!isAuthenticated) {
         router.push('/login?redirect=/user/setup-profile');
       } else if (userType !== 'user') {
-        router.push('/'); // Not a client, redirect to home or relevant dashboard
+        router.push('/'); 
       }
-      // Removed: else if (profileSetupComplete) { router.push('/user-dashboard'); }
-      // Now users can access this page to update their profile even if it's complete.
-      // The UserProfileForm will need to handle whether it's an initial setup or an update.
     }
   }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router]);
 
@@ -48,7 +43,6 @@ export default function SetupUserProfilePage() {
   }
 
   if (!isAuthenticated || userType !== 'user') {
-    // This content will be briefly shown while redirecting or if stuck.
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <p>Loading or redirecting...</p>
@@ -56,7 +50,6 @@ export default function SetupUserProfilePage() {
     );
   }
   
-  // User is authenticated and is a 'user'. They can set up or update profile.
   return (
     <div className="container mx-auto px-4 py-12">
       <UserProfileForm />

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Briefcase, Users, Tag, UserCircle, LogIn, LogOut, Settings, LayoutDashboard, Sparkles, Menu } from 'lucide-react';
+import { Briefcase, Users, Tag, UserCircle, LogIn, LogOut, Settings, LayoutDashboard, Sparkles, Menu, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -17,15 +17,15 @@ import { useAuthMock } from '@/hooks/use-auth-mock';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function Header() {
-  const { isAuthenticated, userType, username, displayName, isLoading, logout } = useAuthMock();
+  const { isAuthenticated, userType, email, displayName, isLoading, logout } = useAuthMock();
 
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
-    const nameToUse = name || 'User';
+    const nameToUse = name.trim() || 'User';
     return nameToUse.split(' ').map(n => n[0]).join('').toUpperCase();
   };
   
-  const currentDisplayName = displayName || username;
+  const currentDisplayNameForAvatar = displayName || (email ? email.split('@')[0] : 'User');
 
 
   return (
@@ -62,17 +62,21 @@ export function Header() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${username}`} alt={currentDisplayName || 'User'} data-ai-hint="user avatar" />
-                    <AvatarFallback>{getInitials(currentDisplayName)}</AvatarFallback>
+                    {/* Avatar can be based on displayName or a generic one */}
+                    <AvatarImage src={`https://i.pravatar.cc/150?u=${email}`} alt={currentDisplayNameForAvatar || 'User'} data-ai-hint="user avatar" />
+                    <AvatarFallback>{getInitials(currentDisplayNameForAvatar)}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuContent className="w-64" align="end" forceMount> {/* Increased width for email */}
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{currentDisplayName}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {userType === 'designer' ? 'Designer' : 'Client'}
+                    <p className="text-sm font-medium leading-none">{displayName || 'User'}</p>
+                    <p className="text-xs leading-none text-muted-foreground flex items-center">
+                       <Mail className="mr-1.5 h-3 w-3"/> {email}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground mt-1">
+                      Role: {userType === 'designer' ? 'Designer' : 'Client'}
                     </p>
                   </div>
                 </DropdownMenuLabel>
@@ -158,4 +162,3 @@ export function Header() {
     </header>
   );
 }
-

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +24,7 @@ import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palett
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag } from "@/lib/types";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 const allSkillsOptions: Tag[] = [
   { id: "react", text: "React" }, { id: "nextjs", text: "Next.js" }, { id: "vue", text: "Vue.js" },
@@ -37,7 +38,7 @@ const allSkillsOptions: Tag[] = [
 ];
 
 const STABLE_EMPTY_PROFILE_VALUES: DesignerProfileFormData = {
-  name: "",
+  name: "", // This will be the displayName
   headline: "",
   avatarUrl: "",
   skills: [],
@@ -45,7 +46,7 @@ const STABLE_EMPTY_PROFILE_VALUES: DesignerProfileFormData = {
   portfolioLinks: [{ title: "", url: "" }],
   budgetMin: 0,
   budgetMax: 0,
-  email: "",
+  email: "", // This is the contact email
   phone: "",
 };
 
@@ -55,10 +56,10 @@ export function DesignerProfileForm() {
   const auth = useAuthMock();
   const router = useRouter();
 
-  const initialFormValues = React.useMemo(() => {
+  const initialFormValues = useMemo(() => {
     if (auth.profileSetupComplete && auth.userType === 'designer') {
       return {
-        name: auth.displayName || auth.username || "", 
+        name: auth.displayName || "", // Use displayName from auth state
         headline: auth.designerHeadline || "",
         avatarUrl: auth.designerAvatarUrl || "",
         skills: auth.designerSkills || [],
@@ -66,21 +67,20 @@ export function DesignerProfileForm() {
         portfolioLinks: auth.designerPortfolioLinks && auth.designerPortfolioLinks.length > 0 ? auth.designerPortfolioLinks : [{ title: "", url: "" }],
         budgetMin: auth.designerBudgetMin ?? 0,
         budgetMax: auth.designerBudgetMax ?? 0,
-        email: auth.designerEmail || "",
+        email: auth.designerEmail || "", // Contact email from auth state
         phone: auth.designerPhone || "",
       };
     }
     return {
       ...STABLE_EMPTY_PROFILE_VALUES,
-      name: auth.username || STABLE_EMPTY_PROFILE_VALUES.name,
-      email: auth.designerEmail || STABLE_EMPTY_PROFILE_VALUES.email,
-      phone: auth.designerPhone || STABLE_EMPTY_PROFILE_VALUES.phone,
+      name: auth.displayName || STABLE_EMPTY_PROFILE_VALUES.name, // Pre-fill with displayName from signup
+      email: STABLE_EMPTY_PROFILE_VALUES.email, // Default empty for contact email
+      phone: STABLE_EMPTY_PROFILE_VALUES.phone,
     };
   }, [
     auth.profileSetupComplete, 
     auth.userType, 
-    auth.username, 
-    auth.displayName,
+    auth.displayName, // Use displayName for the name field
     auth.designerHeadline, 
     auth.designerAvatarUrl, 
     auth.designerSkills, 
@@ -88,12 +88,12 @@ export function DesignerProfileForm() {
     auth.designerPortfolioLinks, 
     auth.designerBudgetMin, 
     auth.designerBudgetMax, 
-    auth.designerEmail,
+    auth.designerEmail, // This is the contact email
     auth.designerPhone,
   ]);
 
 
-  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(initialFormValues.skills || []);
+  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(initialFormValues.skills);
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(initialFormValues.avatarUrl);
 
 
@@ -116,8 +116,8 @@ export function DesignerProfileForm() {
 
   async function onSubmit(data: DesignerProfileFormData) {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log("Designer profile data: ", {userId: auth.userId, ...data});
-    
+    // data.name will be used as displayName
+    // data.email is the contact email for the profile
     auth.saveDesignerProfile(data); 
 
     toast({
@@ -189,13 +189,14 @@ export function DesignerProfileForm() {
 
             <FormField
               control={form.control}
-              name="name"
+              name="name" // This is for displayName
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg">Full Name</FormLabel>
+                  <FormLabel className="text-lg">Full Name / Display Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Alex Johnson" {...field} value={field.value || ""} className="text-base py-6" />
                   </FormControl>
+                  <FormDescription>This name will be publicly visible.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -218,16 +219,17 @@ export function DesignerProfileForm() {
             
             <FormField
               control={form.control}
-              name="email"
+              name="email" // This is the contact email for the profile
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg">Contact Email</FormLabel>
+                  <FormLabel className="text-lg">Contact Email (Public)</FormLabel>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <FormControl>
-                      <Input type="email" placeholder="your.email@example.com" {...field} value={field.value || ""} className="pl-10 text-base py-6" />
+                      <Input type="email" placeholder="your.contact.email@example.com" {...field} value={field.value || ""} className="pl-10 text-base py-6" />
                     </FormControl>
                   </div>
+                  <FormDescription>This email will be displayed on your public profile for clients to contact you. It can be different from your login email.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -238,14 +240,14 @@ export function DesignerProfileForm() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg">Contact Phone (Optional)</FormLabel>
+                  <FormLabel className="text-lg">Contact Phone (Optional, Public)</FormLabel>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <FormControl>
                       <Input type="tel" placeholder="+1234567890" {...field} value={field.value || ""} className="pl-10 text-base py-6" />
                     </FormControl>
                   </div>
-                  <FormDescription>Your contact phone number (e.g., +1234567890).</FormDescription>
+                  <FormDescription>Your contact phone number for your public profile.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

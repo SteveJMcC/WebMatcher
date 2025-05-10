@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type FormEvent, useEffect } from 'react';
@@ -7,15 +8,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthMock } from '@/hooks/use-auth-mock';
-import { LogIn } from 'lucide-react';
+import { LogIn, Mail } from 'lucide-react'; // Added Mail icon
 import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuthMock();
-  const [username, setUsername] = useState('');
-  const [userType, setUserType] = useState<'user' | 'designer'>('user'); // Default to 'user'
+  const [email, setEmail] = useState(''); // Changed from username to email
+  const [userType, setUserType] = useState<'user' | 'designer'>('user');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -23,18 +24,22 @@ export default function LoginPage() {
     if (typeFromQuery === 'designer' || typeFromQuery === 'user') {
       setUserType(typeFromQuery);
     }
-    // If typeFromQuery is null or invalid, userType remains the default 'user'
   }, [searchParams]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!username.trim()) {
-      setError('Username cannot be empty.');
+    if (!email.trim()) {
+      setError('Email cannot be empty.');
+      return;
+    }
+    // Basic email validation (can be more robust)
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address.');
       return;
     }
     setError('');
-    // The userType state is now determined by the query param (or default)
-    login(userType, username.trim()); 
+    // Login function now expects email. Display name is fetched from profile or set during signup.
+    login(userType, email.trim()); 
     router.push(userType === 'designer' ? '/designer-dashboard' : '/user-dashboard');
   };
 
@@ -49,20 +54,21 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Enter your username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                className="text-base"
-              />
+              <Label htmlFor="email">Email Address</Label> {/* Changed from Username to Email Address */}
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email" // Changed type to email
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="pl-10 text-base py-3" // Added padding for icon
+                />
+              </div>
             </div>
             
-            {/* RadioGroup for selecting user type has been removed as per request */}
-
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-lg py-6">
               Log In
@@ -73,7 +79,6 @@ export default function LoginPage() {
            <p className="text-sm text-muted-foreground">
             Don't have an account?{' '}
             <Button variant="link" asChild className="p-0 text-primary">
-              {/* Pass userType to signup if maintaining context, or let signup handle selection */}
               <Link href={`/signup?userType=${userType}`}>Sign up</Link>
             </Button>
           </p>

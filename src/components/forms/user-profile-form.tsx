@@ -30,18 +30,17 @@ export function UserProfileForm() {
 
   const initialFormValues = React.useMemo(() => {
     if (auth.profileSetupComplete && auth.userType === 'user') {
-      // Profile is complete, load existing data from auth state
       return {
-        name: auth.displayName || auth.username || "", // Prioritize displayName from profile
+        name: auth.displayName || "", // Use displayName from auth state
         companyName: auth.companyName || "",
       };
     }
-    // For new profile setup or if data not available (though it should be if psc is true)
+    // For new profile setup, pre-fill name with displayName from signup if available
     return {
-      name: auth.username || "", // Pre-fill with login username if available
+      name: auth.displayName || "", 
       companyName: "",
     };
-  }, [auth.profileSetupComplete, auth.userType, auth.username, auth.displayName, auth.companyName]);
+  }, [auth.profileSetupComplete, auth.userType, auth.displayName, auth.companyName]);
 
 
   const form = useForm<UserProfileFormData>({
@@ -49,20 +48,19 @@ export function UserProfileForm() {
     defaultValues: initialFormValues,
   });
 
-  // Effect to reset form if initial values change (e.g., profile status changes or user changes)
   React.useEffect(() => {
     form.reset(initialFormValues);
   }, [form, initialFormValues]);
 
 
   async function onSubmit(data: UserProfileFormData) {
-    // Simulate API call to save user profile
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    auth.saveClientProfile(data); // This will also mark profile as complete and save to localStorage
+    // data.name will be the new displayName
+    auth.saveClientProfile(data); 
     
     toast({
-      title: auth.profileSetupComplete ? "Profile Updated!" : "Profile Set Up!", // Check old status for message
+      title: auth.profileSetupComplete ? "Profile Updated!" : "Profile Set Up!",
       description: `Your client profile has been successfully ${auth.profileSetupComplete ? 'updated' : 'created'}.`,
       variant: "default",
     });
@@ -87,13 +85,14 @@ export function UserProfileForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
-              name="name"
+              name="name" // This field maps to displayName
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg">Full Name / Contact Person</FormLabel>
+                  <FormLabel className="text-lg">Full Name / Display Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., John Doe" {...field} className="text-base py-6" />
                   </FormControl>
+                  <FormDescription>This name will be visible publicly.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

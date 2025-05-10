@@ -1,3 +1,4 @@
+
 "use client";
 
 import { DesignerProfileForm } from "@/components/forms/designer-profile-form";
@@ -7,12 +8,6 @@ import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
-
-// Metadata for client components is typically handled differently (e.g., useEffect for document.title)
-// export const metadata: Metadata = {
-//   title: "Setup Designer Profile - WebConnect",
-//   description: "Create or update your designer profile to showcase your skills and attract clients on WebConnect.",
-// };
 
 export default function SetupDesignerProfilePage() {
   const { isAuthenticated, userType, isLoading: authIsLoading, profileSetupComplete } = useAuthMock();
@@ -27,10 +22,8 @@ export default function SetupDesignerProfilePage() {
       if (!isAuthenticated) {
         router.push('/login?redirect=/designer/setup-profile');
       } else if (userType !== 'designer') {
-        router.push('/'); // Not a designer, redirect to home or relevant dashboard for their type
+        router.push('/'); 
       }
-      // If profile is complete, they can still access this page to *update* it.
-      // No redirect here if profileSetupComplete is true, form handles text change.
     }
   }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router]);
 
@@ -51,7 +44,6 @@ export default function SetupDesignerProfilePage() {
   }
   
   if (!isAuthenticated || userType !== 'designer') {
-     // This content will be briefly shown while redirecting or if stuck.
     return (
       <div className="container mx-auto px-4 py-12 text-center">
         <p>Loading or redirecting...</p>
@@ -59,7 +51,6 @@ export default function SetupDesignerProfilePage() {
     );
   }
   
-  // Allow access for designers to set up or update their profile
   return (
     <div className="container mx-auto px-4 py-12">
       <DesignerProfileForm />

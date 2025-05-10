@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type FormEvent, useEffect } from 'react';
@@ -8,15 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuthMock } from '@/hooks/use-auth-mock';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Mail, User as UserIcon } from 'lucide-react'; // Added Mail and UserIcon
 import Link from 'next/link';
 
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuthMock();
-  const [username, setUsername] = useState('');
-  const [userType, setUserType] = useState<'user' | 'designer'>('user'); // Default to 'user'
+  const [email, setEmail] = useState(''); // For login
+  const [displayName, setDisplayName] = useState(''); // Publicly visible name
+  const [userType, setUserType] = useState<'user' | 'designer'>('user');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -29,12 +31,21 @@ export default function SignupPage() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-     if (!username.trim()) {
-      setError('Username cannot be empty.');
+     if (!email.trim()) {
+      setError('Email cannot be empty.');
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    if (!displayName.trim()) {
+      setError('Display Name cannot be empty.');
       return;
     }
     setError('');
-    login(userType, username.trim()); // This sets profileSetupComplete to false
+    // login now takes email and displayName for signup
+    login(userType, email.trim(), displayName.trim()); 
     
     if (userType === 'designer') {
       router.push('/designer/setup-profile');
@@ -54,22 +65,42 @@ export default function SignupPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="Choose a username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                className="text-base"
-              />
+              <Label htmlFor="email">Email Address</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email address"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="pl-10 text-base py-3"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <div className="relative">
+                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="displayName"
+                  type="text"
+                  placeholder="Choose a public display name"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  required
+                  className="pl-10 text-base py-3"
+                />
+              </div>
+              <FormDescription className="text-xs text-muted-foreground">This name will be visible to other users.</FormDescription>
             </div>
             
             <div className="space-y-2">
               <Label>Sign up as</Label>
               <RadioGroup
-                value={userType} // Controlled component
+                value={userType}
                 onValueChange={(value: 'user' | 'designer') => setUserType(value)}
                 className="flex space-x-4"
               >
@@ -93,7 +124,6 @@ export default function SignupPage() {
           <p className="text-sm text-muted-foreground">
             Already have an account?{' '}
             <Button variant="link" asChild className="p-0 text-primary">
-              {/* Pass userType back to login if maintaining context */}
               <Link href={`/login?userType=${userType}`}>Log in</Link>
             </Button>
           </p>
