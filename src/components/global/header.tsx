@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -16,15 +17,36 @@ import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function Header() {
-  const { isAuthenticated, userType, email, displayName, isLoading, logout } = useAuth();
+  const { 
+    isAuthenticated, 
+    userType, 
+    email, 
+    displayName, 
+    isLoading, 
+    logout,
+    designerAvatarUrl, // Used for designer's custom avatar
+    // userAvatarUrl, // If clients were to have custom avatars, it would be here
+  } = useAuth();
 
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
-    const nameToUse = name.trim() || 'User';
+    const nameToUse = name.trim() || 'User'; // Fallback if name is empty string
     return nameToUse.split(' ').map(n => n[0]).join('').toUpperCase();
   };
   
   const currentDisplayNameForAvatar = displayName || (email ? email.split('@')[0] : 'User');
+
+  let avatarSrc: string;
+  if (userType === 'designer' && designerAvatarUrl && designerAvatarUrl.trim() !== '') {
+    avatarSrc = designerAvatarUrl;
+  } else if (userType === 'user' /* && userAvatarUrl && userAvatarUrl.trim() !== '' */) {
+    // Placeholder for client-specific avatar if implemented in the future
+    // For now, clients will use the default Pravatar image
+    avatarSrc = `https://i.pravatar.cc/150?u=${email || 'default-client-avatar'}`;
+  } else {
+    // Default for any authenticated user if no specific avatar is found, or for designers without avatar
+    avatarSrc = `https://i.pravatar.cc/150?u=${email || 'default-avatar-seed'}`;
+  }
 
 
   return (
@@ -55,19 +77,18 @@ export function Header() {
 
         <div className="flex items-center gap-2">
           {isLoading ? (
-            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-10 rounded-full" />
           ) : isAuthenticated ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                   <Avatar className="h-9 w-9">
-                    {/* Avatar can be based on displayName or a generic one */}
-                    <AvatarImage src={`https://i.pravatar.cc/150?u=${email}`} alt={currentDisplayNameForAvatar || 'User'} data-ai-hint="user avatar" />
+                    <AvatarImage src={avatarSrc} alt={currentDisplayNameForAvatar || 'User'} data-ai-hint="user avatar" />
                     <AvatarFallback>{getInitials(currentDisplayNameForAvatar)}</AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64" align="end" forceMount> {/* Increased width for email */}
+              <DropdownMenuContent className="w-64" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">{displayName || 'User'}</p>
@@ -75,7 +96,7 @@ export function Header() {
                        <Mail className="mr-1.5 h-3 w-3"/> {email}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground mt-1">
-                      Role: {userType === 'designer' ? 'Designer' : 'Client'}
+                      Role: {userType === 'designer' ? 'Web Professional' : 'Client'}
                     </p>
                   </div>
                 </DropdownMenuLabel>
