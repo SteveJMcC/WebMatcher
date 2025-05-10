@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Briefcase, CalendarDays, DollarSign, Tag, UserCircle, CheckCircle, AlertTriangle, Search } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface DesignerJobDetailPanelProps {
   job: JobPosting | null;
@@ -107,3 +108,4 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
     </Card>
   );
 }
+
