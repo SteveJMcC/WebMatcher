@@ -5,6 +5,7 @@ import { Header } from '@/components/global/header';
 import { Footer } from '@/components/global/footer';
 import { Toaster } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
+import { AuthProvider } from '@/context/auth-context';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -36,12 +37,14 @@ export default function RootLayout({
           "min-h-screen bg-background font-sans antialiased flex flex-col"
         )}
       >
-        <Header />
-        <main className="flex-grow container mx-auto px-4 py-8">
-          {children}
-        </main>
-        <Footer />
-        <Toaster />
+        <AuthProvider>
+          <Header />
+          <main className="flex-grow container mx-auto px-4 py-8">
+            {children}
+          </main>
+          <Footer />
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

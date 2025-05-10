@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DesignerProfileSchema, type DesignerProfileFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
-import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palette, Mail, Phone } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,8 +36,7 @@ const allSkillsOptions: Tag[] = [
   { id: "illustrator", text: "Illustrator" }, { id: "user-research", text: "User Research" }, { id: "prototyping", text: "Prototyping" },
 ];
 
-const STABLE_EMPTY_PROFILE_VALUES: DesignerProfileFormData = {
-  name: "", // This will be the displayName
+const STABLE_EMPTY_PROFILE_VALUES: Omit<DesignerProfileFormData, 'name' | 'email' | 'phone'> & { name?: string; email?: string; phone?: string; } = {
   headline: "",
   avatarUrl: "",
   skills: [],
@@ -46,20 +44,31 @@ const STABLE_EMPTY_PROFILE_VALUES: DesignerProfileFormData = {
   portfolioLinks: [{ title: "", url: "" }],
   budgetMin: 0,
   budgetMax: 0,
-  email: "", // This is the contact email
-  phone: "",
 };
 
 
 export function DesignerProfileForm() {
   const { toast } = useToast();
-  const auth = useAuthMock();
+  const auth = useAuth();
   const router = useRouter();
 
   const initialFormValues = useMemo(() => {
+    const baseValues: DesignerProfileFormData = {
+      name: auth.displayName || "",
+      headline: "",
+      avatarUrl: "",
+      skills: [],
+      bio: "",
+      portfolioLinks: [{ title: "", url: "" }],
+      budgetMin: 0,
+      budgetMax: 0,
+      email: auth.designerEmail || auth.email || "",
+      phone: auth.designerPhone || "",
+    };
+
     if (auth.profileSetupComplete && auth.userType === 'designer') {
       return {
-        name: auth.displayName || "", // Use displayName from auth state
+        name: auth.displayName || "",
         headline: auth.designerHeadline || "",
         avatarUrl: auth.designerAvatarUrl || "",
         skills: auth.designerSkills || [],
@@ -67,41 +76,37 @@ export function DesignerProfileForm() {
         portfolioLinks: auth.designerPortfolioLinks && auth.designerPortfolioLinks.length > 0 ? auth.designerPortfolioLinks : [{ title: "", url: "" }],
         budgetMin: auth.designerBudgetMin ?? 0,
         budgetMax: auth.designerBudgetMax ?? 0,
-        email: auth.designerEmail || "", // Contact email from auth state
+        email: auth.designerEmail || auth.email || "",
         phone: auth.designerPhone || "",
       };
     }
-    return {
-      ...STABLE_EMPTY_PROFILE_VALUES,
-      name: auth.displayName || STABLE_EMPTY_PROFILE_VALUES.name, // Pre-fill with displayName from signup
-      email: STABLE_EMPTY_PROFILE_VALUES.email, // Default empty for contact email
-      phone: STABLE_EMPTY_PROFILE_VALUES.phone,
-    };
+    return baseValues;
   }, [
-    auth.profileSetupComplete, 
-    auth.userType, 
-    auth.displayName, // Use displayName for the name field
-    auth.designerHeadline, 
-    auth.designerAvatarUrl, 
-    auth.designerSkills, 
-    auth.designerBio, 
-    auth.designerPortfolioLinks, 
-    auth.designerBudgetMin, 
-    auth.designerBudgetMax, 
-    auth.designerEmail, // This is the contact email
+    auth.profileSetupComplete,
+    auth.userType,
+    auth.displayName,
+    auth.email,
+    auth.designerHeadline,
+    auth.designerAvatarUrl,
+    auth.designerSkills,
+    auth.designerBio,
+    auth.designerPortfolioLinks,
+    auth.designerBudgetMin,
+    auth.designerBudgetMax,
+    auth.designerEmail,
     auth.designerPhone,
   ]);
 
 
-  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(initialFormValues.skills);
-  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(initialFormValues.avatarUrl);
+  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(initialFormValues.skills || []);
+  const [avatarPreview, setAvatarPreview] = useState<string>(initialFormValues.avatarUrl || "");
 
 
   const form = useForm<DesignerProfileFormData>({
     resolver: zodResolver(DesignerProfileSchema),
-    defaultValues: initialFormValues, 
+    defaultValues: initialFormValues,
   });
-  
+
   useEffect(() => {
     form.reset(initialFormValues);
     setSelectedSkills(initialFormValues.skills || []);
@@ -116,18 +121,16 @@ export function DesignerProfileForm() {
 
   async function onSubmit(data: DesignerProfileFormData) {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    // data.name will be used as displayName
-    // data.email is the contact email for the profile
-    auth.saveDesignerProfile(data); 
+    auth.saveDesignerProfile(data);
 
     toast({
       title: auth.profileSetupComplete ? "Profile Updated!" : "Profile Set Up!",
       description: `Your designer profile has been successfully ${auth.profileSetupComplete ? 'updated' : 'created'}.`,
       variant: "default",
     });
-    
-    const redirectUrl = new URLSearchParams(window.location.search).get('redirect');
-    router.push(redirectUrl || "/designer-dashboard");
+
+    const redirectUrlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('redirect') : null;
+    router.push(redirectUrlParams || "/designer-dashboard");
   }
 
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,18 +140,17 @@ export function DesignerProfileForm() {
       reader.onloadend = () => {
         const result = reader.result as string;
         setAvatarPreview(result);
-        form.setValue('avatarUrl', result, { shouldValidate: true, shouldDirty: true }); 
+        form.setValue('avatarUrl', result, { shouldValidate: true, shouldDirty: true });
       };
       reader.readAsDataURL(file);
     }
   };
 
-
   return (
     <Card className="w-full max-w-3xl mx-auto shadow-2xl">
       <CardHeader className="text-center">
         <UserCircle className="mx-auto h-12 w-12 text-primary mb-2" />
-        <CardTitle className="text-3xl font-bold">{auth.profileSetupComplete ? "Update Your Designer Profile" : "Set Up Your Designer Profile"}</CardTitle>
+        <CardTitle className="text-3xl font-bold">{auth.profileSetupComplete && auth.userType === 'designer' ? "Update Your Designer Profile" : "Set Up Your Designer Profile"}</CardTitle>
         <CardDescription>Showcase your skills and attract clients.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -158,24 +160,24 @@ export function DesignerProfileForm() {
                 <Avatar className="h-32 w-32 border-4 border-primary/20">
                   <AvatarImage src={avatarPreview || form.watch('avatarUrl')} alt={form.watch('name')} data-ai-hint="designer avatar" />
                   <AvatarFallback className="text-4xl">
-                    {(form.watch('name') || initialFormValues.name)?.charAt(0)?.toUpperCase() || 'D'}
+                    {(form.watch('name'))?.charAt(0)?.toUpperCase() || 'D'}
                   </AvatarFallback>
                 </Avatar>
                 <FormField
                   control={form.control}
-                  name="avatarUrl" 
+                  name="avatarUrl"
                   render={({ field }) => (
                   <FormItem className="w-full max-w-xs">
                      <FormLabel className="text-base">Avatar URL (or upload below)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="text" 
-                        placeholder="https://example.com/avatar.jpg" 
+                      <Input
+                        type="text"
+                        placeholder="https://example.com/avatar.jpg"
                         {...field}
                         value={field.value || ""}
                         onChange={(e) => {
-                            field.onChange(e.target.value); 
-                            setAvatarPreview(e.target.value); 
+                            field.onChange(e.target.value);
+                            setAvatarPreview(e.target.value);
                         }}
                         className="text-base py-3"
                        />
@@ -189,7 +191,7 @@ export function DesignerProfileForm() {
 
             <FormField
               control={form.control}
-              name="name" // This is for displayName
+              name="name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-lg">Full Name / Display Name</FormLabel>
@@ -216,10 +218,10 @@ export function DesignerProfileForm() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
-              name="email" // This is the contact email for the profile
+              name="email"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-lg">Contact Email (Public)</FormLabel>
@@ -234,7 +236,7 @@ export function DesignerProfileForm() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="phone"
@@ -326,7 +328,7 @@ export function DesignerProfileForm() {
                       </FormItem>
                     )}
                   />
-                  <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)} aria-label="Remove link">
+                  <Button type="button" variant="destructive" size="icon" onClick={() => fields.length > 1 ? remove(index) : form.setValue(`portfolioLinks.${index}`, {title: "", url: ""})} aria-label="Remove link" disabled={fields.length === 1 && (!form.getValues(`portfolioLinks.${index}.title`) && !form.getValues(`portfolioLinks.${index}.url`))}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -343,7 +345,7 @@ export function DesignerProfileForm() {
               </Button>
                <FormDescription className="text-sm mt-1">You can add up to 5 links.</FormDescription>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <FormField
                 control={form.control}
@@ -354,7 +356,7 @@ export function DesignerProfileForm() {
                     <div className="relative">
                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                        <FormControl>
-                        <Input type="number" placeholder="500" {...field} value={field.value ?? ""} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
+                        <Input type="number" placeholder="500" {...field} value={field.value ?? 0} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
                       </FormControl>
                     </div>
                     <FormDescription>Your preferred minimum project budget in USD.</FormDescription>
@@ -371,7 +373,7 @@ export function DesignerProfileForm() {
                      <div className="relative">
                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                        <FormControl>
-                        <Input type="number" placeholder="10000" {...field} value={field.value ?? ""} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
+                        <Input type="number" placeholder="10000" {...field} value={field.value ?? 0} onChange={e => field.onChange(Number(e.target.value))} className="pl-10 text-base py-6" />
                       </FormControl>
                     </div>
                     <FormDescription>Your preferred maximum project budget in USD (or leave blank for no max).</FormDescription>
@@ -383,7 +385,7 @@ export function DesignerProfileForm() {
 
 
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-lg py-6" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? "Saving Profile..." : (auth.profileSetupComplete ? "Update Profile" : "Save Profile")}
+              {form.formState.isSubmitting ? "Saving Profile..." : (auth.profileSetupComplete && auth.userType === 'designer' ? "Update Profile" : "Save Profile")}
             </Button>
           </form>
         </Form>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, type FormEvent, useEffect } from 'react';
@@ -8,16 +7,18 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useAuthMock } from '@/hooks/use-auth-mock';
-import { UserPlus, Mail, User as UserIcon } from 'lucide-react'; // Added Mail and UserIcon
+import { useAuth } from '@/context/auth-context';
+import { UserPlus, Mail, User as UserIcon } from 'lucide-react'; 
 import Link from 'next/link';
+import { FormDescription } from '@/components/ui/form';
+
 
 export default function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login } = useAuthMock();
-  const [email, setEmail] = useState(''); // For login
-  const [displayName, setDisplayName] = useState(''); // Publicly visible name
+  const { login } = useAuth();
+  const [email, setEmail] = useState(''); 
+  const [displayName, setDisplayName] = useState(''); 
   const [userType, setUserType] = useState<'user' | 'designer'>('user');
   const [error, setError] = useState('');
 
@@ -44,7 +45,7 @@ export default function SignupPage() {
       return;
     }
     setError('');
-    // login now takes email and displayName for signup
+    
     login(userType, email.trim(), displayName.trim()); 
     
     if (userType === 'designer') {
@@ -110,7 +111,7 @@ export default function SignupPage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="designer" id="designer" />
-                  <Label htmlFor="designer" className="font-normal">Designer (Offering services)</Label>
+                  <Label htmlFor="designer" className="font-normal">Web Pro (Offering services)</Label>
                 </div>
               </RadioGroup>
             </div>

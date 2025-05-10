@@ -1,21 +1,16 @@
 "use client";
 
 import { JobPostingForm } from "@/components/forms/job-posting-form";
-import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 
-// Metadata for client components needs different handling
-// export const metadata: Metadata = {
-//   title: "Post a Job - WebConnect",
-//   description: "Submit your project details and find skilled web designers on WebConnect.",
-// };
 
 export default function PostJobPage() {
-  const { isAuthenticated, userType, isLoading: authIsLoading, profileSetupComplete } = useAuthMock();
+  const { isAuthenticated, userType, isLoading: authIsLoading, profileSetupComplete } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -25,16 +20,16 @@ export default function PostJobPage() {
 
     if (!authIsLoading) {
       if (!isAuthenticated) {
-        router.push('/login?redirect=/post-job');
+        router.push('/login?redirect=/post-job&userType=user');
       } else if (userType !== 'user') {
-        router.push('/designer-dashboard'); // Designers can't post jobs
+        router.push('/designer-dashboard'); 
       } else if (!profileSetupComplete) {
-        router.push('/user/setup-profile?redirect=/post-job'); // Profile not complete
+        router.push('/user/setup-profile?redirect=/post-job'); 
       }
     }
   }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router]);
 
-  if (authIsLoading) {
+  if (authIsLoading || (!authIsLoading && (!isAuthenticated || userType !== 'user' || !profileSetupComplete))) {
     return (
       <div className="container mx-auto px-4 py-12">
         <Skeleton className="h-12 w-1/2 mx-auto mb-4" />
@@ -48,17 +43,7 @@ export default function PostJobPage() {
       </div>
     );
   }
-
-  if (!isAuthenticated || userType !== 'user' || !profileSetupComplete) {
-    // Content shown while redirecting
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <p>Verifying access or redirecting...</p>
-      </div>
-    );
-  }
   
-  // User is authenticated, is a 'user', and profile is complete
   return (
     <div className="container mx-auto px-4 py-12">
       <JobPostingForm />

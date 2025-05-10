@@ -1,8 +1,7 @@
-
 "use client";
 
 import { DesignerProfileForm } from "@/components/forms/designer-profile-form";
-import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,24 +9,24 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal } from "lucide-react";
 
 export default function SetupDesignerProfilePage() {
-  const { isAuthenticated, userType, isLoading: authIsLoading, profileSetupComplete } = useAuthMock();
+  const { isAuthenticated, userType, isLoading: authIsLoading, profileSetupComplete } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
      if (typeof document !== 'undefined') {
-        document.title = profileSetupComplete ? "Update Designer Profile - WebConnect" : "Setup Designer Profile - WebConnect";
+        document.title = (profileSetupComplete && userType === 'designer') ? "Update Designer Profile - WebConnect" : "Setup Designer Profile - WebConnect";
     }
 
     if (!authIsLoading) {
       if (!isAuthenticated) {
-        router.push('/login?redirect=/designer/setup-profile');
+        router.push('/login?redirect=/designer/setup-profile&userType=designer');
       } else if (userType !== 'designer') {
         router.push('/'); 
       }
     }
   }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router]);
 
-  if (authIsLoading) {
+  if (authIsLoading || (!authIsLoading && (!isAuthenticated || userType !== 'designer'))) {
     return (
       <div className="container mx-auto px-4 py-12">
         <Skeleton className="h-12 w-1/2 mx-auto mb-4" />
@@ -39,14 +38,6 @@ export default function SetupDesignerProfilePage() {
             <Skeleton className="h-40 w-full" />
             <Skeleton className="h-12 w-full" />
         </div>
-      </div>
-    );
-  }
-  
-  if (!isAuthenticated || userType !== 'designer') {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <p>Loading or redirecting...</p>
       </div>
     );
   }

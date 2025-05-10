@@ -1,8 +1,7 @@
-
 "use client";
 
 import { UserProfileForm } from "@/components/forms/user-profile-form";
-import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,24 +10,24 @@ import { Terminal } from "lucide-react";
 
 
 export default function SetupUserProfilePage() {
-  const { isAuthenticated, userType, isLoading: authIsLoading, profileSetupComplete } = useAuthMock();
+  const { isAuthenticated, userType, isLoading: authIsLoading, profileSetupComplete } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-        document.title = profileSetupComplete ? "Update Client Profile - WebConnect" : "Setup Client Profile - WebConnect";
+        document.title = (profileSetupComplete && userType === 'user') ? "Update Client Profile - WebConnect" : "Setup Client Profile - WebConnect";
     }
 
     if (!authIsLoading) {
       if (!isAuthenticated) {
-        router.push('/login?redirect=/user/setup-profile');
+        router.push('/login?redirect=/user/setup-profile&userType=user');
       } else if (userType !== 'user') {
         router.push('/'); 
       }
     }
   }, [isAuthenticated, userType, authIsLoading, profileSetupComplete, router]);
 
-  if (authIsLoading) {
+  if (authIsLoading || (!authIsLoading && (!isAuthenticated || userType !== 'user'))) {
     return (
       <div className="container mx-auto px-4 py-12">
         <Skeleton className="h-12 w-1/2 mx-auto mb-4" />
@@ -38,14 +37,6 @@ export default function SetupUserProfilePage() {
             <Skeleton className="h-16 w-full" />
             <Skeleton className="h-12 w-full" />
         </div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || userType !== 'user') {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <p>Loading or redirecting...</p>
       </div>
     );
   }

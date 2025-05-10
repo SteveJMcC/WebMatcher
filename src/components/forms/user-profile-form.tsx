@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,25 +16,24 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserProfileSchema, type UserProfileFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
-import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { UserCircle, Building } from "lucide-react";
-import React from "react"; 
+import React, { useEffect, useMemo } from "react"; 
 
 
 export function UserProfileForm() {
   const { toast } = useToast();
-  const auth = useAuthMock(); 
+  const auth = useAuth(); 
   const router = useRouter();
 
-  const initialFormValues = React.useMemo(() => {
+  const initialFormValues = useMemo(() => {
     if (auth.profileSetupComplete && auth.userType === 'user') {
       return {
-        name: auth.displayName || "", // Use displayName from auth state
+        name: auth.displayName || "", 
         companyName: auth.companyName || "",
       };
     }
-    // For new profile setup, pre-fill name with displayName from signup if available
     return {
       name: auth.displayName || "", 
       companyName: "",
@@ -48,20 +46,23 @@ export function UserProfileForm() {
     defaultValues: initialFormValues,
   });
 
-  React.useEffect(() => {
-    form.reset(initialFormValues);
-  }, [form, initialFormValues]);
+  useEffect(() => {
+     const currentAuthValues = {
+        name: auth.displayName || "",
+        companyName: (auth.profileSetupComplete && auth.userType === 'user' ? auth.companyName : "") || "",
+    };
+    form.reset(currentAuthValues);
+  }, [form, auth]);
 
 
   async function onSubmit(data: UserProfileFormData) {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // data.name will be the new displayName
     auth.saveClientProfile(data); 
     
     toast({
-      title: auth.profileSetupComplete ? "Profile Updated!" : "Profile Set Up!",
-      description: `Your client profile has been successfully ${auth.profileSetupComplete ? 'updated' : 'created'}.`,
+      title: auth.profileSetupComplete && auth.userType === 'user' ? "Profile Updated!" : "Profile Set Up!",
+      description: `Your client profile has been successfully ${auth.profileSetupComplete && auth.userType === 'user' ? 'updated' : 'created'}.`,
       variant: "default",
     });
     
@@ -74,10 +75,10 @@ export function UserProfileForm() {
       <CardHeader className="text-center">
         <UserCircle className="mx-auto h-12 w-12 text-primary mb-2" />
         <CardTitle className="text-3xl font-bold">
-          {auth.profileSetupComplete ? "Update Your Profile" : "Set Up Your Profile"}
+          {auth.profileSetupComplete && auth.userType === 'user' ? "Update Your Profile" : "Set Up Your Profile"}
         </CardTitle>
         <CardDescription>
-          {auth.profileSetupComplete ? "Keep your information current." : "Tell us a bit about yourself or your company."}
+          {auth.profileSetupComplete && auth.userType === 'user' ? "Keep your information current." : "Tell us a bit about yourself or your company."}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -85,12 +86,12 @@ export function UserProfileForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
               control={form.control}
-              name="name" // This field maps to displayName
+              name="name" 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-lg">Full Name / Display Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., John Doe" {...field} className="text-base py-6" />
+                    <Input placeholder="e.g., John Doe" {...field} value={field.value || ""} className="text-base py-6" />
                   </FormControl>
                   <FormDescription>This name will be visible publicly.</FormDescription>
                   <FormMessage />
@@ -118,8 +119,8 @@ export function UserProfileForm() {
 
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-lg py-6" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting 
-                ? (auth.profileSetupComplete ? "Updating Profile..." : "Saving Profile...") 
-                : (auth.profileSetupComplete ? "Update Profile" : "Save and Continue")
+                ? (auth.profileSetupComplete && auth.userType === 'user' ? "Updating Profile..." : "Saving Profile...") 
+                : (auth.profileSetupComplete && auth.userType === 'user' ? "Update Profile" : "Save and Continue")
               }
             </Button>
           </form>

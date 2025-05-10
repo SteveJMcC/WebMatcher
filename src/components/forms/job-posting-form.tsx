@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +22,7 @@ import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag, JobPosting } from "@/lib/types";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useAuth } from "@/context/auth-context";
 
 const allSkillsOptions: Tag[] = [
   { id: "react", text: "React" },
@@ -56,7 +55,7 @@ const allSkillsOptions: Tag[] = [
 export function JobPostingForm() {
   const { toast } = useToast();
   const router = useRouter();
-  const { userId: authUserId } = useAuthMock();
+  const { userId: authUserId } = useAuth();
   const [selectedSkills, setSelectedSkills] = useState<Tag[]>([]);
 
   const form = useForm<JobPostingFormData>({
@@ -94,11 +93,13 @@ export function JobPostingForm() {
     };
 
     try {
-      const storageKey = `userJobs_${authUserId}`;
-      const existingJobsString = localStorage.getItem(storageKey);
-      const existingJobs: JobPosting[] = existingJobsString ? JSON.parse(existingJobsString) : [];
-      existingJobs.push(newJob);
-      localStorage.setItem(storageKey, JSON.stringify(existingJobs));
+      if (typeof window !== 'undefined') {
+        const storageKey = `userJobs_${authUserId}`;
+        const existingJobsString = localStorage.getItem(storageKey);
+        const existingJobs: JobPosting[] = existingJobsString ? JSON.parse(existingJobsString) : [];
+        existingJobs.push(newJob);
+        localStorage.setItem(storageKey, JSON.stringify(existingJobs));
+      }
       
       toast({
         title: "Job Posted Successfully!",

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { UserJobList } from "@/components/features/user-job-list";
@@ -6,7 +5,7 @@ import type { JobPosting } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { LayoutDashboard, PlusCircle } from "lucide-react";
-import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -32,7 +31,7 @@ async function getUserJobs(userId: string): Promise<JobPosting[]> {
 
 
 export default function UserDashboardPage() {
-  const { isAuthenticated, userType, userId: authUserId, isLoading: authIsLoading, profileSetupComplete, displayName } = useAuthMock();
+  const { isAuthenticated, userType, userId: authUserId, isLoading: authIsLoading, profileSetupComplete, displayName } = useAuth();
   const router = useRouter();
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
@@ -44,7 +43,7 @@ export default function UserDashboardPage() {
 
     if (!authIsLoading) {
       if (!isAuthenticated) {
-        router.push('/login?redirect=/user-dashboard');
+        router.push('/login?redirect=/user-dashboard&userType=user');
       } else if (userType !== 'user') {
         router.push('/'); 
       } else if (!profileSetupComplete) {
@@ -63,12 +62,12 @@ export default function UserDashboardPage() {
         console.error("Failed to fetch user jobs:", error);
         setPageLoading(false);
       });
-    } else if (!authIsLoading) {
-        setPageLoading(false);
+    } else if (!authIsLoading) { // If auth is done loading and conditions not met
+        setPageLoading(false); // Stop page loading indicator
     }
   }, [isAuthenticated, userType, profileSetupComplete, authUserId, authIsLoading]);
 
-  if (authIsLoading) {
+  if (authIsLoading || (!authIsLoading && (!isAuthenticated || userType !== 'user' || !profileSetupComplete))) {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
@@ -76,14 +75,6 @@ export default function UserDashboardPage() {
             <Skeleton className="h-12 w-48" />
         </div>
         <Skeleton className="h-64 w-full" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || userType !== 'user' || !profileSetupComplete) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <p>Verifying access or redirecting...</p>
       </div>
     );
   }
@@ -105,7 +96,7 @@ export default function UserDashboardPage() {
         </Button>
       </div>
       
-      {pageLoading ? (
+      {pageLoading ? ( // This state is for job data loading, not auth loading
         <div>
             <Skeleton className="h-48 w-full mb-6" />
             <Skeleton className="h-48 w-full" />
@@ -116,4 +107,3 @@ export default function UserDashboardPage() {
     </div>
   );
 }
-

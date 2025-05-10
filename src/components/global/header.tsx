@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from 'next/link';
@@ -13,11 +12,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuthMock } from '@/hooks/use-auth-mock';
+import { useAuth } from '@/context/auth-context';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function Header() {
-  const { isAuthenticated, userType, email, displayName, isLoading, logout } = useAuthMock();
+  const { isAuthenticated, userType, email, displayName, isLoading, logout } = useAuth();
 
   const getInitials = (name: string | null) => {
     if (!name) return 'U';

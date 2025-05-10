@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { LayoutDashboard, Search, Settings } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuthMock } from "@/hooks/use-auth-mock";
+import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,7 +23,7 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
       userId: "client-abc",
       title: "Urgent: Landing Page UI/UX for SaaS Product",
       description: "We are launching a new SaaS product and need a compelling landing page design. Must be modern, responsive, and conversion-focused. Experience with Figma and A/B testing design concepts is a plus. Quick turnaround needed.",
-      budget: 1200, // Changed from budgetMin/budgetMax
+      budget: 1200, 
       skillsRequired: [{id:"ui-design", text:"UI Design"}, {id:"ux-design", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"landing-page", text:"Landing Page Design"}],
       createdAt: new Date('2023-10-10T09:00:00.000Z').toISOString(),
       status: "open",
@@ -33,7 +33,7 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
       userId: "client-def",
       title: "Illustrated Icons for Children's Educational App",
       description: "Seeking a talented illustrator to create a set of 50 unique, friendly, and colorful icons for an educational app targeting children aged 4-7. Style should be playful and engaging.",
-      budget: 800, // Changed from budgetMin/budgetMax
+      budget: 800, 
       skillsRequired: [{id:"illustration", text:"Illustration"}, {id:"icon-design", text:"Icon Design"}, {id:"graphic-design", text:"Graphic Design"}],
       createdAt: new Date('2023-10-08T16:20:00.000Z').toISOString(),
       status: "open",
@@ -49,7 +49,7 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
       userId: "client-xyz",
       title: "Website Redesign for Non-Profit Organization",
       description: "Our non-profit needs a fresh, accessible, and easy-to-navigate website. We want to better showcase our mission and impact. Experience with designing for non-profits and accessibility standards (WCAG) is highly valued.",
-      budget: 2000, // Changed from budgetMin/budgetMax
+      budget: 2000, 
       skillsRequired: [{id:"web-design", text:"Web Design"}, {id:"ui-design", text:"UI Design"}, {id:"accessibility", text:"Accessibility (WCAG)"}, {id:"wordpress", text:"WordPress"}],
       createdAt: new Date('2023-10-05T11:00:00.000Z').toISOString(),
       status: "open",
@@ -57,18 +57,14 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
   ];
 }
 
-// export const metadata: Metadata = {
-//   title: "Designer Dashboard - My Opportunities | WebConnect",
-//   description: "Find new job opportunities, manage your applications, and update your profile on WebConnect.",
-// };
 
 export default function DesignerDashboardPage() {
-  const { isAuthenticated, userType, userId: authDesignerId, isLoading: authIsLoading, profileSetupComplete } = useAuthMock();
+  const { isAuthenticated, userType, userId: authDesignerId, isLoading: authIsLoading, profileSetupComplete } = useAuth();
   const router = useRouter();
 
   const [matchedJobs, setMatchedJobs] = useState<JobPosting[]>([]);
   const [generalJobs, setGeneralJobs] = useState<JobPosting[]>([]);
-  const [pageLoading, setPageLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true); // For job data loading
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -77,9 +73,9 @@ export default function DesignerDashboardPage() {
 
     if (!authIsLoading) {
       if (!isAuthenticated) {
-        router.push('/login?redirect=/designer-dashboard');
+        router.push('/login?redirect=/designer-dashboard&userType=designer');
       } else if (userType !== 'designer') {
-        router.push('/'); // Not a designer, redirect
+        router.push('/'); 
       } else if (!profileSetupComplete) {
         router.push('/designer/setup-profile?redirect=/designer-dashboard');
       }
@@ -100,18 +96,18 @@ export default function DesignerDashboardPage() {
         console.error("Failed to fetch designer jobs:", error);
         setPageLoading(false);
       });
-    } else if (!authIsLoading) {
-        setPageLoading(false);
+    } else if (!authIsLoading) { // If auth is done loading and conditions not met
+        setPageLoading(false); // Stop page loading indicator
     }
   }, [isAuthenticated, userType, profileSetupComplete, authDesignerId, authIsLoading]);
 
   const mockDesignerStats = {
     profileViews: 156,
     activeApplications: 3,
-    tokensRemaining: 25, // This would come from the designer's profile data in a real app
+    tokensRemaining: auth.designerTokens ?? 25, // Use actual tokens if available from auth context
   };
 
-  if (authIsLoading) {
+  if (authIsLoading || (!authIsLoading && (!isAuthenticated || userType !== 'designer' || !profileSetupComplete))) {
     return (
        <div className="container mx-auto px-4 py-12 space-y-10">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
@@ -131,13 +127,6 @@ export default function DesignerDashboardPage() {
     );
   }
 
-  if (!isAuthenticated || userType !== 'designer' || !profileSetupComplete) {
-    return (
-      <div className="container mx-auto px-4 py-12 text-center">
-        <p>Verifying access or redirecting...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -190,7 +179,7 @@ export default function DesignerDashboardPage() {
         </Card>
     </div>
       
-    {pageLoading ? (
+    {pageLoading ? ( // This state is for job data loading, not auth loading
         <div className="space-y-12">
             <div>
                 <Skeleton className="h-8 w-1/3 mb-6" />
