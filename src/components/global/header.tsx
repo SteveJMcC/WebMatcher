@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Briefcase, Users, Tag, UserCircle, LogIn, LogOut, Settings, LayoutDashboard, Sparkles, Menu, Mail } from 'lucide-react';
+import { Briefcase, Users, Tag, UserCircle, LogIn, LogOut, Settings, LayoutDashboard, Sparkles, Menu, Mail, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
@@ -24,28 +24,26 @@ export function Header() {
     displayName, 
     isLoading, 
     logout,
-    designerAvatarUrl, // Used for designer's custom avatar
-    // userAvatarUrl, // If clients were to have custom avatars, it would be here
+    designerAvatarUrl, 
+    userAvatarUrl, 
   } = useAuth();
 
   const getInitials = (name: string | null) => {
     if (!name) return 'U';
-    const nameToUse = name.trim() || 'User'; // Fallback if name is empty string
+    const nameToUse = name.trim() || 'User'; 
     return nameToUse.split(' ').map(n => n[0]).join('').toUpperCase();
   };
   
   const currentDisplayNameForAvatar = displayName || (email ? email.split('@')[0] : 'User');
 
-  let avatarSrc: string;
+  let avatarSrc: string | undefined = undefined;
   if (userType === 'designer' && designerAvatarUrl && designerAvatarUrl.trim() !== '') {
     avatarSrc = designerAvatarUrl;
-  } else if (userType === 'user' /* && userAvatarUrl && userAvatarUrl.trim() !== '' */) {
-    // Placeholder for client-specific avatar if implemented in the future
-    // For now, clients will use the default Pravatar image
-    avatarSrc = `https://i.pravatar.cc/150?u=${email || 'default-client-avatar'}`;
-  } else {
-    // Default for any authenticated user if no specific avatar is found, or for designers without avatar
-    avatarSrc = `https://i.pravatar.cc/150?u=${email || 'default-avatar-seed'}`;
+  } else if (userType === 'user' && userAvatarUrl && userAvatarUrl.trim() !== '') {
+    avatarSrc = userAvatarUrl;
+  } else if (isAuthenticated && email) {
+    // Fallback for authenticated users if specific avatar is not set
+    avatarSrc = `https://i.pravatar.cc/150?u=${email}`;
   }
 
 
@@ -57,7 +55,7 @@ export function Header() {
           WebConnect
         </Link>
 
-        <nav className="hidden md:flex items-center space-x-2 lg:space-x-4">
+        <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
           <Button variant="ghost" asChild>
             <Link href="/post-job">
               <Briefcase className="mr-2 h-4 w-4" /> Post a Job
@@ -71,6 +69,11 @@ export function Header() {
           <Button variant="ghost" asChild>
             <Link href="/pricing">
               <Tag className="mr-2 h-4 w-4" /> Pricing
+            </Link>
+          </Button>
+           <Button variant="ghost" asChild>
+            <Link href="/admin">
+              <ShieldAlert className="mr-2 h-4 w-4" /> Admin
             </Link>
           </Button>
         </nav>
@@ -151,6 +154,7 @@ export function Header() {
                 <DropdownMenuItem asChild><Link href="/post-job">Post a Job</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/designers">Find Talent</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/pricing">Pricing</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/admin">Admin</Link></DropdownMenuItem>
                  <DropdownMenuSeparator />
                  {isAuthenticated ? (
                     <>
