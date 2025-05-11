@@ -12,14 +12,14 @@ import Link from "next/link";
 const plans: PricingPlan[] = [
   {
     id: "bronze",
-    name: "Bronze Pack",
+    name: "Bronze Plan",
     price: 89,
     tokens: 50,
     features: ["50 Tokens to apply for jobs", "Basic profile listing", "Standard support"],
   },
   {
     id: "silver",
-    name: "Silver Pack",
+    name: "Silver Plan",
     price: 129,
     tokens: 100,
     features: [
@@ -33,7 +33,7 @@ const plans: PricingPlan[] = [
   },
   {
     id: "gold",
-    name: "Gold Pack",
+    name: "Gold Plan",
     price: 299,
     tokens: 250,
     features: [
@@ -56,20 +56,20 @@ const getPlanStyles = (planId: string): PlanStyles => {
   switch (planId) {
     case "gold":
       return {
-        cardBg: "bg-accent/5",
-        cardBorder: "border-accent",
+        cardBg: "bg-accent/5", // Gold-ish background
+        cardBorder: "border-accent", // Gold border
         buttonClass: "bg-accent hover:bg-accent/90 text-accent-foreground",
       };
     case "silver":
       return {
-        cardBg: "bg-secondary/20", // Using secondary as a base for silver (light gray)
-        cardBorder: "border-secondary",
+        cardBg: "bg-secondary/30", // Light gray background for silver
+        cardBorder: "border-secondary", // Light gray border for silver
         buttonClass: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
       };
     case "bronze":
       return {
-        cardBg: "bg-primary/5", // Using primary as a base for bronze (teal)
-        cardBorder: "border-primary",
+        cardBg: "bg-primary/5", 
+        cardBorder: "border-primary", 
         buttonClass: "bg-primary hover:bg-primary/90 text-primary-foreground",
       };
     default:
@@ -99,15 +99,18 @@ export function PricingPlans() {
             const planStyles = getPlanStyles(plan.id);
             let cardSpecificClasses = cn(planStyles.cardBg, planStyles.cardBorder);
             
-            // If popular, its specific border styling takes precedence for the border itself.
-            // The background color from planStyles will still apply.
             if (plan.isPopular) {
-              cardSpecificClasses = cn(planStyles.cardBg, "border-2 border-accent ring-2 ring-accent/50");
+              if (plan.id === "silver") {
+                // Silver plan, even if popular, uses its defined border (secondary) and accent ring.
+                cardSpecificClasses = cn(planStyles.cardBg, "border-2", planStyles.cardBorder, "ring-2 ring-accent/50");
+              } else {
+                // Other popular plans get the accent border and ring.
+                cardSpecificClasses = cn(planStyles.cardBg, "border-2 border-accent ring-2 ring-accent/50");
+              }
             }
             
-            // Button styling: If popular and it's Silver, popular button style (accent) wins over silver style.
-            // Otherwise, use the specific plan button style.
-            const buttonClass = plan.isPopular && plan.id === "silver" 
+            // Button styling: Popular plans (including Silver) use accent button for emphasis.
+            const buttonClass = plan.isPopular 
               ? "bg-accent hover:bg-accent/90 text-accent-foreground" 
               : planStyles.buttonClass;
 
@@ -115,18 +118,18 @@ export function PricingPlans() {
               <Card
                 key={plan.id}
                 className={cn(
-                  "flex flex-col shadow-lg hover:shadow-2xl transition-shadow duration-300",
+                  "flex flex-col shadow-lg hover:shadow-2xl transition-shadow duration-300 relative", // Added relative for badge positioning
                   cardSpecificClasses
                 )}
               >
                 {plan.isPopular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <Badge variant="default" className="bg-accent text-accent-foreground text-sm px-4 py-1 flex items-center gap-1">
+                      <Badge variant="default" className="bg-accent text-accent-foreground text-sm px-4 py-1 flex items-center gap-1 shadow-md">
                           <Star className="h-4 w-4"/> Popular Choice
                       </Badge>
                   </div>
                 )}
-                <CardHeader className="text-center pt-8">
+                <CardHeader className="text-center pt-10"> {/* Added pt-10 to make space for the badge */}
                   <CardTitle className="text-3xl font-semibold mb-2">{plan.name}</CardTitle>
                   <p className="text-4xl font-bold text-primary">
                     £{plan.price}
