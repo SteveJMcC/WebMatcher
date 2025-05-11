@@ -1,21 +1,16 @@
 import { z } from 'zod';
+import { budgetValues, professionalCategoryOptions as schemaProfessionalCategoryOptions } from './constants'; // Import from constants
 
-export const budgetOptions = [
-  { value: "under £250", label: "Under £250" },
-  { value: "under £500", label: "Under £500" },
-  { value: "under £750", label: "Under £750" },
-  { value: "under £1000", label: "Under £1000" },
-  { value: "under £2000", label: "Under £2000" },
-  { value: "above £2000", label: "Above £2000" },
-  { value: "don't know", label: "Don't know" },
-] as const;
+export { budgetOptions } from './constants'; // Re-export for use in forms
 
-const budgetValues = budgetOptions.map(option => option.value);
+
+const professionalCategoryValues = schemaProfessionalCategoryOptions.map(option => option.value);
+
 
 export const JobPostingSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters long.").max(100, "Title must be at most 100 characters."),
   description: z.string().min(20, "Description must be at least 20 characters long.").max(2000, "Description must be at most 2000 characters."),
-  budget: z.enum(budgetValues as [string, ...string[]], { // Cast to satisfy z.enum
+  budget: z.enum(budgetValues as [string, ...string[]], { 
     required_error: "Please select a budget range.",
   }).describe("The estimated budget range for this project."),
   skillsRequired: z.array(z.object({ id: z.string(), text: z.string() })).min(1, "At least one skill is required."),
@@ -23,7 +18,9 @@ export const JobPostingSchema = z.object({
   workPreference: z.enum(['remote', 'local'], {
     required_error: "You must select a work preference.",
   }),
-  professionalCategory: z.string().min(1, "Please select a professional category."),
+  professionalCategory: z.enum(professionalCategoryValues as [string, ...string[]], {
+    required_error: "Please select a professional category.",
+  }),
   customProfessionalCategory: z.string().max(100, "Custom category must be at most 100 characters.").optional().or(z.literal('')),
 }).refine(data => {
   if (data.professionalCategory === 'Other' && (!data.customProfessionalCategory || data.customProfessionalCategory.trim().length < 2)) {

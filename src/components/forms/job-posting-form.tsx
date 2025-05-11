@@ -16,51 +16,18 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { JobPostingSchema, type JobPostingFormData, budgetOptions } from "@/lib/schemas";
+import { JobPostingSchema } from "@/lib/schemas";
+import type { JobPostingFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, DollarSign, Users, TagIcon, MapPin, Users2 } from "lucide-react";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag, JobPosting } from "@/lib/types";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const allSkillsOptions: Tag[] = [
-  { id: "react", text: "React" },
-  { id: "nextjs", text: "Next.js" },
-  { id: "vue", text: "Vue.js" },
-  { id: "angular", text: "Angular" },
-  { id: "typescript", text: "TypeScript" },
-  { id: "javascript", text: "JavaScript" },
-  { id: "html", text: "HTML" },
-  { id: "css", text: "CSS" },
-  { id: "tailwindcss", text: "Tailwind CSS" },
-  { id: "figma", text: "Figma" },
-  { id: "adobexd", text: "Adobe XD" },
-  { id: "sketch", text: "Sketch" },
-  { id: "ui-design", text: "UI Design" },
-  { id: "ux-design", text: "UX Design" },
-  { id: "graphic-design", text: "Graphic Design" },
-  { id: "branding", text: "Branding" },
-  { id: "logo-design", text: "Logo Design" },
-  { id: "web-design", text: "Web Design" },
-  { id: "motion-design", text: "Motion Design" },
-  { id: "illustration", text: "Illustration" },
-  { id: "photoshop", text: "Photoshop" },
-  { id: "illustrator", text: "Illustrator" },
-  { id: "user-research", text: "User Research" },
-  { id: "prototyping", text: "Prototyping" },
-];
-
-const professionalCategoryOptions = [
-  { value: "Web Designer", label: "Web Designer" },
-  { value: "Web Developer", label: "Web Developer" },
-  { value: "SEO Expert", label: "SEO Expert" },
-  { value: "Web Marketer", label: "Web Marketer" },
-  { value: "Other", label: "Other (Please specify)" },
-];
+import { allSkillsOptions, professionalCategoryOptions, budgetOptions } from "@/lib/constants"; // Import from constants
 
 interface JobPostingFormProps {
   jobToEdit?: JobPosting | null;
@@ -78,7 +45,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
     defaultValues: jobToEdit ? {
       title: jobToEdit.title,
       description: jobToEdit.description,
-      budget: jobToEdit.budget as typeof budgetOptions[number]['value'], // Ensure budget is one of the valid string options
+      budget: jobToEdit.budget as typeof budgetOptions[number]['value'], 
       skillsRequired: jobToEdit.skillsRequired,
       limitContacts: jobToEdit.limitContacts,
       workPreference: jobToEdit.workPreference || 'remote',
@@ -87,7 +54,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
     } : {
       title: "",
       description: "",
-      budget: undefined, // Default to undefined for select placeholder
+      budget: undefined, 
       skillsRequired: [],
       limitContacts: 10,
       workPreference: 'remote',
@@ -110,17 +77,20 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       });
       setSelectedSkills(jobToEdit.skillsRequired || []);
     } else {
-      form.reset({
-        title: "",
-        description: "",
-        budget: undefined,
-        skillsRequired: [],
-        limitContacts: 10,
-        workPreference: 'remote',
-        professionalCategory: '',
-        customProfessionalCategory: '',
-      });
-      setSelectedSkills([]);
+      // Only reset to initial empty if it's not an edit and form is not dirty.
+      if (!form.formState.isDirty) {
+        form.reset({
+          title: "",
+          description: "",
+          budget: undefined,
+          skillsRequired: [],
+          limitContacts: 10,
+          workPreference: 'remote',
+          professionalCategory: '',
+          customProfessionalCategory: '',
+        });
+        setSelectedSkills([]);
+      }
     }
   }, [jobToEdit, form]);
 
@@ -143,7 +113,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       userId: authUserId,
       title: data.title,
       description: data.description,
-      budget: data.budget, // Budget is now a string
+      budget: data.budget, 
       skillsRequired: data.skillsRequired,
       limitContacts: data.limitContacts,
       workPreference: data.workPreference,
@@ -153,6 +123,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       status: isEditing ? jobToEdit.status : "open",
       bidsCount: isEditing ? jobToEdit.bidsCount : 0,
       clientEmail: authEmail, 
+      applicants: isEditing ? jobToEdit.applicants : [],
     };
 
     try {
@@ -176,7 +147,16 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       });
       
       if (!isEditing) {
-        form.reset();
+        form.reset({
+          title: "",
+          description: "",
+          budget: undefined,
+          skillsRequired: [],
+          limitContacts: 10,
+          workPreference: 'remote',
+          professionalCategory: '',
+          customProfessionalCategory: '',
+        });
         setSelectedSkills([]); 
       }
       router.push('/user-dashboard');
@@ -240,7 +220,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-lg">Project Budget</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <Select onValueChange={field.onChange} value={field.value || ""} >
                       <FormControl>
                         <SelectTrigger className="text-base py-6">
                           <SelectValue placeholder="Select budget range" />

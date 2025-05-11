@@ -1,7 +1,8 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -23,18 +24,8 @@ import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palett
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag } from "@/lib/types";
-import React, { useState, useEffect, useMemo } from "react";
-
-const allSkillsOptions: Tag[] = [
-  { id: "react", text: "React" }, { id: "nextjs", text: "Next.js" }, { id: "vue", text: "Vue.js" },
-  { id: "angular", text: "Angular" }, { id: "typescript", text: "TypeScript" }, { id: "javascript", text: "JavaScript" },
-  { id: "html", text: "HTML" }, { id: "css", text: "CSS" }, { id: "tailwindcss", text: "Tailwind CSS" },
-  { id: "figma", text: "Figma" }, { id: "adobexd", text: "Adobe XD" }, { id: "sketch", text: "Sketch" },
-  { id: "ui-design", text: "UI Design" }, { id: "ux-design", text: "UX Design" }, { id: "graphic-design", text: "Graphic Design" },
-  { id: "branding", text: "Branding" }, { id: "logo-design", text: "Logo Design" }, { id: "web-design", text: "Web Design" },
-  { id: "motion-design", text: "Motion Design" }, { id: "illustration", text: "Illustration" }, { id: "photoshop", text: "Photoshop" },
-  { id: "illustrator", text: "Illustrator" }, { id: "user-research", text: "User Research" }, { id: "prototyping", text: "Prototyping" },
-];
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { allSkillsOptions } from "@/lib/constants"; // Import from constants
 
 const STABLE_EMPTY_PROFILE_VALUES: Omit<DesignerProfileFormData, 'name' | 'email' | 'phone'> & { name?: string; email?: string; phone?: string; } = {
   headline: "",
@@ -108,10 +99,15 @@ export function DesignerProfileForm() {
   });
 
   useEffect(() => {
-    form.reset(initialFormValues);
-    setSelectedSkills(initialFormValues.skills || []);
-    setAvatarPreview(initialFormValues.avatarUrl || "");
+    // Only reset if initialFormValues itself changes identity (deep comparison might be too much)
+    // or if the form isn't dirty and values differ, to avoid resetting during user input.
+    if (!form.formState.isDirty) {
+        form.reset(initialFormValues);
+        setSelectedSkills(initialFormValues.skills || []);
+        setAvatarPreview(initialFormValues.avatarUrl || "");
+    }
   }, [form, initialFormValues]);
+
 
 
   const { fields, append, remove } = useFieldArray({
