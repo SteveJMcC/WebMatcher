@@ -14,7 +14,7 @@ export const JobPostingSchema = z.object({
     required_error: "Please select a budget range.",
   }).describe("The estimated budget range for this project."),
   clientEmail: z.string().email("Please enter a valid email address for client contact."),
-  clientPhone: z.string().min(10, "Phone number must be at least 10 digits.").regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format (e.g., +1234567890).").optional().or(z.literal('')),
+  clientPhone: z.string().min(10, "Phone number must be at least 10 digits.").regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format (e.g., +1234567890)."),
   clientCity: z.string().min(2, "City must be at least 2 characters.").max(50, "City must be at most 50 characters."),
   clientPostalCode: z.string().min(3, "Postal code must be at least 3 characters.").max(20, "Postal code must be at most 20 characters."),
   skillsRequired: z.array(z.object({ id: z.string(), text: z.string() })).optional().default([]),
@@ -68,3 +68,4 @@ export const UserProfileSchema = z.object({
 export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
 export type DesignerProfileFormData = z.infer<typeof DesignerProfileSchema>;
 export type UserProfileFormData = z.infer<typeof UserProfileSchema>;
+

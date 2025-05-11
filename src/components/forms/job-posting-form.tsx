@@ -288,7 +288,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
               name="clientPhone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg flex items-center"><Phone className="mr-2 h-5 w-5 text-primary"/>Contact Phone (Optional)</FormLabel>
+                  <FormLabel className="text-lg flex items-center"><Phone className="mr-2 h-5 w-5 text-primary"/>Contact Phone</FormLabel>
                   <FormControl>
                     <Input type="tel" placeholder="+1234567890" {...field} className="text-base py-6" />
                   </FormControl>
@@ -475,3 +475,4 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
     </Card>
   );
 }
+
