@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Eye, Edit3, Users, Briefcase, CalendarDays, DollarSign, XCircle, PauseCircle } from "lucide-react";
+import { Eye, Edit3, Users, Briefcase, CalendarDays, DollarSign, XCircle, PauseCircle, MapPin } from "lucide-react";
 
 interface UserJobListProps {
   jobs: JobPosting[];
@@ -79,6 +79,10 @@ export function UserJobList({ jobs }: UserJobListProps) {
                     <Briefcase className="h-4 w-4 mr-1.5 text-primary" /> 
                     Skills: {job.skillsRequired.slice(0,2).map(s => typeof s === 'string' ? s : s.text).join(', ')}{job.skillsRequired.length > 2 ? "..." : ""}
                 </div>
+                <div className="flex items-center text-muted-foreground col-span-2 sm:col-span-1">
+                    <MapPin className="h-4 w-4 mr-1.5 text-primary" />
+                    Location: {job.workPreference === 'local' ? `${job.clientCity}, ${job.clientPostalCode}` : 'Remote'}
+                </div>
             </div>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
@@ -98,3 +102,4 @@ export function UserJobList({ jobs }: UserJobListProps) {
     </div>
   );
 }
+
