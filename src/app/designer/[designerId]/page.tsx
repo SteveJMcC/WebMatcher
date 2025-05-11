@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useState } from 'react';
@@ -28,7 +29,7 @@ async function getDesignerProfile(designerId: string): Promise<DesignerProfile |
           userId: designerData.userId || designerId,
           name: designerData.displayName || "Web Professional",
           headline: designerData.designerHeadline || "Experienced Web Professional",
-          avatarUrl: designerData.designerAvatarUrl || undefined,
+          avatarUrl: designerData.designerAvatarUrl || `https://picsum.photos/seed/${designerData.email || designerId}/200/200`,
           skills: designerData.designerSkills || [],
           bio: designerData.designerBio || "No bio available.",
           portfolioLinks: designerData.designerPortfolioLinks || [],
@@ -47,38 +48,7 @@ async function getDesignerProfile(designerId: string): Promise<DesignerProfile |
     }
   }
   
-  // Fallback for specific mock user if not found in localStorage - for testing stephanie
-  if (designerId === "stephanie-viavenda-id-placeholder") { 
-    // This is a placeholder. Ideally, stephanie's data would be in localStorage after signup.
-    return {
-      id: "stephanie-viavenda-id-placeholder",
-      userId: "stephanie-viavenda-id-placeholder",
-      name: "Stephanie Viavenda",
-      headline: "Visionary UI/UX and Brand Strategist",
-      avatarUrl: "https://picsum.photos/seed/stephanie/200/200",
-      skills: [
-        { id: "ui-design", text: "UI Design" },
-        { id: "ux-strategy", text: "UX Strategy" },
-        { id: "branding", text: "Branding" },
-        { id: "figma", text: "Figma" },
-        { id: "webflow", text: "Webflow" },
-      ],
-      bio: "Stephanie is a creative force, transforming complex problems into beautiful and intuitive digital solutions. With a keen eye for detail and a passion for user-centered design, she helps businesses connect with their audience and achieve their goals. She has a background in marketing and design, bringing a holistic approach to every project.",
-      portfolioLinks: [
-        { title: "Viavenda Design Co.", url: "https://viavenda.co" },
-        { title: "Project Showcase on Behance", url: "https://behance.net/stephviavenda" },
-      ],
-      budgetMin: 3000,
-      budgetMax: 15000,
-      tokens: 50,
-      email: "stephanie@viavenda.co",
-      phone: "+15550001111",
-      city: "Austin",
-      postalCode: "78701",
-      joinedDate: new Date('2022-08-01T10:00:00.000Z').toISOString(),
-    };
-  }
-
+  // If not found in localStorage, return null. Specific hardcoded fallbacks are removed.
   return null;
 }
 
@@ -164,7 +134,7 @@ export default function DesignerProfilePage() {
         <Alert className="max-w-md mx-auto">
           <UserCircle className="h-4 w-4" />
           <AlertTitle>Designer Not Found</AlertTitle>
-          <AlertDescription>The designer profile you are looking for does not exist.</AlertDescription>
+          <AlertDescription>The designer profile you are looking for does not exist or could not be loaded.</AlertDescription>
         </Alert>
         <Button asChild className="mt-6">
           <Link href="/designers"><ArrowLeft className="mr-2 h-4 w-4" /> Browse Designers</Link>
