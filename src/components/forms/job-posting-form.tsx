@@ -18,12 +18,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { JobPostingSchema, type JobPostingFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, DollarSign, Users, TagIcon } from "lucide-react";
+import { Briefcase, DollarSign, Users, TagIcon, MapPin, Users2 } from "lucide-react";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag, JobPosting } from "@/lib/types";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const allSkillsOptions: Tag[] = [
   { id: "react", text: "React" },
@@ -52,6 +54,14 @@ const allSkillsOptions: Tag[] = [
   { id: "prototyping", text: "Prototyping" },
 ];
 
+const professionalCategoryOptions = [
+  { value: "Web Designer", label: "Web Designer" },
+  { value: "Web Developer", label: "Web Developer" },
+  { value: "SEO Expert", label: "SEO Expert" },
+  { value: "Web Marketer", label: "Web Marketer" },
+  { value: "Other", label: "Other (Please specify)" },
+];
+
 interface JobPostingFormProps {
   jobToEdit?: JobPosting | null;
 }
@@ -59,9 +69,8 @@ interface JobPostingFormProps {
 export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const { userId: authUserId, email: authEmail, userType } = useAuth(); // Added email and userType for better keying
+  const { userId: authUserId, email: authEmail, userType, userCompanyName, userDisplayName } = useAuth(); 
   
-  // Local state for selected skills for MultiSelect, initialized from jobToEdit or empty
   const [selectedSkills, setSelectedSkills] = useState<Tag[]>(jobToEdit?.skillsRequired || []);
 
   const form = useForm<JobPostingFormData>({
@@ -72,38 +81,50 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       budget: jobToEdit.budget,
       skillsRequired: jobToEdit.skillsRequired,
       limitContacts: jobToEdit.limitContacts,
+      workPreference: jobToEdit.workPreference || 'remote',
+      professionalCategory: jobToEdit.professionalCategory || '',
+      customProfessionalCategory: jobToEdit.customProfessionalCategory || '',
     } : {
       title: "",
       description: "",
       budget: 0,
       skillsRequired: [],
       limitContacts: 10,
+      workPreference: 'remote',
+      professionalCategory: '',
+      customProfessionalCategory: '',
     },
   });
 
-  // Effect to reset form and skills when jobToEdit changes (e.g., loaded asynchronously)
   useEffect(() => {
     if (jobToEdit) {
       form.reset({
         title: jobToEdit.title,
         description: jobToEdit.description,
         budget: jobToEdit.budget,
-        skillsRequired: jobToEdit.skillsRequired,
+        skillsRequired: jobToEdit.skillsRequired || [],
         limitContacts: jobToEdit.limitContacts,
+        workPreference: jobToEdit.workPreference || 'remote',
+        professionalCategory: jobToEdit.professionalCategory || '',
+        customProfessionalCategory: jobToEdit.customProfessionalCategory || '',
       });
-      setSelectedSkills(jobToEdit.skillsRequired);
+      setSelectedSkills(jobToEdit.skillsRequired || []);
     } else {
-      form.reset({ // Reset to default for new job form
+      form.reset({
         title: "",
         description: "",
         budget: 0,
         skillsRequired: [],
         limitContacts: 10,
+        workPreference: 'remote',
+        professionalCategory: '',
+        customProfessionalCategory: '',
       });
       setSelectedSkills([]);
     }
   }, [jobToEdit, form]);
 
+  const watchedProfessionalCategory = form.watch("professionalCategory");
 
   async function onSubmit(data: JobPostingFormData) {
     if (!authUserId || !authEmail || userType !== 'user') {
@@ -125,12 +146,14 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       budget: data.budget,
       skillsRequired: data.skillsRequired,
       limitContacts: data.limitContacts,
+      workPreference: data.workPreference,
+      professionalCategory: data.professionalCategory,
+      customProfessionalCategory: data.professionalCategory === 'Other' ? data.customProfessionalCategory : undefined,
       createdAt: isEditing ? jobToEdit.createdAt : new Date().toISOString(),
-      status: isEditing ? jobToEdit.status : "open", // Preserve status if editing, else 'open'
+      status: isEditing ? jobToEdit.status : "open",
       bidsCount: isEditing ? jobToEdit.bidsCount : 0,
-      // If your JobPosting type includes clientEmail/Phone from the auth context:
-      clientEmail: authEmail, // Assuming client email is the auth email
-      // clientPhone: authPhone, // If you have client phone in auth context
+      clientEmail: authEmail, 
+      // clientPhone: auth.userPhone, // If available in auth context
     };
 
     try {
@@ -154,7 +177,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       });
       
       if (!isEditing) {
-        form.reset(); // Reset form only if creating a new job
+        form.reset();
         setSelectedSkills([]); 
       }
       router.push('/user-dashboard');
@@ -225,7 +248,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
                         type="number" 
                         placeholder="1000" 
                         {...field} 
-                        value={field.value || ""} // Ensure controlled component has a defined value
+                        value={field.value || ""} 
                         onChange={e => field.onChange(parseFloat(e.target.value) || 0)} 
                         className="pl-10 text-base py-6" 
                       />
@@ -239,22 +262,102 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
 
             <FormField
               control={form.control}
+              name="workPreference"
+              render={({ field }) => (
+                <FormItem className="space-y-3">
+                  <FormLabel className="text-lg flex items-center"><MapPin className="mr-2 h-5 w-5 text-primary" />Work Preference</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex flex-col space-y-2 pt-2"
+                    >
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="remote" id="remote" />
+                        </FormControl>
+                        <FormLabel htmlFor="remote" className="font-normal text-base">
+                          I'm happy to work remotely with my Web Professional
+                        </FormLabel>
+                      </FormItem>
+                      <FormItem className="flex items-center space-x-3 space-y-0">
+                        <FormControl>
+                          <RadioGroupItem value="local" id="local" />
+                        </FormControl>
+                        <FormLabel htmlFor="local" className="font-normal text-base">
+                          I only want to work with a local professional
+                        </FormLabel>
+                      </FormItem>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="professionalCategory"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg flex items-center"><Users2 className="mr-2 h-5 w-5 text-primary"/>Type of Professional Needed</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <FormControl>
+                      <SelectTrigger className="text-base py-6">
+                        <SelectValue placeholder="Select a professional category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {professionalCategoryOptions.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Choose the main category of professional you are looking for.
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {watchedProfessionalCategory === "Other" && (
+              <FormField
+                control={form.control}
+                name="customProfessionalCategory"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-lg">Specify Professional Type</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., Shopify Developer, UX Researcher" {...field} value={field.value ?? ""} className="text-base py-6" />
+                    </FormControl>
+                     <FormDescription>Enter the specific type of professional if not listed above.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            <FormField
+              control={form.control}
               name="skillsRequired"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg">Skills Required</FormLabel>
+                  <FormLabel className="text-lg flex items-center"><TagIcon className="mr-2 h-5 w-5 text-primary" />Specific Skills Required</FormLabel>
                   <FormControl>
                      <MultiSelect
-                        value={selectedSkills} // Use local state for MultiSelect
+                        value={selectedSkills} 
                         onChange={(newSkills) => {
-                          setSelectedSkills(newSkills); // Update local state
-                          field.onChange(newSkills);  // Update form state
+                          setSelectedSkills(newSkills); 
+                          field.onChange(newSkills);  
                         }}
                         options={allSkillsOptions}
-                        placeholder="Add required skills..."
+                        placeholder="Add specific skills required..."
                       />
                   </FormControl>
-                  <FormDescription>Select skills needed for this project.</FormDescription>
+                  <FormDescription>Select specific skills or technologies needed for this project.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -265,7 +368,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
               name="limitContacts"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg">Limit Designer Contacts (Optional)</FormLabel>
+                  <FormLabel className="text-lg flex items-center"><Users className="mr-2 h-5 w-5 text-primary" />Limit Designer Contacts (Optional)</FormLabel>
                    <div className="relative">
                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <FormControl>
@@ -273,7 +376,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
                         type="number" 
                         placeholder="e.g., 10" 
                         {...field} 
-                        value={field.value ?? ""} // Ensure controlled component
+                        value={field.value ?? ""} 
                         onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} 
                         className="pl-10 text-base py-6" 
                        />

@@ -6,6 +6,19 @@ export const JobPostingSchema = z.object({
   budget: z.coerce.number().min(1, "Budget must be at least $1."),
   skillsRequired: z.array(z.object({ id: z.string(), text: z.string() })).min(1, "At least one skill is required."),
   limitContacts: z.coerce.number().int().min(1, "Limit must be at least 1").max(50, "Limit cannot exceed 50").optional(),
+  workPreference: z.enum(['remote', 'local'], {
+    required_error: "You must select a work preference.",
+  }),
+  professionalCategory: z.string().min(1, "Please select a professional category."),
+  customProfessionalCategory: z.string().max(100, "Custom category must be at most 100 characters.").optional().or(z.literal('')),
+}).refine(data => {
+  if (data.professionalCategory === 'Other' && (!data.customProfessionalCategory || data.customProfessionalCategory.trim().length < 2)) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Please specify your custom professional category (min 2 characters).",
+  path: ['customProfessionalCategory'],
 });
 
 export const DesignerProfileSchema = z.object({
@@ -39,4 +52,3 @@ export const UserProfileSchema = z.object({
 export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
 export type DesignerProfileFormData = z.infer<typeof DesignerProfileSchema>;
 export type UserProfileFormData = z.infer<typeof UserProfileSchema>;
-

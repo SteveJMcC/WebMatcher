@@ -4,6 +4,9 @@ export interface JobPostingCore {
   budget: number; 
   skillsRequired: Tag[]; 
   limitContacts?: number;
+  workPreference: 'remote' | 'local';
+  professionalCategory: string;
+  customProfessionalCategory?: string;
 }
 
 export interface JobPosting extends JobPostingCore {
@@ -93,4 +96,3 @@ export type Tag = {
   id: string;
   text: string;
 };
-

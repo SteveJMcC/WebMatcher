@@ -4,10 +4,10 @@
 import { JobBidsDisplay } from "@/components/features/job-bids-display";
 import type { JobPosting, Bid, DesignerProfile } from "@/lib/types";
 // import { Metadata } from "next"; // Metadata cannot be dynamic in client components like this
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle } from "lucide-react";
+import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
@@ -42,7 +42,9 @@ async function getJobDetails(jobId: string, userId: string): Promise<JobPosting 
       createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
       status: "open",
       clientEmail: "client.user@example.com",
-      clientPhone: "+12345678900"
+      clientPhone: "+12345678900",
+      workPreference: "remote",
+      professionalCategory: "Web Designer",
     };
   }
   return null;
@@ -225,10 +227,20 @@ export default function ManageJobPage() {
                 <h3 className="text-lg font-semibold text-foreground mb-1">Project Description</h3>
                 <p className="text-muted-foreground whitespace-pre-line">{job.description}</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 border-t">
                 <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">Budget</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><DollarSign className="h-4 w-4 mr-1 text-primary" />Budget</h4>
                     <p className="text-lg font-semibold text-foreground">${job.budget.toLocaleString()}</p>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><Users2 className="h-4 w-4 mr-1 text-primary" />Professional Category</h4>
+                  <p className="text-lg font-semibold text-foreground">
+                    {job.professionalCategory}{job.professionalCategory === "Other" && job.customProfessionalCategory ? `: ${job.customProfessionalCategory}` : ""}
+                  </p>
+                </div>
+                <div>
+                    <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><MapPin className="h-4 w-4 mr-1 text-primary" />Work Preference</h4>
+                    <p className="text-lg font-semibold text-foreground capitalize">{job.workPreference}</p>
                 </div>
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground">Skills Required</h4>
