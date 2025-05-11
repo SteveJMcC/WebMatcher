@@ -101,10 +101,12 @@ export interface PricingPlan {
   tokens: number;
   features: string[];
   isPopular?: boolean;
+  isBestValue?: boolean;
 }
 
 export type Tag = {
   id: string;
   text: string;
 };
+
 

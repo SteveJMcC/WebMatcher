@@ -4,7 +4,7 @@
 import type { PricingPlan } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Sparkles, Star, CreditCard } from "lucide-react";
+import { CheckCircle, Sparkles, Star, CreditCard, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -43,6 +43,7 @@ const plans: PricingPlan[] = [
       "Early access to new features",
       "24/7 Premium support",
     ],
+    isBestValue: true,
   },
 ];
 
@@ -50,27 +51,30 @@ interface PlanStyles {
   cardBg: string;
   cardBorder: string;
   buttonClass: string;
+  badgeClass?: string;
 }
 
-const getPlanStyles = (planId: string): PlanStyles => {
+const getPlanStyles = (planId: string, isPopular?: boolean, isBestValue?: boolean): PlanStyles => {
   switch (planId) {
     case "gold":
       return {
-        cardBg: "bg-accent/5", 
+        cardBg: "bg-accent/10", 
         cardBorder: "border-accent", 
         buttonClass: "bg-accent hover:bg-accent/90 text-accent-foreground",
+        badgeClass: "bg-accent text-accent-foreground",
       };
     case "silver":
       return {
         cardBg: "bg-secondary/30", 
-        cardBorder: "border-secondary", 
+        cardBorder: "border-border", // Using border for a silver/grey feel
         buttonClass: "bg-muted hover:bg-muted/80 text-muted-foreground border border-border",
+        badgeClass: "bg-muted text-muted-foreground border-border",
       };
     case "bronze":
       return {
-        cardBg: "bg-accent/10", // Use accent (gold/yellow) for a bronze feel - very light gold
-        cardBorder: "border-accent border-opacity-75", // Gold border, slightly less opaque
-        buttonClass: "bg-accent/80 hover:bg-accent/70 text-accent-foreground", // Gold button, less opaque/vibrant
+        cardBg: "bg-orange-500/5", // A light bronze/brownish hint
+        cardBorder: "border-orange-600/50", 
+        buttonClass: "bg-orange-500 hover:bg-orange-600 text-white",
       };
     default:
       return {
@@ -96,27 +100,18 @@ export function PricingPlans() {
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
           {plans.map((plan) => {
-            const planStyles = getPlanStyles(plan.id);
+            const planStyles = getPlanStyles(plan.id, plan.isPopular, plan.isBestValue);
             let cardSpecificClasses = cn(planStyles.cardBg, planStyles.cardBorder);
-            let popularBadgeVariant: "default" | "outline" = "default";
-            let popularBadgeClasses = "bg-accent text-accent-foreground";
             
-            if (plan.isPopular) {
-              if (plan.id === "silver") {
-                cardSpecificClasses = cn(planStyles.cardBg, "border-2", planStyles.cardBorder, "ring-2 ring-border");
-                popularBadgeVariant = "outline";
-                popularBadgeClasses = "bg-muted text-muted-foreground border-border";
-              } else { // For other popular plans (e.g. if Gold becomes popular)
-                cardSpecificClasses = cn(planStyles.cardBg, "border-2 border-accent ring-2 ring-accent/50");
-              }
+            if (plan.isPopular || plan.isBestValue) {
+                 cardSpecificClasses = cn(cardSpecificClasses, "border-2 ring-2", plan.isBestValue ? "border-accent ring-accent/50" : "border-border ring-border/50");
             }
             
-            const buttonClass = plan.isPopular && plan.id !== "silver" 
-              ? "bg-accent hover:bg-accent/90 text-accent-foreground" 
-              : plan.isPopular && plan.id === "silver" 
-              ? "bg-muted hover:bg-muted/80 text-muted-foreground border border-border" 
-              : planStyles.buttonClass;
-
+            const buttonClass = plan.isPopular && plan.id === "silver" 
+              ? planStyles.buttonClass // Silver's specific button class
+              : plan.isBestValue && plan.id === "gold"
+              ? planStyles.buttonClass // Gold's specific button class
+              : planStyles.buttonClass; // Default or Bronze
 
             return (
               <Card
@@ -126,10 +121,11 @@ export function PricingPlans() {
                   cardSpecificClasses
                 )}
               >
-                {plan.isPopular && (
+                {(plan.isPopular || plan.isBestValue) && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <Badge variant={popularBadgeVariant} className={cn("text-sm px-4 py-1 flex items-center gap-1 shadow-md", popularBadgeClasses)}>
-                          <Star className="h-4 w-4"/> Popular Choice
+                      <Badge variant={plan.isBestValue ? "default" : "outline"} className={cn("text-sm px-4 py-1 flex items-center gap-1 shadow-md", planStyles.badgeClass)}>
+                          {plan.isBestValue ? <Award className="h-4 w-4"/> : <Star className="h-4 w-4"/>} 
+                          {plan.isBestValue ? "Best Value" : "Popular Choice"}
                       </Badge>
                   </div>
                 )}
@@ -184,4 +180,5 @@ export function PricingPlans() {
     </section>
   );
 }
+
 
