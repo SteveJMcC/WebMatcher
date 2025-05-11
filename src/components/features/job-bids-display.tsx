@@ -210,8 +210,8 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                     <UserCircle className="h-12 w-12 text-muted-foreground" />
                   )}
                   <div>
-                    <h3 className="text-lg font-semibold text-primary group-hover:underline">
-                        <Link href={`/designer/${bid.designerId}`} onClick={(e) => e.stopPropagation()}>{bid.designerName}</Link>
+                    <h3 className="text-lg font-semibold text-primary">
+                        {bid.designerName}
                     </h3>
                     <p className="text-sm text-muted-foreground">{bid.designerDetails?.headline || 'Professional Web Pro'}</p>
                   </div>
@@ -265,41 +265,8 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                   <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-line">{bid.experienceSummary}</p>
                 </div>
 
-                {/* Web Professional Contact Details Removed as per request */}
-                {/* 
-                {bid.designerDetails && (
-                    <Card className="bg-secondary/30 border-secondary">
-                      <CardHeader className="pb-2 pt-4">
-                        <CardTitle className="text-md flex items-center text-foreground">
-                          <UserCircle className="mr-2 h-5 w-5 text-primary"/> Web Professional Contact
-                        </CardTitle>
-                         <CardDescription className="text-xs">
-                            Contact information provided by the web professional.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-1 pb-4">
-                        {bid.designerDetails.email && (
-                          <p className="text-sm text-muted-foreground flex items-center">
-                            <Mail className="mr-2 h-4 w-4 flex-shrink-0 text-primary/70" /> Email: {bid.designerDetails.email}
-                          </p>
-                        )}
-                        {bid.designerDetails.phone && (
-                          <p className="text-sm text-muted-foreground flex items-center mt-1">
-                            <Phone className="mr-2 h-4 w-4 flex-shrink-0 text-primary/70" /> Phone: {bid.designerDetails.phone}
-                          </p>
-                        )}
-                        {(!bid.designerDetails.email && !bid.designerDetails.phone) && (
-                            <p className="text-sm text-muted-foreground italic">Contact information not publicly shared.</p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-                */}
-
                 <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t mt-4">
                   <Button asChild className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
-                    {/* This link might need to be dynamic based on actual contact flow */}
-                    {/* For now, it's a placeholder to view profile which is more appropriate */}
                     <Link href={`/designer/${bid.designerId}`} onClick={(e) => e.stopPropagation()}> 
                       <UserCircle className="mr-2 h-4 w-4" /> View {bid.designerName.split(' ')[0]}'s Profile
                     </Link>
