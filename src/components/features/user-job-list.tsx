@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { JobPosting } from "@/lib/types";
@@ -60,7 +59,7 @@ export function UserJobList({ jobs }: UserJobListProps) {
                 </div>
                 <div className="flex items-center text-muted-foreground">
                     <Users className="h-4 w-4 mr-1.5 text-primary" /> 
-                    Bids: {job.bidsCount || 0}
+                    Applicants: {job.applicants?.length || 0}
                 </div>
                  <div className="flex items-center text-muted-foreground">
                     <Briefcase className="h-4 w-4 mr-1.5 text-primary" /> 
@@ -76,7 +75,7 @@ export function UserJobList({ jobs }: UserJobListProps) {
             </Button>
             <Button asChild className="bg-primary hover:bg-primary/90">
               <Link href={`/jobs/${job.id}/manage`}>
-                <Eye className="mr-2 h-4 w-4" /> View Bids & Manage
+                <Eye className="mr-2 h-4 w-4" /> View Responses
               </Link>
             </Button>
           </CardFooter>
@@ -85,3 +84,4 @@ export function UserJobList({ jobs }: UserJobListProps) {
     </div>
   );
 }
+
