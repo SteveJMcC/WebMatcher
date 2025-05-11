@@ -146,9 +146,8 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
             </div>
             <div className="flex flex-col items-start md:items-end gap-2 self-start md:self-auto">
                 <Badge variant="secondary" className="text-base px-4 py-1.5 bg-primary/10 text-primary border-primary/30 whitespace-nowrap">
-                    <DollarSign className="mr-1.5 h-5 w-5" /> {job.budget}
+                   Estimated budget: {job.budget}
                 </Badge>
-                {/* Top button to get client contact details */}
                  {hasApplied ? (
                     <div className="flex items-center text-green-700 bg-green-500/10 px-3 py-1.5 rounded-md text-sm font-medium">
                         <CheckCircle className="mr-1.5 h-4 w-4"/> Contact Details Unlocked
@@ -158,7 +157,7 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                         Job Not Open for Applications
                     </Badge>
                 ) : (
-                    <div className="w-full md:w-auto">
+                    <div className="w-full md:w-auto max-w-xs">
                         <Button
                             size="lg"
                             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
@@ -166,7 +165,7 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                             disabled={isApplying || (designerTokens ?? 0) < tokenCost}
                         >
                             {isApplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Unlock className="mr-2 h-4 w-4" />}
-                            {isApplying ? "Processing..." : `Get Client Contact Details | For ${tokenCost} token${tokenCost !== 1 ? 's' : ''}`}
+                            {isApplying ? "Processing..." : `Contact Client | ${tokenCost} token${tokenCost !== 1 ? 's' : ''}`}
                         </Button>
                         {(designerTokens ?? 0) < tokenCost && !isApplying && (
                             <p className="text-xs text-destructive mt-1 text-right md:text-left">
@@ -289,13 +288,13 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
          ) : (
             <Button 
                 size="lg" 
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-3"
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-3 max-w-md self-center"
                 onClick={handleApplyAndRevealContact}
                 disabled={isApplying || (designerTokens ?? 0) < tokenCost || job.status !== 'open' || job.adminPaused === true}
             >
                 {isApplying ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Unlock className="mr-2 h-5 w-5" />}
                 {job.status !== 'open' || job.adminPaused === true ? 'Job Not Open for Applications' : 
-                    isApplying ? "Processing..." : `Get Client Contact Details | For ${tokenCost} token${tokenCost !== 1 ? 's' : ''}`
+                    isApplying ? "Processing..." : `Contact Client | ${tokenCost} token${tokenCost !== 1 ? 's' : ''}`
                 }
             </Button>
          )}
