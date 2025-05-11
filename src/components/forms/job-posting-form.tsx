@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -46,7 +47,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       title: jobToEdit.title,
       description: jobToEdit.description,
       budget: jobToEdit.budget as typeof budgetOptions[number]['value'], 
-      skillsRequired: jobToEdit.skillsRequired,
+      skillsRequired: jobToEdit.skillsRequired || [],
       limitContacts: jobToEdit.limitContacts,
       workPreference: jobToEdit.workPreference || 'remote',
       professionalCategory: jobToEdit.professionalCategory || '',
@@ -114,7 +115,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       title: data.title,
       description: data.description,
       budget: data.budget, 
-      skillsRequired: data.skillsRequired,
+      skillsRequired: data.skillsRequired || [], // Ensure skillsRequired is an array
       limitContacts: data.limitContacts,
       workPreference: data.workPreference,
       professionalCategory: data.professionalCategory,
@@ -123,7 +124,8 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       status: isEditing ? jobToEdit.status : "open",
       bidsCount: isEditing ? jobToEdit.bidsCount : 0,
       clientEmail: authEmail, 
-      applicants: isEditing ? jobToEdit.applicants : [],
+      // Ensure applicants array exists, especially for new jobs
+      applicants: isEditing && jobToEdit.applicants ? jobToEdit.applicants : [], 
     };
 
     try {
@@ -334,10 +336,10 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
                           field.onChange(newSkills);  
                         }}
                         options={allSkillsOptions}
-                        placeholder="Add specific skills required..."
+                        placeholder="Select skills, or leave blank if unsure"
                       />
                   </FormControl>
-                  <FormDescription>Select specific skills or technologies needed for this project.</FormDescription>
+                  <FormDescription>Select specific skills or technologies needed for this project (optional).</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -382,3 +384,4 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
     </Card>
   );
 }
+

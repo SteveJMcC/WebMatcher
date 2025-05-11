@@ -1,20 +1,45 @@
 import type { Tag } from "./types";
 
 export const allSkillsOptions: Tag[] = [
-  { id: "react", text: "React" }, { id: "nextjs", text: "Next.js" }, { id: "vue", text: "Vue.js" },
-  { id: "angular", text: "Angular" }, { id: "typescript", text: "TypeScript" }, { id: "javascript", text: "JavaScript" },
-  { id: "html", text: "HTML" }, { id: "css", text: "CSS" }, { id: "tailwindcss", text: "Tailwind CSS" },
-  { id: "figma", text: "Figma" }, { id: "adobexd", text: "Adobe XD" }, { id: "sketch", text: "Sketch" },
-  { id: "ui-design", text: "UI Design" }, { id: "ux-design", text: "UX Design" }, { id: "graphic-design", text: "Graphic Design" },
-  { id: "branding", text: "Branding" }, { id: "logo-design", text: "Logo Design" }, { id: "web-design", text: "Web Design" },
-  { id: "motion-design", text: "Motion Design" }, { id: "illustration", text: "Illustration" }, { id: "photoshop", text: "Photoshop" },
-  { id: "illustrator", text: "Illustrator" }, { id: "user-research", text: "User Research" }, { id: "prototyping", text: "Prototyping" },
-  { id: "wordpress", text: "WordPress" }, { id: "seo", text: "SEO" }, { id: "content-writing", text: "Content Writing" },
-  { id: "copywriting", text: "Copywriting" }, { id: "social-media-marketing", text: "Social Media Marketing" },
-  { id: "email-marketing", text: "Email Marketing" }, { id: "project-management", text: "Project Management" },
-  { id: "product-management", text: "Product Management" }, { id: "data-analysis", text: "Data Analysis" },
-  { id: "shopifiy", text: "Shopify Development" }, { id: "mobile-app-design", text: "Mobile App Design" },
-  { id: "accessibility", text: "Accessibility (WCAG)"}, {id:"landing-page", text:"Landing Page Design"},
+  // High-level skills first
+  { id: "web-design", text: "Web Design" },
+  { id: "graphic-design", text: "Graphic Design" },
+  { id: "ui-design", text: "UI Design" },
+  { id: "ux-design", text: "UX Design" },
+  { id: "branding", text: "Branding" },
+  { id: "logo-design", text: "Logo Design" },
+  { id: "content-writing", text: "Content Writing" },
+  { id: "copywriting", text: "Copywriting" },
+  { id: "seo", text: "SEO" },
+  { id: "social-media-marketing", text: "Social Media Marketing" },
+  { id: "email-marketing", text: "Email Marketing" },
+  { id: "project-management", text: "Project Management" },
+  { id: "product-management", text: "Product Management" },
+  { id: "accessibility", text: "Accessibility (WCAG)"},
+  { id: "landing-page", text: "Landing Page Design"},
+  { id: "shopifiy", text: "Shopify Development" },
+  { id: "wordpress", text: "WordPress" },
+  { id: "mobile-app-design", text: "Mobile App Design" },
+  { id: "user-research", text: "User Research" },
+  { id: "prototyping", text: "Prototyping" },
+  { id: "illustration", text: "Illustration" },
+  { id: "motion-design", text: "Motion Design" },
+  { id: "data-analysis", text: "Data Analysis" },
+  // Technical skills/tools later
+  { id: "html", text: "HTML" },
+  { id: "css", text: "CSS" },
+  { id: "javascript", text: "JavaScript" },
+  { id: "typescript", text: "TypeScript" },
+  { id: "tailwindcss", text: "Tailwind CSS" },
+  { id: "figma", text: "Figma" },
+  { id: "adobexd", text: "Adobe XD" },
+  { id: "sketch", text: "Sketch" },
+  { id: "photoshop", text: "Photoshop" },
+  { id: "illustrator", text: "Illustrator" },
+  { id: "react", text: "React" },
+  { id: "nextjs", text: "Next.js" },
+  { id: "vue", text: "Vue.js" },
+  { id: "angular", text: "Angular" },
 ];
 
 
@@ -40,3 +65,4 @@ export const budgetOptions = [
 ] as const;
 
 export const budgetValues = budgetOptions.map(option => option.value);
+

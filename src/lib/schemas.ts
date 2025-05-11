@@ -13,7 +13,7 @@ export const JobPostingSchema = z.object({
   budget: z.enum(budgetValues as [string, ...string[]], { 
     required_error: "Please select a budget range.",
   }).describe("The estimated budget range for this project."),
-  skillsRequired: z.array(z.object({ id: z.string(), text: z.string() })).min(1, "At least one skill is required."),
+  skillsRequired: z.array(z.object({ id: z.string(), text: z.string() })).optional().default([]),
   limitContacts: z.coerce.number().int().min(1, "Limit must be at least 1").max(50, "Limit cannot exceed 50").optional(),
   workPreference: z.enum(['remote', 'local'], {
     required_error: "You must select a work preference.",
@@ -62,3 +62,4 @@ export const UserProfileSchema = z.object({
 export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
 export type DesignerProfileFormData = z.infer<typeof DesignerProfileSchema>;
 export type UserProfileFormData = z.infer<typeof UserProfileSchema>;
+
