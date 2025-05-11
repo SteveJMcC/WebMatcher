@@ -5,13 +5,13 @@ import type { JobPosting } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, CalendarDays, DollarSign, Tag, UserCircle, CheckCircle, AlertTriangle, Search, Mail, Phone, Lock, Unlock, Coins, Loader2 } from "lucide-react";
+import { Briefcase, CalendarDays, DollarSign, Tag, UserCircle, CheckCircle, AlertTriangle, Search, Mail, Phone, Lock, Unlock, Coins, Loader2, MapPin, Users2, HomeIcon } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
-import { limitContactsOptions } from "@/lib/constants";
+import { limitContactsOptions, professionalCategoryOptions } from "@/lib/constants";
 
 interface DesignerJobDetailPanelProps {
   job: JobPosting | null;
@@ -56,6 +56,7 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
       return;
     }
 
+    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
@@ -126,6 +127,10 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
     );
   }
 
+  const professionalCategoryDisplay = job.professionalCategory === "Other" && job.customProfessionalCategory 
+    ? job.customProfessionalCategory 
+    : professionalCategoryOptions.find(opt => opt.value === job.professionalCategory)?.label || job.professionalCategory;
+
   return (
     <Card className="shadow-xl sticky top-24 overflow-y-auto max-h-[calc(100vh-7rem)]">
       <CardHeader className="border-b">
@@ -171,6 +176,20 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                     {job.status}
                 </Badge>
             </div>
+            <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1 flex items-center"><Users2 className="mr-1.5 h-4 w-4 text-primary"/>Professional Needed</h4>
+                <p className="text-md text-foreground">{professionalCategoryDisplay}</p>
+            </div>
+             <div>
+                <h4 className="text-sm font-medium text-muted-foreground mb-1 flex items-center"><MapPin className="mr-1.5 h-4 w-4 text-primary"/>Work Preference</h4>
+                <p className="text-md text-foreground capitalize">{job.workPreference}</p>
+            </div>
+            {job.workPreference === 'local' && (
+                 <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1 flex items-center"><HomeIcon className="mr-1.5 h-4 w-4 text-primary"/>Client Location</h4>
+                    <p className="text-md text-foreground">{job.clientCity}, {job.clientPostalCode}</p>
+                </div>
+            )}
         </div>
 
         <div>
@@ -242,13 +261,15 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                 size="lg" 
                 className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-3"
                 onClick={handleApplyAndRevealContact}
-                disabled={isApplying || (designerTokens ?? 0) < TOKEN_COST_PER_APPLICATION}
+                disabled={isApplying || (designerTokens ?? 0) < TOKEN_COST_PER_APPLICATION || job.status !== 'open' || job.adminPaused === true}
             >
                 {isApplying ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Coins className="mr-2 h-5 w-5" />}
-                {isApplying ? "Applying..." : `Apply & Reveal Contact (Cost: ${TOKEN_COST_PER_APPLICATION} Token)`}
+                {job.status !== 'open' || job.adminPaused === true ? 'Job Not Open for Applications' : 
+                    isApplying ? "Applying..." : `Apply & Reveal Contact (Cost: ${TOKEN_COST_PER_APPLICATION} Token)`
+                }
             </Button>
          )}
-          { (designerTokens ?? 0) < TOKEN_COST_PER_APPLICATION && !hasApplied && (
+          { (designerTokens ?? 0) < TOKEN_COST_PER_APPLICATION && !hasApplied && (job.status === 'open' && job.adminPaused !== true) && (
             <Button variant="link" asChild className="text-sm text-accent p-0">
                 <Link href="/pricing">Buy More Tokens</Link>
             </Button>
@@ -257,3 +278,4 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
     </Card>
   );
 }
+
