@@ -6,12 +6,13 @@ import type { JobPosting, Bid, DesignerProfile } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2 } from "lucide-react";
+import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2, Mail, Phone, HomeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { limitContactsOptions } from "@/lib/constants";
+import { Badge } from "@/components/ui/badge";
 
 async function getJobDetails(jobId: string, userId: string): Promise<JobPosting | null> {
   if (typeof window !== 'undefined') {
@@ -38,12 +39,14 @@ async function getJobDetails(jobId: string, userId: string): Promise<JobPosting 
       title: "E-commerce Platform Redesign",
       description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends. The project involves creating a new visual identity, a full set of responsive page designs (homepage, product listings, product details, cart, checkout), and a style guide. We expect collaboration with our development team to ensure design feasibility. Please include examples of similar e-commerce projects in your application.",
       budget: "under £5000", 
-      skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
-      limitContacts: "16", // Updated to string value from options
-      createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
-      status: "open",
       clientEmail: "client.user@example.com",
       clientPhone: "+12345678900",
+      clientCity: "London",
+      clientPostalCode: "E1 6AN",
+      skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
+      limitContacts: "16", 
+      createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
+      status: "open",
       workPreference: "remote",
       professionalCategory: "Web Designer",
       applicants: [],
@@ -283,6 +286,20 @@ export default function ManageJobPage() {
                         <p className="text-lg font-semibold text-foreground">{getLimitContactsDisplayValue(job.limitContacts)}</p>
                     </div>
                  )}
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><Mail className="h-4 w-4 mr-1 text-primary" />Contact Email</h4>
+                    <p className="text-lg font-semibold text-foreground">{job.clientEmail}</p>
+                  </div>
+                  {job.clientPhone && (
+                    <div>
+                      <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><Phone className="h-4 w-4 mr-1 text-primary" />Contact Phone</h4>
+                      <p className="text-lg font-semibold text-foreground">{job.clientPhone}</p>
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><HomeIcon className="h-4 w-4 mr-1 text-primary" />Location</h4>
+                    <p className="text-lg font-semibold text-foreground">{job.clientCity}, {job.clientPostalCode}</p>
+                  </div>
             </div>
         </CardContent>
       </Card>
@@ -292,7 +309,8 @@ export default function ManageJobPage() {
         initialBids={bids}
         getDesignerProfileString={getDesignerProfileForAI}
         getDesignerDetails={getFullDesignerProfile}
-        applicants={applicants}
+        // applicants={applicants} // This prop is not used by JobBidsDisplay directly based on its current implementation.
+                                // If JobBidsDisplay is updated to use this, it can be uncommented.
       />
     </div>
   );

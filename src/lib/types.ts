@@ -6,6 +6,10 @@ export interface JobPostingCore {
   title: string;
   description: string;
   budget: string; 
+  clientEmail: string; 
+  clientPhone?: string; 
+  clientCity: string;
+  clientPostalCode: string;
   skillsRequired: Tag[]; 
   limitContacts?: LimitContactsValue;
   workPreference: 'remote' | 'local';
@@ -16,8 +20,6 @@ export interface JobPostingCore {
 export interface JobPosting extends JobPostingCore {
   id: string;
   userId: string; 
-  clientEmail?: string; 
-  clientPhone?: string; 
   createdAt: string; 
   status: 'open' | 'in-progress' | 'closed';
   bidsCount?: number;

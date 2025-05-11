@@ -20,7 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { JobPostingSchema } from "@/lib/schemas";
 import type { JobPostingFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, DollarSign, Users, TagIcon, MapPin, Users2 } from "lucide-react";
+import { Briefcase, DollarSign, Users, TagIcon, MapPin, Users2, Mail, Phone, Home } from "lucide-react";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag, JobPosting } from "@/lib/types";
 import { useState, useEffect, useCallback } from "react";
@@ -47,6 +47,10 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       title: jobToEdit.title,
       description: jobToEdit.description,
       budget: jobToEdit.budget as typeof budgetOptions[number]['value'], 
+      clientEmail: jobToEdit.clientEmail || authEmail || "",
+      clientPhone: jobToEdit.clientPhone || "",
+      clientCity: jobToEdit.clientCity || "",
+      clientPostalCode: jobToEdit.clientPostalCode || "",
       skillsRequired: jobToEdit.skillsRequired.find(skill => skill.id === 'dont-know') ? [] : jobToEdit.skillsRequired || [],
       limitContacts: jobToEdit.limitContacts || 'unlimited',
       workPreference: jobToEdit.workPreference || 'remote',
@@ -56,8 +60,12 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       title: "",
       description: "",
       budget: undefined, 
-      skillsRequired: [], // Default to empty array for skills
-      limitContacts: 'unlimited', // Default to "Unlimited"
+      clientEmail: authEmail || "",
+      clientPhone: "",
+      clientCity: "",
+      clientPostalCode: "",
+      skillsRequired: [], 
+      limitContacts: 'unlimited', 
       workPreference: 'remote',
       professionalCategory: '',
       customProfessionalCategory: '',
@@ -71,6 +79,10 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
         title: jobToEdit.title,
         description: jobToEdit.description,
         budget: jobToEdit.budget as typeof budgetOptions[number]['value'],
+        clientEmail: jobToEdit.clientEmail || authEmail || "",
+        clientPhone: jobToEdit.clientPhone || "",
+        clientCity: jobToEdit.clientCity || "",
+        clientPostalCode: jobToEdit.clientPostalCode || "",
         skillsRequired: initialSkills,
         limitContacts: jobToEdit.limitContacts || 'unlimited',
         workPreference: jobToEdit.workPreference || 'remote',
@@ -84,6 +96,10 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
           title: "",
           description: "",
           budget: undefined,
+          clientEmail: authEmail || "",
+          clientPhone: "",
+          clientCity: "",
+          clientPostalCode: "",
           skillsRequired: [],
           limitContacts: 'unlimited',
           workPreference: 'remote',
@@ -93,12 +109,12 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
         setSelectedSkills([]);
       }
     }
-  }, [jobToEdit, form]);
+  }, [jobToEdit, form, authEmail]);
 
   const watchedProfessionalCategory = form.watch("professionalCategory");
 
   async function onSubmit(data: JobPostingFormData) {
-    if (!authUserId || !authEmail || userType !== 'user') {
+    if (!authUserId || userType !== 'user') {
       toast({
         title: "Error",
         description: "User not authenticated or not a client. Cannot post/edit job.",
@@ -109,7 +125,6 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
 
     const isEditing = !!jobToEdit;
 
-    // If skillsRequired is empty, set it to the "Don't know" tag
     const finalSkillsRequired = data.skillsRequired && data.skillsRequired.length > 0 
       ? data.skillsRequired 
       : [{ id: "dont-know", text: "Don't know / Not sure" }];
@@ -120,6 +135,10 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       title: data.title,
       description: data.description,
       budget: data.budget, 
+      clientEmail: data.clientEmail,
+      clientPhone: data.clientPhone,
+      clientCity: data.clientCity,
+      clientPostalCode: data.clientPostalCode,
       skillsRequired: finalSkillsRequired,
       limitContacts: data.limitContacts === 'unlimited' ? undefined : data.limitContacts,
       workPreference: data.workPreference,
@@ -128,7 +147,6 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       createdAt: isEditing ? jobToEdit.createdAt : new Date().toISOString(),
       status: isEditing ? jobToEdit.status : "open",
       bidsCount: isEditing ? jobToEdit.bidsCount : 0,
-      clientEmail: authEmail, 
       applicants: isEditing && jobToEdit.applicants ? jobToEdit.applicants : [], 
     };
 
@@ -157,6 +175,10 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
           title: "",
           description: "",
           budget: undefined,
+          clientEmail: authEmail || "",
+          clientPhone: "",
+          clientCity: "",
+          clientPostalCode: "",
           skillsRequired: [],
           limitContacts: 'unlimited',
           workPreference: 'remote',
@@ -245,6 +267,69 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
                 </FormItem>
               )}
             />
+            
+            <FormField
+              control={form.control}
+              name="clientEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg flex items-center"><Mail className="mr-2 h-5 w-5 text-primary"/>Contact Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="your.email@example.com" {...field} className="text-base py-6" />
+                  </FormControl>
+                  <FormDescription>Email address for web professionals to contact you about this job.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="clientPhone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg flex items-center"><Phone className="mr-2 h-5 w-5 text-primary"/>Contact Phone (Optional)</FormLabel>
+                  <FormControl>
+                    <Input type="tel" placeholder="+1234567890" {...field} className="text-base py-6" />
+                  </FormControl>
+                  <FormDescription>Phone number for web professionals to contact you.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="clientCity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-lg flex items-center"><Home className="mr-2 h-5 w-5 text-primary"/>City</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., London" {...field} className="text-base py-6" />
+                    </FormControl>
+                    <FormDescription>Your city for location-based matching if preferred.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="clientPostalCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-lg">Postal Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., W1A 0AX" {...field} className="text-base py-6" />
+                    </FormControl>
+                    <FormDescription>Your postal code for more precise local matching.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
 
             <FormField
               control={form.control}
@@ -339,7 +424,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
                           setSelectedSkills(newSkills); 
                           field.onChange(newSkills);  
                         }}
-                        options={allSkillsOptions.filter(opt => opt.id !== 'dont-know')} // Exclude "Don't know" from selectable options here
+                        options={allSkillsOptions.filter(opt => opt.id !== 'dont-know')} 
                         placeholder="Select skills, or leave blank if unsure"
                       />
                   </FormControl>
