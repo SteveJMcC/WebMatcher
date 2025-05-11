@@ -32,10 +32,13 @@ export default function AdminPage() {
         const designerList: StoredAuthData[] = [];
         const clientList: StoredAuthData[] = [];
         Object.values(allProfiles).forEach(profile => {
-          if (profile.userType === 'designer') {
-            designerList.push(profile);
-          } else if (profile.userType === 'user') {
-            clientList.push(profile);
+          // Ensure the profile has a userId before processing
+          if (profile.userId) { 
+            if (profile.userType === 'designer') {
+              designerList.push(profile);
+            } else if (profile.userType === 'user') {
+              clientList.push(profile);
+            }
           }
         });
         setDesigners(designerList);
