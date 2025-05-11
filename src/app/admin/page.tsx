@@ -25,14 +25,13 @@ export default function AdminPage() {
       document.title = "Admin Dashboard - WebConnect";
     }
     
-    const profilesString = localStorage.getItem('mockUserProfiles');
+    const profilesString = typeof window !== 'undefined' ? localStorage.getItem('mockUserProfiles') : null;
     if (profilesString) {
       try {
         const allProfiles: Record<string, StoredAuthData> = JSON.parse(profilesString);
         const designerList: StoredAuthData[] = [];
         const clientList: StoredAuthData[] = [];
         Object.values(allProfiles).forEach(profile => {
-          // Ensure the profile has a userId before processing
           if (profile.userId) { 
             if (profile.userType === 'designer') {
               designerList.push(profile);
