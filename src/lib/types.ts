@@ -23,7 +23,8 @@ export interface JobPosting extends JobPostingCore {
   createdAt: string; 
   status: 'open' | 'in-progress' | 'closed';
   bidsCount?: number;
-  applicants?: { designerId: string; appliedAt: string }[];
+  applicants?: { designerId: string; appliedAt: string; status?: 'active' | 'designer_deleted' }[];
+  adminDeletedNote?: string; // Added to indicate if client account was deleted by admin
 }
 
 export interface DesignerProfileCore {
@@ -105,3 +106,4 @@ export type Tag = {
   id: string;
   text: string;
 };
+

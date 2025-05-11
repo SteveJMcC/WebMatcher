@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2, Mail, Phone, HomeIcon, LayoutDashboard, XCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
@@ -41,8 +42,8 @@ async function getFullDesignerProfile(designerId: string): Promise<DesignerProfi
     if (typeof window !== 'undefined') {
         const profilesString = localStorage.getItem('mockUserProfiles');
         if (profilesString) {
-            const allProfiles = JSON.parse(profilesString) as Record<string, any>;
-            const designerEntry = Object.values(allProfiles).find(
+            const allProfilesData = JSON.parse(profilesString) as Record<string, any>;
+            const designerEntry = Object.values(allProfilesData).find(
                 (p) => p.userType === 'designer' && p.userId === designerId
             );
 
@@ -68,7 +69,8 @@ async function getFullDesignerProfile(designerId: string): Promise<DesignerProfi
             }
         }
     }
-    // Fallback mock data if not found
+    // Fallback mock data if not found (e.g., if profilesString is null or designer not in it)
+    // This section is mostly for testing and might not be hit if localStorage is consistently populated.
     const profiles: Record<string, DesignerProfile> = {
         "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design, focusing on creating intuitive and high-converting user experiences. Over 5 years of experience helping businesses grow their online presence.", budgetMin: 2000, budgetMax: 6000, email: "alice.w@example.com", phone: "+15551110000", city: "Wonderland City", postalCode: "W1DER", portfolioLinks: [{title: "Portfolio", url: "https://example.com/alice"}], tokens: 50, joinedDate: new Date('2022-03-10T10:00:00.000Z').toISOString() },
         "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer & Developer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}, {id:"react", text:"React"}], bio: "Building engaging mobile-first web experiences for startups and established companies. Proficient in modern JavaScript frameworks and responsive design principles.", budgetMin: 2500, budgetMax: 7000, email: "bob.builder@example.com", phone: "+15552220000", city: "Builderville", postalCode: "B1LD ER", portfolioLinks: [{title: "GitHub", url:"https://github.com/bob"}], tokens: 35, joinedDate: new Date('2021-08-15T10:00:00.000Z').toISOString() },
@@ -79,7 +81,7 @@ async function getFullDesignerProfile(designerId: string): Promise<DesignerProfi
 
 async function getDesignerProfileForAI(designerId: string): Promise<string> {
     const designer = await getFullDesignerProfile(designerId);
-    if (!designer) return "Web Professional profile not available.";
+    if (!designer) return "Web Professional profile not available or has been removed.";
     let profileString = `Name: ${designer.name}. Headline: ${designer.headline}. Skills: ${designer.skills.map(s => typeof s === 'string' ? s : s.text).join(', ')}. Experience: ${designer.bio.substring(0,100)}... Budget Range: £${designer.budgetMin}-£${designer.budgetMax}. Email: ${designer.email}. Phone: ${designer.phone}. Location: ${designer.city}, ${designer.postalCode}.`;
     return profileString;
 }
@@ -131,6 +133,19 @@ export default function ManageJobPage() {
               if (jobData.applicants && jobData.applicants.length > 0) {
                 const realBidsData: Bid[] = await Promise.all(
                   jobData.applicants.map(async (applicant) => {
+                    if (applicant.status === 'designer_deleted') {
+                       return {
+                        id: `bid-${jobData.id}-${applicant.designerId}-${new Date(applicant.appliedAt).getTime()}`,
+                        jobId: jobData.id,
+                        designerId: applicant.designerId,
+                        designerName: "Deleted Web Professional",
+                        bidAmount: 0, 
+                        coverLetter: "This web professional's account has been deleted by an administrator.",
+                        experienceSummary: "N/A due to account deletion.",
+                        submittedAt: applicant.appliedAt,
+                        // designerAccountDeleted: true, // This flag will be set in JobBidsDisplay based on getDesignerDetails result
+                      };
+                    }
                     const designerDetails = await getFullDesignerProfile(applicant.designerId);
                     return {
                       id: `bid-${jobData.id}-${applicant.designerId}-${new Date(applicant.appliedAt).getTime()}`,
@@ -138,7 +153,7 @@ export default function ManageJobPage() {
                       designerId: applicant.designerId,
                       designerName: designerDetails?.name || "Web Professional",
                       designerAvatar: designerDetails?.avatarUrl, 
-                      bidAmount: 0, // This seems to be a placeholder or needs actual bid amount
+                      bidAmount: 0, 
                       coverLetter: `This professional has expressed interest in "${jobData.title}" and unlocked contact details. Review their profile for experience.`, 
                       experienceSummary: designerDetails?.bio ? `${designerDetails.bio.substring(0, 150)}...` : "Refer to professional's profile for experience details.", 
                       submittedAt: applicant.appliedAt,
@@ -167,7 +182,7 @@ export default function ManageJobPage() {
   }, [authIsLoading, isAuthenticated, userType, authUserId, profileSetupComplete, jobId, router]);
 
   const handleCloseJob = async () => {
-    if (!job || !authUserId || job.status === 'closed') return;
+    if (!job || !authUserId || job.status === 'closed' || job.adminDeletedNote) return;
 
     setIsClosingJob(true);
     try {
@@ -247,8 +262,17 @@ export default function ManageJobPage() {
     return option ? option.label : `${limitValue} professionals`;
   };
 
+  const isJobActionable = job.status !== 'closed' && !job.adminDeletedNote;
+
   return (
     <div className="container mx-auto px-4 py-12 space-y-10">
+      {job.adminDeletedNote && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Admin Action</AlertTitle>
+          <AlertDescription>{job.adminDeletedNote}</AlertDescription>
+        </Alert>
+      )}
       <Card className="shadow-xl">
         <CardHeader>
             <div className="flex flex-col md:flex-row justify-between items-start gap-4">
@@ -266,7 +290,7 @@ export default function ManageJobPage() {
                             <LayoutDashboard className="mr-2 h-4 w-4" /> Back to Dashboard
                         </Link>
                     </Button>
-                    <Button variant="outline" asChild disabled={job.status === 'closed'}>
+                    <Button variant="outline" asChild disabled={!isJobActionable}>
                         <Link href={`/jobs/${job.id}/edit`}> 
                             <Edit3 className="mr-2 h-4 w-4" /> Edit Job
                         </Link>
@@ -274,10 +298,10 @@ export default function ManageJobPage() {
                     <Button 
                         variant="destructive" 
                         onClick={handleCloseJob} 
-                        disabled={job.status === 'closed' || isClosingJob}
+                        disabled={!isJobActionable || isClosingJob}
                     >
                         {isClosingJob ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
-                        {job.status === 'closed' ? "Job Closed" : "Close Job"}
+                        {job.status === 'closed' || job.adminDeletedNote ? "Job Closed" : "Close Job"}
                     </Button>
                 </div>
             </div>
@@ -314,8 +338,8 @@ export default function ManageJobPage() {
                 </div>
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
-                    <Badge variant="outline" className={`capitalize text-sm ${job.status === 'open' ? 'border-green-500 text-green-600 bg-green-50' : job.status === 'closed' ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-500 text-gray-600 bg-gray-50'}`}>
-                        {job.status}
+                    <Badge variant="outline" className={`capitalize text-sm ${job.status === 'open' && !job.adminDeletedNote ? 'border-green-500 text-green-600 bg-green-50' : (job.status === 'closed' || job.adminDeletedNote) ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-500 text-gray-600 bg-gray-50'}`}>
+                        {job.adminDeletedNote ? 'Closed (Admin)' : job.status}
                     </Badge>
                 </div>
                  {job.limitContacts && (
@@ -346,12 +370,14 @@ export default function ManageJobPage() {
         </CardContent>
       </Card>
       
-      <JobBidsDisplay
-        job={job}
-        initialBids={bids}
-        getDesignerProfileString={getDesignerProfileForAI}
-        getDesignerDetails={getFullDesignerProfile}
-      />
+      {!job.adminDeletedNote && (
+         <JobBidsDisplay
+            job={job}
+            initialBids={bids}
+            getDesignerProfileString={getDesignerProfileForAI}
+            getDesignerDetails={getFullDesignerProfile}
+          />
+      )}
     </div>
   );
 }

@@ -6,9 +6,23 @@ import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Briefcase, UserCircle, ShieldAlert, Eye } from 'lucide-react';
-import type { StoredAuthData } from '@/hooks/use-auth-mock'; // Ensure StoredAuthData is exported
+import { Users, Briefcase, ShieldAlert, Eye, Trash2, AlertTriangle } from 'lucide-react';
+import type { StoredAuthData } from '@/hooks/use-auth-mock';
+import type { JobPosting } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast';
+
 
 const getInitials = (name?: string | null) => {
     if (!name) return "U";
@@ -19,12 +33,11 @@ export default function AdminPage() {
   const [designers, setDesigners] = useState<StoredAuthData[]>([]);
   const [clients, setClients] = useState<StoredAuthData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userToDelete, setUserToDelete] = useState<StoredAuthData | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    if (typeof document !== 'undefined') {
-      document.title = "Admin Dashboard - WebConnect";
-    }
-    
+  const fetchUsers = () => {
     const profilesString = typeof window !== 'undefined' ? localStorage.getItem('mockUserProfiles') : null;
     if (profilesString) {
       try {
@@ -46,8 +59,107 @@ export default function AdminPage() {
         console.error("Error parsing user profiles from localStorage", error);
       }
     }
+  };
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.title = "Admin Dashboard - WebConnect";
+    }
+    fetchUsers();
     setLoading(false);
   }, []);
+
+  const handleDeleteClick = (user: StoredAuthData) => {
+    setUserToDelete(user);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteUser = () => {
+    if (!userToDelete || !userToDelete.userId) return;
+
+    const userIdToDelete = userToDelete.userId;
+    const userTypeToDelete = userToDelete.userType;
+
+    try {
+      // 1. Remove user from mockUserProfiles
+      const profilesString = localStorage.getItem('mockUserProfiles');
+      let allProfiles: Record<string, StoredAuthData> = profilesString ? JSON.parse(profilesString) : {};
+      
+      const userKeyToDelete = Object.keys(allProfiles).find(key => allProfiles[key].userId === userIdToDelete);
+      if (userKeyToDelete) {
+        delete allProfiles[userKeyToDelete];
+        localStorage.setItem('mockUserProfiles', JSON.stringify(allProfiles));
+      }
+
+      // 2. Handle related data if client is deleted
+      if (userTypeToDelete === 'user') {
+        const clientJobsKey = `userJobs_${userIdToDelete}`;
+        const clientJobsString = localStorage.getItem(clientJobsKey);
+        if (clientJobsString) {
+          let clientJobs: JobPosting[] = JSON.parse(clientJobsString);
+          clientJobs = clientJobs.map(job => ({
+            ...job,
+            status: 'closed',
+            adminDeletedNote: 'Client account has been removed by admin. This job is no longer active.'
+          }));
+          localStorage.setItem(clientJobsKey, JSON.stringify(clientJobs));
+          // Note: Bids on these jobs will reflect this indirectly when the job page is viewed.
+        }
+      } else if (userTypeToDelete === 'designer') {
+        // If a designer is deleted, update their applications on jobs
+        // This is more complex as it involves iterating through all clients' jobs
+        // For simplicity, we'll rely on JobBidsDisplay handling missing designer profiles
+        // However, ideally, we'd mark applications here.
+        // Example of marking applications:
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('userJobs_')) {
+                const jobsString = localStorage.getItem(key);
+                if (jobsString) {
+                    let userJobs: JobPosting[] = JSON.parse(jobsString);
+                    let modified = false;
+                    userJobs = userJobs.map(job => {
+                        if (job.applicants && job.applicants.some(app => app.designerId === userIdToDelete)) {
+                            modified = true;
+                            return {
+                                ...job,
+                                applicants: job.applicants.map(app => 
+                                    app.designerId === userIdToDelete ? { ...app, status: 'designer_deleted' } : app
+                                )
+                            };
+                        }
+                        return job;
+                    });
+                    if (modified) {
+                        localStorage.setItem(key, JSON.stringify(userJobs));
+                    }
+                }
+            }
+        }
+      }
+
+      // 3. Update admin page state
+      fetchUsers(); // Re-fetch users to update lists
+
+      toast({
+        title: "User Deleted",
+        description: `${userToDelete.displayName || userToDelete.email} has been successfully deleted.`,
+        variant: "default",
+      });
+
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete user. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -108,11 +220,16 @@ export default function AdminPage() {
                     <p className="text-sm text-muted-foreground">{client.email}</p>
                   </div>
                 </div>
-                 <Button asChild variant="outline" size="sm">
-                  <Link href={`/client/${client.userId}`}>
-                     <Eye className="mr-1.5 h-4 w-4" /> View Profile
-                  </Link>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/client/${client.userId}`}>
+                       <Eye className="mr-1.5 h-4 w-4" /> View
+                    </Link>
+                  </Button>
+                  <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(client)}>
+                    <Trash2 className="mr-1.5 h-4 w-4" /> Delete
+                  </Button>
+                </div>
               </Card>
             )) : <p className="text-muted-foreground">No clients found.</p>}
           </CardContent>
@@ -137,16 +254,40 @@ export default function AdminPage() {
                     <p className="text-sm text-muted-foreground">{designer.email}</p>
                   </div>
                 </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/designer/${designer.userId}`}>
-                    <Eye className="mr-1.5 h-4 w-4" /> View Profile
-                  </Link>
-                </Button>
+                 <div className="flex items-center gap-2">
+                  <Button asChild variant="outline" size="sm">
+                    <Link href={`/designer/${designer.userId}`}>
+                      <Eye className="mr-1.5 h-4 w-4" /> View
+                    </Link>
+                  </Button>
+                   <Button variant="destructive" size="sm" onClick={() => handleDeleteClick(designer)}>
+                    <Trash2 className="mr-1.5 h-4 w-4" /> Delete
+                  </Button>
+                </div>
               </Card>
             )) : <p className="text-muted-foreground">No web professionals found.</p>}
           </CardContent>
         </Card>
       </div>
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center"><AlertTriangle className="text-destructive mr-2"/>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the user 
+              <span className="font-semibold"> {userToDelete?.displayName || userToDelete?.email}</span>
+              {userToDelete?.userType === 'user' && ' and mark all their associated jobs as closed.'}
+              {userToDelete?.userType === 'designer' && ' and their applications will be marked accordingly.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteUser} className="bg-destructive hover:bg-destructive/90">
+              Yes, delete user
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
