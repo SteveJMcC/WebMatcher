@@ -20,15 +20,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { JobPostingSchema } from "@/lib/schemas";
 import type { JobPostingFormData } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
-import { Briefcase, DollarSign, Users, TagIcon, MapPin, Users2, Mail, Phone, Home } from "lucide-react";
+import { Briefcase, DollarSign, Users, TagIcon, MapPin, Users2, Mail, Phone, Home, Coins } from "lucide-react";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag, JobPosting } from "@/lib/types";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { allSkillsOptions, professionalCategoryOptions, budgetOptions, limitContactsOptions } from "@/lib/constants"; 
+import { allSkillsOptions, professionalCategoryOptions, budgetOptions, limitContactsOptions, getJobApplicationTokenCost } from "@/lib/constants"; 
 
 interface JobPostingFormProps {
   jobToEdit?: JobPosting | null;
@@ -112,6 +112,15 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
   }, [jobToEdit, form, authEmail]);
 
   const watchedProfessionalCategory = form.watch("professionalCategory");
+  const watchedBudget = form.watch("budget");
+
+  const tokenCostForBudget = useMemo(() => {
+    if (watchedBudget) {
+      return getJobApplicationTokenCost(watchedBudget);
+    }
+    return null;
+  }, [watchedBudget]);
+
 
   async function onSubmit(data: JobPostingFormData) {
     if (!authUserId || userType !== 'user') {
@@ -263,6 +272,11 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
                       </SelectContent>
                     </Select>
                   <FormDescription>Your estimated budget for this project.</FormDescription>
+                  {tokenCostForBudget !== null && (
+                    <FormDescription className="text-primary font-medium flex items-center pt-1">
+                      <Coins className="mr-1.5 h-4 w-4" /> Web Professional Token Cost: {tokenCostForBudget} tokens
+                    </FormDescription>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
