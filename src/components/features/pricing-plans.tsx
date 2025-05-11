@@ -98,38 +98,43 @@ export function PricingPlans() {
           {plans.map((plan) => {
             const planStyles = getPlanStyles(plan.id);
             let cardSpecificClasses = cn(planStyles.cardBg, planStyles.cardBorder);
+            let popularBadgeVariant: "default" | "outline" = "default";
+            let popularBadgeClasses = "bg-accent text-accent-foreground";
             
             if (plan.isPopular) {
               if (plan.id === "silver") {
-                // Silver plan, even if popular, uses its defined border (secondary) and accent ring.
-                cardSpecificClasses = cn(planStyles.cardBg, "border-2", planStyles.cardBorder, "ring-2 ring-accent/50");
+                cardSpecificClasses = cn(planStyles.cardBg, "border-2", planStyles.cardBorder, "ring-2 ring-border");
+                popularBadgeVariant = "outline";
+                popularBadgeClasses = "bg-muted text-muted-foreground border-border";
               } else {
-                // Other popular plans get the accent border and ring.
                 cardSpecificClasses = cn(planStyles.cardBg, "border-2 border-accent ring-2 ring-accent/50");
+                // Default popular badge classes remain for non-silver popular plans
               }
             }
             
-            // Button styling: Popular plans (including Silver) use accent button for emphasis.
-            const buttonClass = plan.isPopular 
+            const buttonClass = plan.isPopular && plan.id !== "silver" // Gold plan's popular button
               ? "bg-accent hover:bg-accent/90 text-accent-foreground" 
+              : plan.isPopular && plan.id === "silver" // Silver plan's popular button
+              ? "bg-muted hover:bg-muted/80 text-muted-foreground border border-border" // Make silver button more distinct
               : planStyles.buttonClass;
+
 
             return (
               <Card
                 key={plan.id}
                 className={cn(
-                  "flex flex-col shadow-lg hover:shadow-2xl transition-shadow duration-300 relative", // Added relative for badge positioning
+                  "flex flex-col shadow-lg hover:shadow-2xl transition-shadow duration-300 relative", 
                   cardSpecificClasses
                 )}
               >
                 {plan.isPopular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                      <Badge variant="default" className="bg-accent text-accent-foreground text-sm px-4 py-1 flex items-center gap-1 shadow-md">
+                      <Badge variant={popularBadgeVariant} className={cn("text-sm px-4 py-1 flex items-center gap-1 shadow-md", popularBadgeClasses)}>
                           <Star className="h-4 w-4"/> Popular Choice
                       </Badge>
                   </div>
                 )}
-                <CardHeader className="text-center pt-10"> {/* Added pt-10 to make space for the badge */}
+                <CardHeader className="text-center pt-10"> 
                   <CardTitle className="text-3xl font-semibold mb-2">{plan.name}</CardTitle>
                   <p className="text-4xl font-bold text-primary">
                     £{plan.price}
