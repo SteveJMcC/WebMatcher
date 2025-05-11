@@ -11,13 +11,11 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
-import { limitContactsOptions, professionalCategoryOptions } from "@/lib/constants";
+import { limitContactsOptions, professionalCategoryOptions, getJobApplicationTokenCost } from "@/lib/constants";
 
 interface DesignerJobDetailPanelProps {
   job: JobPosting | null;
 }
-
-const TOKEN_COST_PER_APPLICATION = 1;
 
 export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
   const { designerTokens, updateDesignerTokens, userId, email, userType } = useAuth();
@@ -27,20 +25,25 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
   const [isApplying, setIsApplying] = useState(false);
   const [applicationError, setApplicationError] = useState<string | null>(null);
   const [hasApplied, setHasApplied] = useState(false);
+  const [tokenCost, setTokenCost] = useState(1); // Default, will be updated
 
   useEffect(() => {
     setShowContactDetails(false);
     setIsApplying(false);
     setApplicationError(null);
     if (job && userId) {
-        // Check if current designer has already applied to this job
+        const cost = getJobApplicationTokenCost(job.budget);
+        setTokenCost(cost);
         const alreadyApplied = job.applicants?.some(app => app.designerId === userId);
         setHasApplied(!!alreadyApplied);
         if (alreadyApplied) {
-            setShowContactDetails(true); // If already applied, show contact details
+            setShowContactDetails(true);
         }
     } else {
         setHasApplied(false);
+        if (job) {
+            setTokenCost(getJobApplicationTokenCost(job.budget));
+        }
     }
   }, [job, userId]);
 
@@ -50,19 +53,19 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
     setIsApplying(true);
     setApplicationError(null);
 
-    if ((designerTokens ?? 0) < TOKEN_COST_PER_APPLICATION) {
-      setApplicationError(`Not enough tokens. You need ${TOKEN_COST_PER_APPLICATION} token(s) to apply.`);
+    const currentTokenCost = getJobApplicationTokenCost(job.budget);
+
+    if ((designerTokens ?? 0) < currentTokenCost) {
+      setApplicationError(`Not enough tokens. You need ${currentTokenCost} token(s) to apply.`);
       setIsApplying(false);
       return;
     }
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
-      updateDesignerTokens(-TOKEN_COST_PER_APPLICATION);
+      updateDesignerTokens(-currentTokenCost);
       
-      // Add applicant to job posting in localStorage
       if (typeof window !== 'undefined') {
         const clientJobsStorageKey = `userJobs_${job.userId}`;
         const clientJobsString = localStorage.getItem(clientJobsStorageKey);
@@ -89,8 +92,6 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
     } catch (error) {
       console.error("Error applying for job:", error);
       setApplicationError("An error occurred while applying. Please try again.");
-      // Revert token deduction if API call failed (in a real scenario)
-      // updateDesignerTokens(TOKEN_COST_PER_APPLICATION); 
       toast({
         title: "Application Failed",
         description: (error as Error).message || "Could not process application.",
@@ -239,7 +240,7 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                         Client contact details (email and phone) will be revealed after you apply for this job.
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                        This action will cost {TOKEN_COST_PER_APPLICATION} token. Your current balance: {designerTokens ?? 0} tokens.
+                        This action will cost {tokenCost} token(s). Your current balance: {designerTokens ?? 0} tokens.
                     </p>
                 </div>
             )}
@@ -261,15 +262,15 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                 size="lg" 
                 className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-3"
                 onClick={handleApplyAndRevealContact}
-                disabled={isApplying || (designerTokens ?? 0) < TOKEN_COST_PER_APPLICATION || job.status !== 'open' || job.adminPaused === true}
+                disabled={isApplying || (designerTokens ?? 0) < tokenCost || job.status !== 'open' || job.adminPaused === true}
             >
                 {isApplying ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Coins className="mr-2 h-5 w-5" />}
                 {job.status !== 'open' || job.adminPaused === true ? 'Job Not Open for Applications' : 
-                    isApplying ? "Applying..." : `Apply & Reveal Contact (Cost: ${TOKEN_COST_PER_APPLICATION} Token)`
+                    isApplying ? "Applying..." : `Apply & Reveal Contact (Cost: ${tokenCost} Token${tokenCost !== 1 ? 's' : ''})`
                 }
             </Button>
          )}
-          { (designerTokens ?? 0) < TOKEN_COST_PER_APPLICATION && !hasApplied && (job.status === 'open' && job.adminPaused !== true) && (
+          { (designerTokens ?? 0) < tokenCost && !hasApplied && (job.status === 'open' && job.adminPaused !== true) && (
             <Button variant="link" asChild className="text-sm text-accent p-0">
                 <Link href="/pricing">Buy More Tokens</Link>
             </Button>

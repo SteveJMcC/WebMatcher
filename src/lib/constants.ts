@@ -1,3 +1,4 @@
+
 import type { Tag } from "./types";
 
 export const allSkillsOptions: Tag[] = [
@@ -60,6 +61,7 @@ export const budgetOptions = [
   { value: "under £500", label: "Under £500" },
   { value: "under £750", label: "Under £750" },
   { value: "under £1000", label: "Under £1000" },
+  { value: "under £1500", label: "Under £1500" },
   { value: "under £2000", label: "Under £2000" },
   { value: "above £2000", label: "Above £2000" },
   { value: "don't know", label: "Don't know" },
@@ -75,3 +77,26 @@ export const limitContactsOptions = [
 ] as const;
 
 export const limitContactsValues = limitContactsOptions.map(option => option.value);
+
+export const getJobApplicationTokenCost = (budget: string): number => {
+  switch (budget) {
+    case "under £250":
+      return 4;
+    case "under £500":
+      return 15;
+    case "under £750":
+      return 15;
+    case "under £1000":
+      return 20;
+    case "under £1500":
+      return 30;
+    case "under £2000":
+      return 40;
+    case "above £2000":
+      return 50;
+    case "don't know":
+      return 10; // Default for "don't know"
+    default:
+      return 10; // Fallback default
+  }
+};
