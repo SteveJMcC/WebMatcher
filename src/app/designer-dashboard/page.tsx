@@ -22,24 +22,27 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
       userId: "client-abc",
       title: "Urgent: Landing Page UI/UX for SaaS Product",
       description: "We are launching a new SaaS product and need a compelling landing page design. Must be modern, responsive, and conversion-focused. Experience with Figma and A/B testing design concepts is a plus. Quick turnaround needed.",
-      budget: 1200, 
+      budget: "under £1500", 
       skillsRequired: [{id:"ui-design", text:"UI Design"}, {id:"ux-design", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"landing-page", text:"Landing Page Design"}],
       createdAt: new Date('2023-10-10T09:00:00.000Z').toISOString(),
       status: "open",
       clientEmail: "client.saas@example.com",
       clientPhone: "+15559876543",
+      workPreference: "remote",
+      professionalCategory: "Web Designer",
     },
     {
       id: "job-match-2",
       userId: "client-def",
       title: "Illustrated Icons for Children's Educational App",
       description: "Seeking a talented illustrator to create a set of 50 unique, friendly, and colorful icons for an educational app targeting children aged 4-7. Style should be playful and engaging.",
-      budget: 800, 
+      budget: "under £1000", 
       skillsRequired: [{id:"illustration", text:"Illustration"}, {id:"icon-design", text:"Icon Design"}, {id:"graphic-design", text:"Graphic Design"}],
       createdAt: new Date('2023-10-08T16:20:00.000Z').toISOString(),
       status: "open",
       clientEmail: "kids.app.client@example.com",
-      // clientPhone intentionally omitted
+      workPreference: "remote",
+      professionalCategory: "Graphic Designer",
     },
   ];
 }
@@ -52,24 +55,28 @@ async function getGeneralJobs(): Promise<JobPosting[]> {
       userId: "client-xyz",
       title: "Website Redesign for Non-Profit Organization",
       description: "Our non-profit needs a fresh, accessible, and easy-to-navigate website. We want to better showcase our mission and impact. Experience with designing for non-profits and accessibility standards (WCAG) is highly valued.",
-      budget: 2000, 
+      budget: "under £2000", 
       skillsRequired: [{id:"web-design", text:"Web Design"}, {id:"ui-design", text:"UI Design"}, {id:"accessibility", text:"Accessibility (WCAG)"}, {id:"wordpress", text:"WordPress"}],
       createdAt: new Date('2023-10-05T11:00:00.000Z').toISOString(),
       status: "open",
       clientEmail: "nonprofit.contact@example.org",
       clientPhone: "+15551122334",
+      workPreference: "local",
+      professionalCategory: "Web Designer",
     },
     {
       id: "job-gen-2",
       userId: "client-lmn",
       title: "Mobile App Design for Fitness Startup",
       description: "We're a new fitness startup looking for a designer to create an intuitive and motivating mobile app interface. Key features include workout tracking, progress visualization, and social sharing. Experience with gamification is a bonus.",
-      budget: 2500,
+      budget: "above £2000",
       skillsRequired: [{ id: "mobile-app-design", text: "Mobile App Design" }, { id: "ui-design", text: "UI Design" }, { id: "ux-design", text: "UX Design" }, { id: "prototyping", text: "Prototyping" }],
       createdAt: new Date('2023-10-12T14:00:00.000Z').toISOString(),
       status: "open",
       clientEmail: "fitness.startup@example.io",
       clientPhone: "+15555550000",
+      workPreference: "remote",
+      professionalCategory: "UI/UX Designer",
     },
   ];
 }
@@ -86,7 +93,7 @@ export default function DesignerDashboardPage() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-        document.title = `${displayName ? displayName + "'s" : 'Designer'} Dashboard - My Opportunities | WebConnect`;
+        document.title = `${displayName ? displayName + "'s" : 'Web Professional'} Dashboard - My Opportunities | WebConnect`;
     }
 
     if (!authIsLoading) {
@@ -103,7 +110,7 @@ export default function DesignerDashboardPage() {
   useEffect(() => {
     if (isAuthenticated && userType === 'designer' && profileSetupComplete && authDesignerId) {
       setPageLoading(true);
-      setSelectedJob(null); // Reset selected job on user change or reload
+      setSelectedJob(null); 
       Promise.all([
         getMatchedJobs(authDesignerId),
         getGeneralJobs()
@@ -160,7 +167,7 @@ export default function DesignerDashboardPage() {
         <div className="mb-4 sm:mb-0">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary flex items-center">
                 <LayoutDashboard className="mr-3 h-7 w-7 md:h-8 md:w-8" /> 
-                {displayName ? `${displayName}'s Dashboard` : 'Designer Dashboard'}
+                {displayName ? `${displayName}'s Web Professional Dashboard` : 'Web Professional Dashboard'}
             </h1>
             <p className="text-md md:text-lg text-muted-foreground mt-1">Discover opportunities and manage your profile.</p>
         </div>
@@ -219,7 +226,7 @@ export default function DesignerDashboardPage() {
         </div>
     ) : (
          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 space-y-8 overflow-y-auto max-h-[calc(100vh-20rem)] pr-2"> {/* Scrollable job list */}
+            <div className="lg:col-span-1 space-y-8 overflow-y-auto max-h-[calc(100vh-20rem)] pr-2"> 
                 <DesignerJobList 
                     jobs={matchedJobs} 
                     title="Jobs Matched For You" 
@@ -234,7 +241,7 @@ export default function DesignerDashboardPage() {
                     selectedJobId={selectedJob?.id}
                 />
             </div>
-            <div className="lg:col-span-2"> {/* Job detail panel */}
+            <div className="lg:col-span-2"> 
                 <DesignerJobDetailPanel job={selectedJob} />
             </div>
         </div>
@@ -242,4 +249,3 @@ export default function DesignerDashboardPage() {
     </div>
   );
 }
-

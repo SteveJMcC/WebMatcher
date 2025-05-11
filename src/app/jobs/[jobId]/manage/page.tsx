@@ -1,9 +1,8 @@
 
-"use client"; // This page uses client-side hooks and state for bids
+"use client"; 
 
 import { JobBidsDisplay } from "@/components/features/job-bids-display";
 import type { JobPosting, Bid, DesignerProfile } from "@/lib/types";
-// import { Metadata } from "next"; // Metadata cannot be dynamic in client components like this
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -13,10 +12,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Mock data fetching functions - these would be API calls in a real app
-
 async function getJobDetails(jobId: string, userId: string): Promise<JobPosting | null> {
-   // Simulating fetching from localStorage as done in user-dashboard
   if (typeof window !== 'undefined') {
     try {
       const storageKey = `userJobs_${userId}`;
@@ -29,14 +25,13 @@ async function getJobDetails(jobId: string, userId: string): Promise<JobPosting 
       console.error("Failed to get job details from localStorage", error);
     }
   }
-  // Fallback mock for testing if localStorage fails or job not found
-  if (jobId === "job-1") {
+  if (jobId === "job-1") { // Fallback mock
     return {
       id: "job-1",
-      userId: "mock-client-email@example.com_user", // Example based on new userKey logic
+      userId: "mock-client-email@example.com_user", 
       title: "E-commerce Platform Redesign",
       description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends. The project involves creating a new visual identity, a full set of responsive page designs (homepage, product listings, product details, cart, checkout), and a style guide. We expect collaboration with our development team to ensure design feasibility. Please include examples of similar e-commerce projects in your application.",
-      budget: 3500, 
+      budget: "under £5000", // Updated to string
       skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
       limitContacts: 15,
       createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
@@ -51,7 +46,7 @@ async function getJobDetails(jobId: string, userId: string): Promise<JobPosting 
 }
 
 async function getJobBids(jobId: string): Promise<Bid[]> {
- if (jobId === "job-1") { // Example job ID
+ if (jobId === "job-1") { 
     return [
       {
         id: "bid-101", jobId: "job-1", designerId: "designer-A", designerName: "Alice Wonderland", bidAmount: 2500,
@@ -90,7 +85,6 @@ async function getDesignerProfileForAI(designerId: string): Promise<string> {
 }
 
 async function getFullDesignerProfile(designerId: string): Promise<DesignerProfile | null> {
-    // Mock: In a real app, fetch full profile from DB
     const profiles: Record<string, DesignerProfile> = {
         "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design...", budgetMin: 2000, budgetMax: 6000, email: "alice@example.com", phone: "+15550001111", portfolioLinks: [], tokens: 10, joinedDate: new Date().toISOString() },
         "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}], bio: "Building engaging mobile experiences...", budgetMin: 2500, budgetMax: 7000, email: "bob@example.com", phone: "+15550002222", portfolioLinks: [], tokens: 15, joinedDate: new Date().toISOString() },
@@ -139,7 +133,7 @@ export default function ManageJobPage() {
         setError(null);
         Promise.all([
           getJobDetails(jobId, authUserId),
-          getJobBids(jobId) // Assuming bids are public or jobId is enough
+          getJobBids(jobId) 
         ]).then(([jobData, bidsData]) => {
           if (jobData) {
             setJob(jobData);
@@ -230,7 +224,7 @@ export default function ManageJobPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 border-t">
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><DollarSign className="h-4 w-4 mr-1 text-primary" />Budget</h4>
-                    <p className="text-lg font-semibold text-foreground">${job.budget.toLocaleString()}</p>
+                    <p className="text-lg font-semibold text-foreground">{job.budget}</p>
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><Users2 className="h-4 w-4 mr-1 text-primary" />Professional Category</h4>
@@ -261,7 +255,7 @@ export default function ManageJobPage() {
                  {job.limitContacts && (
                      <div>
                         <h4 className="text-sm font-medium text-muted-foreground">Contact Limit</h4>
-                        <p className="text-lg font-semibold text-foreground">{job.limitContacts} designers</p>
+                        <p className="text-lg font-semibold text-foreground">{job.limitContacts} web professionals</p>
                     </div>
                  )}
             </div>

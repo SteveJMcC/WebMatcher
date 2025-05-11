@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { JobPostingSchema, type JobPostingFormData } from "@/lib/schemas";
+import { JobPostingSchema, type JobPostingFormData, budgetOptions } from "@/lib/schemas";
 import { useToast } from "@/hooks/use-toast";
 import { Briefcase, DollarSign, Users, TagIcon, MapPin, Users2 } from "lucide-react";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
@@ -69,7 +69,7 @@ interface JobPostingFormProps {
 export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const { userId: authUserId, email: authEmail, userType, userCompanyName, userDisplayName } = useAuth(); 
+  const { userId: authUserId, email: authEmail, userType } = useAuth(); 
   
   const [selectedSkills, setSelectedSkills] = useState<Tag[]>(jobToEdit?.skillsRequired || []);
 
@@ -78,7 +78,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
     defaultValues: jobToEdit ? {
       title: jobToEdit.title,
       description: jobToEdit.description,
-      budget: jobToEdit.budget,
+      budget: jobToEdit.budget as typeof budgetOptions[number]['value'], // Ensure budget is one of the valid string options
       skillsRequired: jobToEdit.skillsRequired,
       limitContacts: jobToEdit.limitContacts,
       workPreference: jobToEdit.workPreference || 'remote',
@@ -87,7 +87,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
     } : {
       title: "",
       description: "",
-      budget: 0,
+      budget: undefined, // Default to undefined for select placeholder
       skillsRequired: [],
       limitContacts: 10,
       workPreference: 'remote',
@@ -101,7 +101,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       form.reset({
         title: jobToEdit.title,
         description: jobToEdit.description,
-        budget: jobToEdit.budget,
+        budget: jobToEdit.budget as typeof budgetOptions[number]['value'],
         skillsRequired: jobToEdit.skillsRequired || [],
         limitContacts: jobToEdit.limitContacts,
         workPreference: jobToEdit.workPreference || 'remote',
@@ -113,7 +113,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       form.reset({
         title: "",
         description: "",
-        budget: 0,
+        budget: undefined,
         skillsRequired: [],
         limitContacts: 10,
         workPreference: 'remote',
@@ -143,7 +143,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       userId: authUserId,
       title: data.title,
       description: data.description,
-      budget: data.budget,
+      budget: data.budget, // Budget is now a string
       skillsRequired: data.skillsRequired,
       limitContacts: data.limitContacts,
       workPreference: data.workPreference,
@@ -153,7 +153,6 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       status: isEditing ? jobToEdit.status : "open",
       bidsCount: isEditing ? jobToEdit.bidsCount : 0,
       clientEmail: authEmail, 
-      // clientPhone: auth.userPhone, // If available in auth context
     };
 
     try {
@@ -196,7 +195,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       <CardHeader className="text-center">
         <Briefcase className="mx-auto h-12 w-12 text-primary mb-2" />
         <CardTitle className="text-3xl font-bold">{jobToEdit ? "Edit Your Job" : "Post a New Job"}</CardTitle>
-        <CardDescription>{jobToEdit ? "Update the details of your job listing." : "Describe your project and find the perfect designer."}</CardDescription>
+        <CardDescription>{jobToEdit ? "Update the details of your job listing." : "Describe your project and find the perfect web professional."}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -241,20 +240,21 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-lg">Project Budget</FormLabel>
-                  <div className="relative">
-                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="1000" 
-                        {...field} 
-                        value={field.value || ""} 
-                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)} 
-                        className="pl-10 text-base py-6" 
-                      />
-                    </FormControl>
-                  </div>
-                  <FormDescription>Your estimated budget for this project in USD.</FormDescription>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger className="text-base py-6">
+                          <SelectValue placeholder="Select budget range" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {budgetOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  <FormDescription>Your estimated budget for this project.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -368,7 +368,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
               name="limitContacts"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg flex items-center"><Users className="mr-2 h-5 w-5 text-primary" />Limit Designer Contacts (Optional)</FormLabel>
+                  <FormLabel className="text-lg flex items-center"><Users className="mr-2 h-5 w-5 text-primary" />Limit Web Professional Contacts (Optional)</FormLabel>
                    <div className="relative">
                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <FormControl>
@@ -383,7 +383,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
                     </FormControl>
                   </div>
                   <FormDescription>
-                    Set a maximum number of designers who can contact you for this job.
+                    Set a maximum number of Web Professionals who can contact you for this job.
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

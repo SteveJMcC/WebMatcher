@@ -63,7 +63,7 @@ export function DesignerJobList({
                     </CardDescription>
                 </div>
                 <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-primary/10 text-primary border-primary/20 self-start sm:self-center">
-                    Budget: ${job.budget.toLocaleString()}
+                    Budget: {job.budget}
                 </Badge>
              </div>
           </CardHeader>
@@ -74,7 +74,7 @@ export function DesignerJobList({
                 <Tag className="h-3 w-3 mr-1 text-primary" />Skills
               </h4>
               <div className="flex flex-wrap gap-1">
-                {job.skillsRequired.slice(0, 3).map((skill) => ( // Show limited skills for brevity
+                {job.skillsRequired.slice(0, 3).map((skill) => ( 
                   <Badge key={typeof skill === 'string' ? skill : skill.id} variant="outline" className="text-xs px-1.5 py-0.5">
                     {typeof skill === 'string' ? skill : skill.text}
                   </Badge>
@@ -89,12 +89,9 @@ export function DesignerJobList({
               variant={selectedJobId === job.id ? "default" : "outline"}
               className={cn(selectedJobId === job.id ? "bg-primary hover:bg-primary/90" : "")}
               onClick={(e) => {
-                e.stopPropagation(); // Prevent card click if button is clicked
+                e.stopPropagation(); 
                 if (onJobSelect) {
                   onJobSelect(job);
-                } else {
-                  // Fallback or navigate if onJobSelect is not defined
-                  // router.push(`/jobs/${job.id}`);
                 }
               }}
             >
@@ -106,4 +103,3 @@ export function DesignerJobList({
     </div>
   );
 }
-

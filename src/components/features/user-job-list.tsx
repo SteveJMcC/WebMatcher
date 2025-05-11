@@ -24,7 +24,7 @@ export function UserJobList({ jobs }: UserJobListProps) {
       <div className="text-center py-12">
         <Briefcase className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
         <h2 className="text-2xl font-semibold mb-2">No Jobs Posted Yet</h2>
-        <p className="text-muted-foreground mb-6">Ready to find the perfect designer? Post your first job today!</p>
+        <p className="text-muted-foreground mb-6">Ready to find the perfect web professional? Post your first job today!</p>
         <Button asChild size="lg" className="bg-primary hover:bg-primary/90">
           <Link href="/post-job">Post a Job</Link>
         </Button>
@@ -56,7 +56,7 @@ export function UserJobList({ jobs }: UserJobListProps) {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center text-muted-foreground">
                     <DollarSign className="h-4 w-4 mr-1.5 text-primary" /> 
-                    Budget: ${job.budget.toLocaleString()}
+                    Budget: {job.budget}
                 </div>
                 <div className="flex items-center text-muted-foreground">
                     <Users className="h-4 w-4 mr-1.5 text-primary" /> 

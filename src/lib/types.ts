@@ -1,7 +1,7 @@
 export interface JobPostingCore {
   title: string;
   description: string;
-  budget: number; 
+  budget: string; // Changed from number to string
   skillsRequired: Tag[]; 
   limitContacts?: number;
   workPreference: 'remote' | 'local';
@@ -12,8 +12,8 @@ export interface JobPostingCore {
 export interface JobPosting extends JobPostingCore {
   id: string;
   userId: string; 
-  clientEmail?: string; // Added for client contact info
-  clientPhone?: string; // Added for client contact info
+  clientEmail?: string; 
+  clientPhone?: string; 
   createdAt: string; 
   status: 'open' | 'in-progress' | 'closed';
   bidsCount?: number;
@@ -29,7 +29,7 @@ export interface DesignerProfileCore {
   budgetMin: number;
   budgetMax: number;
   email?: string;
-  phone?: string; // Added phone field
+  phone?: string; 
 }
 
 export interface DesignerProfile extends DesignerProfileCore {
@@ -74,7 +74,7 @@ export interface BidForSummary {
 
 export interface SummarizeBidsServiceInput {
   jobDescription: string;
-  jobBudget: number; 
+  jobBudget: string; // Changed from number to string
   bids: BidForSummary[];
 }
 

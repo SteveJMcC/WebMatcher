@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -13,7 +14,7 @@ import {z} from 'genkit';
 
 const SummarizeBidsInputSchema = z.object({
   jobDescription: z.string().describe('The description of the job posted by the user.'),
-  jobBudget: z.number().describe('The budget for the job posted by the user.'), // Added jobBudget
+  jobBudget: z.string().describe('The budget range for the job posted by the user (e.g., "under £500", "above £2000").'),
   bids: z
     .array(
       z.object({
@@ -45,19 +46,19 @@ const summarizeBidsPrompt = ai.definePrompt({
   name: 'summarizeBidsPrompt',
   input: {schema: SummarizeBidsInputSchema},
   output: {schema: SummarizeBidsOutputSchema},
-  prompt: `You are an AI assistant helping a user to evaluate designer bids for a project.
+  prompt: `You are an AI assistant helping a user to evaluate web professional bids for a project.
 
   The user has provided the following job description:
   {{jobDescription}}
 
-  The project budget set by the client is: {{jobBudget}}.
+  The project budget range set by the client is: {{jobBudget}}.
 
-  For each bid, create a concise summary (maximum 150 words) that highlights the designer's relevant experience, how well their proposed bid amount ({{this.bidAmount}}) fits the project budget ({{jobBudget}}), and any other factors that would help the user rank the bids effectively. The bid summaries must all be in the same language as the job description.
+  For each bid, create a concise summary (maximum 150 words) that highlights the web professional's relevant experience, how well their proposed bid amount ({{this.bidAmount}}) fits the project budget ({{jobBudget}}), and any other factors that would help the user rank the bids effectively. The bid summaries must all be in the same language as the job description.
 
   The bids are as follows:
   {{#each bids}}
-  Designer Profile: {{this.designerProfile}}
-  Bid Amount: {{this.bidAmount}}
+  Web Professional Profile: {{this.designerProfile}}
+  Bid Amount: £{{this.bidAmount}}
   Experience Summary: {{this.experienceSummary}}
   Cover Letter: {{this.coverLetter}}
   ---

@@ -100,7 +100,7 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                 </CardDescription>
             </div>
             <Badge variant="secondary" className="text-base px-4 py-1.5 bg-primary/10 text-primary border-primary/30 self-start md:self-center whitespace-nowrap">
-                <DollarSign className="mr-1.5 h-5 w-5" /> ${job.budget.toLocaleString()}
+                <DollarSign className="mr-1.5 h-5 w-5" /> {job.budget}
             </Badge>
         </div>
       </CardHeader>
@@ -149,7 +149,7 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
              <div className="pt-4 border-t">
                 <h4 className="text-sm font-medium text-muted-foreground mb-1">Contact Limit</h4>
                 <p className="text-md text-foreground">
-                    Client will accept up to {job.limitContacts} designer contacts for this job.
+                    Client will accept up to {job.limitContacts} web professional contacts for this job.
                 </p>
             </div>
         )}

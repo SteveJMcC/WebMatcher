@@ -1,9 +1,23 @@
 import { z } from 'zod';
 
+export const budgetOptions = [
+  { value: "under £250", label: "Under £250" },
+  { value: "under £500", label: "Under £500" },
+  { value: "under £750", label: "Under £750" },
+  { value: "under £1000", label: "Under £1000" },
+  { value: "under £2000", label: "Under £2000" },
+  { value: "above £2000", label: "Above £2000" },
+  { value: "don't know", label: "Don't know" },
+] as const;
+
+const budgetValues = budgetOptions.map(option => option.value);
+
 export const JobPostingSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters long.").max(100, "Title must be at most 100 characters."),
   description: z.string().min(20, "Description must be at least 20 characters long.").max(2000, "Description must be at most 2000 characters."),
-  budget: z.coerce.number().min(1, "Budget must be at least $1."),
+  budget: z.enum(budgetValues as [string, ...string[]], { // Cast to satisfy z.enum
+    required_error: "Please select a budget range.",
+  }).describe("The estimated budget range for this project."),
   skillsRequired: z.array(z.object({ id: z.string(), text: z.string() })).min(1, "At least one skill is required."),
   limitContacts: z.coerce.number().int().min(1, "Limit must be at least 1").max(50, "Limit cannot exceed 50").optional(),
   workPreference: z.enum(['remote', 'local'], {
@@ -46,7 +60,6 @@ export const DesignerProfileSchema = z.object({
 export const UserProfileSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters.").max(50, "Name must be at most 50 characters."),
   companyName: z.string().max(100, "Company name must be at most 100 characters.").optional().or(z.literal('')),
-  // email field is typically part of auth, not editable profile details here unless it's a *public* contact email
 });
 
 export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
