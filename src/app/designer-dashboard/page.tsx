@@ -15,70 +15,44 @@ import { DesignerJobDetailPanel } from "@/components/features/designer-job-detai
 
 // Mock data fetching functions
 async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
-  console.log("Fetching matched jobs for designer ID:", designerId);
-  return [
-    {
-      id: "job-match-1",
-      userId: "client-abc",
-      title: "Urgent: Landing Page UI/UX for SaaS Product",
-      description: "We are launching a new SaaS product and need a compelling landing page design. Must be modern, responsive, and conversion-focused. Experience with Figma and A/B testing design concepts is a plus. Quick turnaround needed.",
-      budget: "under £1500", 
-      skillsRequired: [{id:"ui-design", text:"UI Design"}, {id:"ux-design", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"landing-page", text:"Landing Page Design"}],
-      createdAt: new Date('2023-10-10T09:00:00.000Z').toISOString(),
-      status: "open",
-      clientEmail: "client.saas@example.com",
-      clientPhone: "+15559876543",
-      workPreference: "remote",
-      professionalCategory: "Web Designer",
-    },
-    {
-      id: "job-match-2",
-      userId: "client-def",
-      title: "Illustrated Icons for Children's Educational App",
-      description: "Seeking a talented illustrator to create a set of 50 unique, friendly, and colorful icons for an educational app targeting children aged 4-7. Style should be playful and engaging.",
-      budget: "under £1000", 
-      skillsRequired: [{id:"illustration", text:"Illustration"}, {id:"icon-design", text:"Icon Design"}, {id:"graphic-design", text:"Graphic Design"}],
-      createdAt: new Date('2023-10-08T16:20:00.000Z').toISOString(),
-      status: "open",
-      clientEmail: "kids.app.client@example.com",
-      workPreference: "remote",
-      professionalCategory: "Graphic Designer",
-    },
-  ];
+  console.log("Fetching matched jobs for designer ID (all open jobs for now):", designerId);
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  let allUserJobs: JobPosting[] = [];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('userJobs_')) {
+        const jobsString = localStorage.getItem(key);
+        if (jobsString) {
+          const parsedJobs = JSON.parse(jobsString) as JobPosting[];
+          allUserJobs.push(...parsedJobs.map(job => ({
+            ...job,
+            // Ensure applicants array exists for older job postings
+            applicants: job.applicants || [] 
+          })));
+        }
+      }
+    }
+    // Filter for open jobs and sort by creation date
+    const openJobs = allUserJobs
+      .filter(job => job.status === 'open')
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return openJobs;
+  } catch (error) {
+    console.error("Failed to get matched jobs from localStorage", error);
+    return [];
+  }
 }
 
 async function getGeneralJobs(): Promise<JobPosting[]> {
-    console.log("Fetching general jobs");
-    return [
-     {
-      id: "job-gen-1",
-      userId: "client-xyz",
-      title: "Website Redesign for Non-Profit Organization",
-      description: "Our non-profit needs a fresh, accessible, and easy-to-navigate website. We want to better showcase our mission and impact. Experience with designing for non-profits and accessibility standards (WCAG) is highly valued.",
-      budget: "under £2000", 
-      skillsRequired: [{id:"web-design", text:"Web Design"}, {id:"ui-design", text:"UI Design"}, {id:"accessibility", text:"Accessibility (WCAG)"}, {id:"wordpress", text:"WordPress"}],
-      createdAt: new Date('2023-10-05T11:00:00.000Z').toISOString(),
-      status: "open",
-      clientEmail: "nonprofit.contact@example.org",
-      clientPhone: "+15551122334",
-      workPreference: "local",
-      professionalCategory: "Web Designer",
-    },
-    {
-      id: "job-gen-2",
-      userId: "client-lmn",
-      title: "Mobile App Design for Fitness Startup",
-      description: "We're a new fitness startup looking for a designer to create an intuitive and motivating mobile app interface. Key features include workout tracking, progress visualization, and social sharing. Experience with gamification is a bonus.",
-      budget: "above £2000",
-      skillsRequired: [{ id: "mobile-app-design", text: "Mobile App Design" }, { id: "ui-design", text: "UI Design" }, { id: "ux-design", text: "UX Design" }, { id: "prototyping", text: "Prototyping" }],
-      createdAt: new Date('2023-10-12T14:00:00.000Z').toISOString(),
-      status: "open",
-      clientEmail: "fitness.startup@example.io",
-      clientPhone: "+15555550000",
-      workPreference: "remote",
-      professionalCategory: "UI/UX Designer",
-    },
-  ];
+    console.log("Fetching general jobs (currently returns empty as matched jobs show all open jobs)");
+    // This function can be expanded later to fetch jobs that are not "matched"
+    // if a specific matching algorithm is implemented for getMatchedJobs.
+    // For now, returning an empty array as getMatchedJobs fetches all open jobs.
+    return [];
 }
 
 
@@ -133,7 +107,7 @@ export default function DesignerDashboardPage() {
 
   const mockDesignerStats = {
     profileViews: 156,
-    activeApplications: 3,
+    activeApplications: selectedJob?.applicants?.length || 0, // Example: show applicants for selected job or a general count
     tokensRemaining: designerTokens ?? 0, 
   };
 
@@ -178,7 +152,7 @@ export default function DesignerDashboardPage() {
             </Link>
             </Button>
             <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Link href="/jobs/search"> 
+            <Link href="/designers"> {/* Changed from /jobs/search as that page might not exist */}
                 <Search className="mr-2 h-4 w-4" /> Find More Jobs
             </Link>
             </Button>
@@ -229,17 +203,20 @@ export default function DesignerDashboardPage() {
             <div className="lg:col-span-1 space-y-8 overflow-y-auto max-h-[calc(100vh-20rem)] pr-2"> 
                 <DesignerJobList 
                     jobs={matchedJobs} 
-                    title="Jobs Matched For You" 
-                    emptyStateMessage="No jobs specifically matched to your profile yet."
+                    title="Available Job Postings" 
+                    emptyStateMessage="No jobs currently available or matched to your profile. Check back soon!"
                     onJobSelect={handleJobSelect}
                     selectedJobId={selectedJob?.id}
                 />
-                <DesignerJobList 
-                    jobs={generalJobs} 
-                    title="Recently Posted Jobs"
-                    onJobSelect={handleJobSelect}
-                    selectedJobId={selectedJob?.id}
-                />
+                {generalJobs.length > 0 && ( // Only render this list if there are general jobs
+                    <DesignerJobList 
+                        jobs={generalJobs} 
+                        title="Other Job Postings"
+                        emptyStateMessage="No other general job postings at the moment."
+                        onJobSelect={handleJobSelect}
+                        selectedJobId={selectedJob?.id}
+                    />
+                )}
             </div>
             <div className="lg:col-span-2"> 
                 <DesignerJobDetailPanel job={selectedJob} />
