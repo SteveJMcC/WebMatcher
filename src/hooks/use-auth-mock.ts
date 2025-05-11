@@ -134,7 +134,7 @@ export const useAuthMock = (): AuthState => {
           setDesignerPhone(activeUserProfile.designerPhone);
           setDesignerCity(activeUserProfile.designerCity || null);
           setDesignerPostalCode(activeUserProfile.designerPostalCode || null);
-          setDesignerTokens(activeUserProfile.designerTokens ?? 25); 
+          setDesignerTokens(activeUserProfile.designerTokens ?? 200); 
         }
       } else {
         resetState();
@@ -164,7 +164,7 @@ export const useAuthMock = (): AuthState => {
       currentData = existingProfile;
     } else {
       // New user signup
-      currentData.designerTokens = type === 'designer' ? 25 : undefined;
+      currentData.designerTokens = type === 'designer' ? 200 : undefined;
     }
 
     const newProfileData: StoredAuthData = {
@@ -192,7 +192,7 @@ export const useAuthMock = (): AuthState => {
       designerPhone: type === 'designer' ? (currentData.designerPhone || '') : '',
       designerCity: type === 'designer' ? (currentData.designerCity || undefined) : undefined,
       designerPostalCode: type === 'designer' ? (currentData.designerPostalCode || undefined) : undefined,
-      designerTokens: type === 'designer' ? (currentData.designerTokens ?? 25) : undefined,
+      designerTokens: type === 'designer' ? (existingProfile ? (existingProfile.designerTokens ?? 200) : 200) : undefined,
     };
     
     // Update state
@@ -220,7 +220,7 @@ export const useAuthMock = (): AuthState => {
       setDesignerPhone(newProfileData.designerPhone);
       setDesignerCity(newProfileData.designerCity || null);
       setDesignerPostalCode(newProfileData.designerPostalCode || null);
-      setDesignerTokens(newProfileData.designerTokens ?? 25);
+      setDesignerTokens(newProfileData.designerTokens ?? 200);
       setCompanyName(null); setUserAvatarUrl(null);
     }
 
@@ -291,7 +291,7 @@ export const useAuthMock = (): AuthState => {
   const saveDesignerProfile = useCallback((profileData: DesignerProfileFormData) => {
     if (isAuthenticated && userType === 'designer' && email && userId && joinedDate ) { 
         const userKey = `${email}_${userType}`; 
-        const currentTokens = designerTokens ?? allProfiles[userKey]?.designerTokens ?? 25;
+        const currentTokens = designerTokens ?? allProfiles[userKey]?.designerTokens ?? 200;
         const avatar = profileData.avatarUrl || designerAvatarUrl || `https://i.pravatar.cc/150?u=${email}`;
 
         const updatedProfile: StoredAuthData = {
@@ -311,7 +311,7 @@ export const useAuthMock = (): AuthState => {
             designerAvatarUrl: avatar,
             designerSkills: profileData.skills,
             designerBio: profileData.bio,
-            designerPortfolioLinks: profileData.portfolioLinks || undefined,
+            designerPortfolioLinks: profileData.portfolioLinks && profileData.portfolioLinks.length > 0 && profileData.portfolioLinks.some(l => l.title || l.url) ? profileData.portfolioLinks : [],
             designerBudgetMin: profileData.budgetMin,
             designerBudgetMax: profileData.budgetMax,
             designerEmail: profileData.email, 
@@ -329,7 +329,7 @@ export const useAuthMock = (): AuthState => {
         setDesignerAvatarUrl(avatar);
         setDesignerSkills(profileData.skills);
         setDesignerBio(profileData.bio);
-        setDesignerPortfolioLinks(profileData.portfolioLinks || null);
+        setDesignerPortfolioLinks(profileData.portfolioLinks && profileData.portfolioLinks.length > 0 && profileData.portfolioLinks.some(l => l.title || l.url) ? profileData.portfolioLinks : []);
         setDesignerBudgetMin(profileData.budgetMin);
         setDesignerBudgetMax(profileData.budgetMax);
         setDesignerContactEmail(profileData.email); 
@@ -389,3 +389,4 @@ export const useAuthMock = (): AuthState => {
     updateDesignerTokens, 
   };
 };
+
