@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { PricingPlan } from "@/lib/types";
@@ -10,30 +11,30 @@ import Link from "next/link";
 
 const plans: PricingPlan[] = [
   {
-    id: "starter",
-    name: "Starter Pack",
-    price: 29,
+    id: "bronze",
+    name: "Bronze Pack",
+    price: 89,
     tokens: 50,
     features: ["50 Tokens to apply for jobs", "Basic profile listing", "Standard support"],
   },
   {
-    id: "pro",
-    name: "Pro Designer",
-    price: 59,
-    tokens: 120,
+    id: "silver",
+    name: "Silver Pack",
+    price: 129,
+    tokens: 100, // Changed from 120 to 100
     features: [
-      "120 Tokens (Best Value!)",
+      "100 Tokens", // Changed from 120
       "Featured profile listing",
-      "Priority in search results",
-      "Access to premium jobs",
+      "Improved search visibility", // Changed wording slightly
+      "Access to more jobs", // Changed wording slightly
       "Priority support",
     ],
     isPopular: true,
   },
   {
-    id: "elite",
-    name: "Elite Agency",
-    price: 99,
+    id: "gold",
+    name: "Gold Pack",
+    price: 299,
     tokens: 250,
     features: [
       "250 Tokens for your team",
@@ -76,7 +77,7 @@ export function PricingPlans() {
               <CardHeader className="text-center pt-8">
                 <CardTitle className="text-3xl font-semibold mb-2">{plan.name}</CardTitle>
                 <p className="text-4xl font-bold text-primary">
-                  ${plan.price}
+                  £{plan.price}
                   <span className="text-lg font-normal text-muted-foreground">/ one-time</span>
                 </p>
                 <CardDescription className="text-lg font-semibold text-amber-600 mt-2">{plan.tokens} Tokens</CardDescription>
@@ -123,3 +124,4 @@ export function PricingPlans() {
     </section>
   );
 }
+

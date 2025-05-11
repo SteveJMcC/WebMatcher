@@ -49,7 +49,7 @@ function PaymentGatewayContent() {
 
     toast({
       title: "Payment Successful!",
-      description: `You have successfully purchased the ${planName} for $${price} (${planTokens} tokens).`,
+      description: `You have successfully purchased the ${planName} for £${price} (${planTokens} tokens).`,
       variant: "default",
       duration: 5000,
       action: <CheckCircle className="text-green-500" />,
@@ -67,7 +67,7 @@ function PaymentGatewayContent() {
       <CardContent className="space-y-6">
         <div className="p-6 bg-secondary rounded-lg">
           <h3 className="text-xl font-semibold text-primary mb-2">{planName}</h3>
-          <p className="text-2xl font-bold text-foreground">${price}</p>
+          <p className="text-2xl font-bold text-foreground">£{price}</p>
           <p className="text-md text-muted-foreground">{planTokens} Tokens</p>
         </div>
         
@@ -110,4 +110,5 @@ export default function PaymentPage() {
     </div>
   );
 }
+
 
