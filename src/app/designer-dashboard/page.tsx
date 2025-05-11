@@ -40,7 +40,7 @@ async function getMatchedJobs(
     }
 
     const matchedAndOpenJobs = allUserJobs.filter(job => {
-      if (job.status !== 'open') return false; // Must be open
+      if (job.status !== 'open' || job.adminPaused === true) return false; // Must be open and not paused by admin
 
       if (job.workPreference === 'remote') {
         return true; // Remote jobs are always a potential match

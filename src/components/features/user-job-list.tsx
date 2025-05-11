@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Eye, Edit3, Users, Briefcase, CalendarDays, DollarSign, XCircle } from "lucide-react";
+import { Eye, Edit3, Users, Briefcase, CalendarDays, DollarSign, XCircle, PauseCircle } from "lucide-react";
 
 interface UserJobListProps {
   jobs: JobPosting[];
@@ -15,7 +15,7 @@ interface UserJobListProps {
 const statusColors: Record<JobPosting['status'], string> = {
   open: "bg-green-100 text-green-700 border-green-300",
   'in-progress': "bg-blue-100 text-blue-700 border-blue-300",
-  closed: "bg-red-100 text-red-700 border-red-300", // More distinct color for closed
+  closed: "bg-red-100 text-red-700 border-red-300", 
 };
 
 export function UserJobList({ jobs }: UserJobListProps) {
@@ -35,7 +35,7 @@ export function UserJobList({ jobs }: UserJobListProps) {
   return (
     <div className="space-y-6">
       {jobs.map((job) => (
-        <Card key={job.id} className={`shadow-lg hover:shadow-xl transition-shadow duration-300 ${job.status === 'closed' ? 'opacity-75 bg-muted/50' : ''}`}>
+        <Card key={job.id} className={`shadow-lg hover:shadow-xl transition-shadow duration-300 ${job.status === 'closed' || job.adminPaused ? 'opacity-75 bg-muted/50' : ''}`}>
           <CardHeader>
             <div className="flex flex-col md:flex-row justify-between md:items-start">
               <div>
@@ -46,10 +46,22 @@ export function UserJobList({ jobs }: UserJobListProps) {
                   <CalendarDays className="h-4 w-4 mr-1.5" /> Posted on {new Date(job.createdAt).toLocaleDateString()}
                 </CardDescription>
               </div>
-              <Badge variant="outline" className={`mt-2 md:mt-0 text-sm capitalize ${statusColors[job.status]}`}>
-                {job.status === 'closed' && <XCircle className="mr-1.5 h-4 w-4"/>}
-                {job.status}
-              </Badge>
+              <div>
+                {job.adminPaused ? (
+                    <Badge variant="outline" className="mt-2 md:mt-0 text-sm capitalize border-orange-500 text-orange-600 bg-orange-50">
+                        <PauseCircle className="mr-1.5 h-4 w-4"/> Paused by Admin
+                    </Badge>
+                ) : job.adminDeletedNote ? (
+                     <Badge variant="destructive" className="mt-2 md:mt-0 text-sm capitalize">
+                        {job.status} (Client Deleted)
+                    </Badge>
+                ) : (
+                    <Badge variant="outline" className={`mt-2 md:mt-0 text-sm capitalize ${statusColors[job.status]}`}>
+                        {job.status === 'closed' && <XCircle className="mr-1.5 h-4 w-4"/>}
+                        {job.status}
+                    </Badge>
+                )}
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -70,7 +82,7 @@ export function UserJobList({ jobs }: UserJobListProps) {
             </div>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
-            <Button variant="outline" asChild disabled={job.status === 'closed'}>
+            <Button variant="outline" asChild disabled={job.status === 'closed' || !!job.adminPaused || !!job.adminDeletedNote}>
               <Link href={`/jobs/${job.id}/edit`}> 
                 <Edit3 className="mr-2 h-4 w-4" /> Edit Job
               </Link>

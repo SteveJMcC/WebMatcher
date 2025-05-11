@@ -6,7 +6,7 @@ import type { JobPosting, Bid, DesignerProfile } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2, Mail, Phone, HomeIcon, LayoutDashboard, XCircle } from "lucide-react";
+import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2, Mail, Phone, HomeIcon, LayoutDashboard, XCircle, PauseCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -143,7 +143,6 @@ export default function ManageJobPage() {
                         coverLetter: "This web professional's account has been deleted by an administrator.",
                         experienceSummary: "N/A due to account deletion.",
                         submittedAt: applicant.appliedAt,
-                        // designerAccountDeleted: true, // This flag will be set in JobBidsDisplay based on getDesignerDetails result
                       };
                     }
                     const designerDetails = await getFullDesignerProfile(applicant.designerId);
@@ -182,7 +181,7 @@ export default function ManageJobPage() {
   }, [authIsLoading, isAuthenticated, userType, authUserId, profileSetupComplete, jobId, router]);
 
   const handleCloseJob = async () => {
-    if (!job || !authUserId || job.status === 'closed' || job.adminDeletedNote) return;
+    if (!job || !authUserId || job.status === 'closed' || job.adminDeletedNote || job.adminPaused) return;
 
     setIsClosingJob(true);
     try {
@@ -199,7 +198,6 @@ export default function ManageJobPage() {
           toast({
             title: "Job Closed",
             description: `The job "${job.title}" has been successfully closed.`,
-            variant: "default",
           });
         } else {
           throw new Error("Job not found in local storage to close.");
@@ -262,15 +260,22 @@ export default function ManageJobPage() {
     return option ? option.label : `${limitValue} professionals`;
   };
 
-  const isJobActionable = job.status !== 'closed' && !job.adminDeletedNote;
+  const isJobActionable = job.status !== 'closed' && !job.adminDeletedNote && !job.adminPaused;
 
   return (
     <div className="container mx-auto px-4 py-12 space-y-10">
       {job.adminDeletedNote && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>Admin Action</AlertTitle>
+          <AlertTitle>Admin Action: Client Account Deleted</AlertTitle>
           <AlertDescription>{job.adminDeletedNote}</AlertDescription>
+        </Alert>
+      )}
+      {job.adminPaused && !job.adminDeletedNote && (
+         <Alert variant="default" className="mb-6 border-orange-500 text-orange-700 bg-orange-50">
+          <PauseCircle className="h-4 w-4 text-orange-600" />
+          <AlertTitle>Job Paused by Admin</AlertTitle>
+          <AlertDescription>This job has been temporarily paused by an administrator. It is not currently visible to web professionals. You can still view details, but cannot edit or close it until it's resumed by an admin.</AlertDescription>
         </Alert>
       )}
       <Card className="shadow-xl">
@@ -301,7 +306,7 @@ export default function ManageJobPage() {
                         disabled={!isJobActionable || isClosingJob}
                     >
                         {isClosingJob ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
-                        {job.status === 'closed' || job.adminDeletedNote ? "Job Closed" : "Close Job"}
+                        {job.status === 'closed' || job.adminDeletedNote || job.adminPaused ? "Job Inactive" : "Close Job"}
                     </Button>
                 </div>
             </div>
@@ -338,9 +343,19 @@ export default function ManageJobPage() {
                 </div>
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
-                    <Badge variant="outline" className={`capitalize text-sm ${job.status === 'open' && !job.adminDeletedNote ? 'border-green-500 text-green-600 bg-green-50' : (job.status === 'closed' || job.adminDeletedNote) ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-500 text-gray-600 bg-gray-50'}`}>
-                        {job.adminDeletedNote ? 'Closed (Admin)' : job.status}
-                    </Badge>
+                    {job.adminPaused ? (
+                         <Badge variant="outline" className="capitalize text-sm border-orange-500 text-orange-600 bg-orange-50">
+                           Paused by Admin
+                         </Badge>
+                    ) : job.adminDeletedNote ? (
+                         <Badge variant="destructive" className="capitalize text-sm">
+                            Closed (Client Deleted)
+                         </Badge>
+                    ) : (
+                        <Badge variant="outline" className={`capitalize text-sm ${job.status === 'open' ? 'border-green-500 text-green-600 bg-green-50' : (job.status === 'closed') ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-500 text-gray-600 bg-gray-50'}`}>
+                            {job.status}
+                        </Badge>
+                    )}
                 </div>
                  {job.limitContacts && (
                      <div>
@@ -370,7 +385,7 @@ export default function ManageJobPage() {
         </CardContent>
       </Card>
       
-      {!job.adminDeletedNote && (
+      {!job.adminDeletedNote && !job.adminPaused && (
          <JobBidsDisplay
             job={job}
             initialBids={bids}

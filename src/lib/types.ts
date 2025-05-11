@@ -25,6 +25,7 @@ export interface JobPosting extends JobPostingCore {
   bidsCount?: number;
   applicants?: { designerId: string; appliedAt: string; status?: 'active' | 'designer_deleted' }[];
   adminDeletedNote?: string; // Added to indicate if client account was deleted by admin
+  adminPaused?: boolean; // New field: true if admin has paused the job
 }
 
 export interface DesignerProfileCore {
