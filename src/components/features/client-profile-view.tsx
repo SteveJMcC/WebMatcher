@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, CalendarDays, Mail, UserCircle as UserIconLucide } from "lucide-react";
 import Image from "next/image";
+import { maskEmail } from "@/lib/masking-utils";
 
 interface ClientProfileViewProps {
   profile: UserProfile;
@@ -52,7 +53,7 @@ export function ClientProfileView({ profile }: ClientProfileViewProps) {
           {profile.email && (
             <div className="flex items-center text-foreground">
               <Mail className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span>{profile.email}</span>
+              <span>{maskEmail(profile.email)}</span>
             </div>
           )}
           {profile.companyName && (

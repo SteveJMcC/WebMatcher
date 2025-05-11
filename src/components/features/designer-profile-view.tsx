@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { DesignerProfile, Tag as SkillTag } from "@/lib/types";
@@ -7,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Briefcase, DollarSign, ExternalLink, Mail, MapPin, Palette, Star, CheckCircle, Award, Phone, UserCircle as UserIconLucide, HomeIcon } from "lucide-react";
 import Image from "next/image";
+import { maskEmail, maskPhone } from "@/lib/masking-utils";
 
 interface DesignerProfileViewProps {
   profile: DesignerProfile;
@@ -122,13 +124,13 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
               {profile.email && (
                 <div className="flex items-center">
                   <Mail className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-foreground break-all">{profile.email}</span>
+                  <span className="text-foreground break-all">{maskEmail(profile.email)}</span>
                 </div>
               )}
               {profile.phone && (
                 <div className="flex items-center">
                   <Phone className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-foreground">{profile.phone}</span>
+                  <span className="text-foreground">{maskPhone(profile.phone)}</span>
                 </div>
               )}
                {(profile.city || profile.postalCode) && (
@@ -139,7 +141,7 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
                   </span>
                 </div>
               )}
-              {(!profile.email && !profile.phone && !profile.city && !profile.postalCode) && (
+              {((!profile.email || profile.email === "No email provided") && (!profile.phone || profile.phone === "No phone provided") && !profile.city && !profile.postalCode) && (
                 <p className="text-muted-foreground italic">No contact details publicly shared.</p>
               )}
             </CardContent>
