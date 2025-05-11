@@ -6,13 +6,14 @@ import type { JobPosting, Bid, DesignerProfile } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2, Mail, Phone, HomeIcon, LayoutDashboard } from "lucide-react";
+import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2, Mail, Phone, HomeIcon, LayoutDashboard, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
 import { limitContactsOptions } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 
 async function getJobDetails(jobId: string, userId: string): Promise<JobPosting | null> {
   if (typeof window !== 'undefined') {
@@ -83,7 +84,7 @@ async function getFullDesignerProfile(designerId: string): Promise<DesignerProfi
 async function getDesignerProfileForAI(designerId: string): Promise<string> {
     const designer = await getFullDesignerProfile(designerId);
     if (!designer) return "Web Professional profile not available.";
-    let profileString = `Name: ${designer.name}. Headline: ${designer.headline}. Skills: ${designer.skills.map(s => typeof s === 'string' ? s : s.text).join(', ')}. Experience: ${designer.bio.substring(0,100)}... Budget Range: $${designer.budgetMin}-$${designer.budgetMax}.`;
+    let profileString = `Name: ${designer.name}. Headline: ${designer.headline}. Skills: ${designer.skills.map(s => typeof s === 'string' ? s : s.text).join(', ')}. Experience: ${designer.bio.substring(0,100)}... Budget Range: £${designer.budgetMin}-£${designer.budgetMax}.`;
     if (designer.email) {
         profileString += ` Email: ${designer.email}.`;
     }
@@ -99,11 +100,13 @@ export default function ManageJobPage() {
   const router = useRouter();
   const { isAuthenticated, userType, userId: authUserId, isLoading: authIsLoading, profileSetupComplete } = useAuth();
   const jobId = params.jobId as string;
+  const { toast } = useToast();
 
   const [job, setJob] = useState<JobPosting | null>(null);
   const [bids, setBids] = useState<Bid[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isClosingJob, setIsClosingJob] = useState(false);
 
   useEffect(() => {
     if (job && typeof document !== 'undefined') {
@@ -145,7 +148,7 @@ export default function ManageJobPage() {
                       designerId: applicant.designerId,
                       designerName: designerDetails?.name || "Web Professional",
                       designerAvatar: designerDetails?.avatarUrl, 
-                      bidAmount: 0, 
+                      bidAmount: 0, // This seems to be a placeholder or needs actual bid amount
                       coverLetter: `This professional has expressed interest in "${jobData.title}" and unlocked contact details. Review their profile for experience.`, 
                       experienceSummary: designerDetails?.bio ? `${designerDetails.bio.substring(0, 150)}...` : "Refer to professional's profile for experience details.", 
                       submittedAt: applicant.appliedAt,
@@ -172,6 +175,42 @@ export default function ManageJobPage() {
       }
     }
   }, [authIsLoading, isAuthenticated, userType, authUserId, profileSetupComplete, jobId, router]);
+
+  const handleCloseJob = async () => {
+    if (!job || !authUserId || job.status === 'closed') return;
+
+    setIsClosingJob(true);
+    try {
+      if (typeof window !== 'undefined') {
+        const storageKey = `userJobs_${authUserId}`;
+        const jobsString = localStorage.getItem(storageKey);
+        let userJobs: JobPosting[] = jobsString ? JSON.parse(jobsString) : [];
+        
+        const jobIndex = userJobs.findIndex(j => j.id === job.id);
+        if (jobIndex !== -1) {
+          userJobs[jobIndex].status = 'closed';
+          localStorage.setItem(storageKey, JSON.stringify(userJobs));
+          setJob(prevJob => prevJob ? { ...prevJob, status: 'closed' } : null);
+          toast({
+            title: "Job Closed",
+            description: `The job "${job.title}" has been successfully closed.`,
+            variant: "default",
+          });
+        } else {
+          throw new Error("Job not found in local storage to close.");
+        }
+      }
+    } catch (err) {
+      console.error("Failed to close job:", err);
+      toast({
+        title: "Error Closing Job",
+        description: (err as Error).message || "Could not close the job. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsClosingJob(false);
+    }
+  };
 
 
   if (authIsLoading || pageLoading) {
@@ -237,13 +276,18 @@ export default function ManageJobPage() {
                             <LayoutDashboard className="mr-2 h-4 w-4" /> Back to Dashboard
                         </Link>
                     </Button>
-                    <Button variant="outline" asChild>
+                    <Button variant="outline" asChild disabled={job.status === 'closed'}>
                         <Link href={`/jobs/${job.id}/edit`}> 
                             <Edit3 className="mr-2 h-4 w-4" /> Edit Job
                         </Link>
                     </Button>
-                    <Button variant="outline">
-                        <Share2 className="mr-2 h-4 w-4" /> Share Job
+                    <Button 
+                        variant="destructive" 
+                        onClick={handleCloseJob} 
+                        disabled={job.status === 'closed' || isClosingJob}
+                    >
+                        {isClosingJob ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <XCircle className="mr-2 h-4 w-4" />}
+                        {job.status === 'closed' ? "Job Closed" : "Close Job"}
                     </Button>
                 </div>
             </div>
@@ -280,7 +324,7 @@ export default function ManageJobPage() {
                 </div>
                 <div>
                     <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
-                    <Badge variant="outline" className={`capitalize text-sm ${job.status === 'open' ? 'border-green-500 text-green-600 bg-green-50' : 'border-gray-500 text-gray-600 bg-gray-50'}`}>
+                    <Badge variant="outline" className={`capitalize text-sm ${job.status === 'open' ? 'border-green-500 text-green-600 bg-green-50' : job.status === 'closed' ? 'border-red-500 text-red-600 bg-red-50' : 'border-gray-500 text-gray-600 bg-gray-50'}`}>
                         {job.status}
                     </Badge>
                 </div>
@@ -321,4 +365,3 @@ export default function ManageJobPage() {
     </div>
   );
 }
-

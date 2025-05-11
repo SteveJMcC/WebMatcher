@@ -38,7 +38,7 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
     }
     // Filter for open jobs and sort by creation date
     const openJobs = allUserJobs
-      .filter(job => job.status === 'open')
+      .filter(job => job.status === 'open') // Only show 'open' jobs
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return openJobs;
   } catch (error) {
