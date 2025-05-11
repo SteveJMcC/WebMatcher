@@ -85,16 +85,16 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
       setShowContactDetails(true);
       setHasApplied(true);
       toast({
-        title: "Application Successful!",
+        title: "Client Contact Unlocked!",
         description: "Client contact details revealed. You can now contact the client directly.",
         variant: "default",
       });
     } catch (error) {
       console.error("Error applying for job:", error);
-      setApplicationError("An error occurred while applying. Please try again.");
+      setApplicationError("An error occurred while processing your request. Please try again.");
       toast({
-        title: "Application Failed",
-        description: (error as Error).message || "Could not process application.",
+        title: "Request Failed",
+        description: (error as Error).message || "Could not process request.",
         variant: "destructive",
       });
     } finally {
@@ -144,9 +144,38 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                 <UserCircle className="mr-1.5 h-4 w-4" /> Client ID: {job.userId}
                 </CardDescription>
             </div>
-            <Badge variant="secondary" className="text-base px-4 py-1.5 bg-primary/10 text-primary border-primary/30 self-start md:self-center whitespace-nowrap">
-                <DollarSign className="mr-1.5 h-5 w-5" /> {job.budget}
-            </Badge>
+            <div className="flex flex-col items-start md:items-end gap-2 self-start md:self-auto">
+                <Badge variant="secondary" className="text-base px-4 py-1.5 bg-primary/10 text-primary border-primary/30 whitespace-nowrap">
+                    <DollarSign className="mr-1.5 h-5 w-5" /> {job.budget}
+                </Badge>
+                {/* Top button to get client contact details */}
+                 {hasApplied ? (
+                    <div className="flex items-center text-green-700 bg-green-500/10 px-3 py-1.5 rounded-md text-sm font-medium">
+                        <CheckCircle className="mr-1.5 h-4 w-4"/> Contact Details Unlocked
+                    </div>
+                ) : (job.status !== 'open' || job.adminPaused === true) ? (
+                    <Badge variant="outline" className="text-sm text-muted-foreground px-3 py-1.5">
+                        Job Not Open for Applications
+                    </Badge>
+                ) : (
+                    <div className="w-full md:w-auto">
+                        <Button
+                            size="lg"
+                            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+                            onClick={handleApplyAndRevealContact}
+                            disabled={isApplying || (designerTokens ?? 0) < tokenCost}
+                        >
+                            {isApplying ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Unlock className="mr-2 h-4 w-4" />}
+                            {isApplying ? "Processing..." : `Get Client Contact Details | For ${tokenCost} token${tokenCost !== 1 ? 's' : ''}`}
+                        </Button>
+                        {(designerTokens ?? 0) < tokenCost && !isApplying && (
+                            <p className="text-xs text-destructive mt-1 text-right md:text-left">
+                                Insufficient tokens. <Link href="/pricing" className="underline hover:text-accent-foreground/80">Purchase</Link>
+                            </p>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
       </CardHeader>
       <CardContent className="py-6 space-y-6">
@@ -237,7 +266,7 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
             ) : (
                 <div className="p-4 bg-secondary rounded-md border border-border">
                     <p className="text-muted-foreground">
-                        Client contact details (email and phone) will be revealed after you apply for this job.
+                        Client contact details (email and phone) will be revealed after you use tokens for this job.
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
                         This action will cost {tokenCost} token(s). Your current balance: {designerTokens ?? 0} tokens.
@@ -255,7 +284,7 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
       <CardFooter className="border-t pt-6 flex flex-col items-stretch gap-3">
          {hasApplied ? (
              <Button size="lg" variant="outline" disabled className="w-full text-base py-3">
-                <CheckCircle className="mr-2 h-5 w-5 text-green-500" /> Applied & Contact Details Unlocked
+                <CheckCircle className="mr-2 h-5 w-5 text-green-500" /> Client Contact Details Unlocked
             </Button>
          ) : (
             <Button 
@@ -264,16 +293,16 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                 onClick={handleApplyAndRevealContact}
                 disabled={isApplying || (designerTokens ?? 0) < tokenCost || job.status !== 'open' || job.adminPaused === true}
             >
-                {isApplying ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Coins className="mr-2 h-5 w-5" />}
+                {isApplying ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Unlock className="mr-2 h-5 w-5" />}
                 {job.status !== 'open' || job.adminPaused === true ? 'Job Not Open for Applications' : 
-                    isApplying ? "Applying..." : `Apply & Reveal Contact (Cost: ${tokenCost} Token${tokenCost !== 1 ? 's' : ''})`
+                    isApplying ? "Processing..." : `Get Client Contact Details | For ${tokenCost} token${tokenCost !== 1 ? 's' : ''}`
                 }
             </Button>
          )}
           { (designerTokens ?? 0) < tokenCost && !hasApplied && (job.status === 'open' && job.adminPaused !== true) && (
-            <Button variant="link" asChild className="text-sm text-accent p-0">
-                <Link href="/pricing">Buy More Tokens</Link>
-            </Button>
+            <p className="text-xs text-destructive mt-0 text-center">
+                Not enough tokens. <Link href="/pricing" className="underline hover:text-accent-foreground/80">Purchase More Tokens</Link>
+            </p>
         )}
       </CardFooter>
     </Card>
