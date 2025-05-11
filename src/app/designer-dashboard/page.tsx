@@ -14,8 +14,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DesignerJobDetailPanel } from "@/components/features/designer-job-detail-panel";
 
 // Mock data fetching functions
-async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
-  console.log("Fetching matched jobs for designer ID (all open jobs for now):", designerId);
+async function getMatchedJobs(
+  designerId: string,
+  designerCity?: string | null 
+): Promise<JobPosting[]> {
+  console.log("Fetching matched jobs for designer ID:", designerId, "City:", designerCity);
   if (typeof window === 'undefined') {
     return [];
   }
@@ -30,17 +33,33 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
           const parsedJobs = JSON.parse(jobsString) as JobPosting[];
           allUserJobs.push(...parsedJobs.map(job => ({
             ...job,
-            // Ensure applicants array exists for older job postings
             applicants: job.applicants || [] 
           })));
         }
       }
     }
-    // Filter for open jobs and sort by creation date
-    const openJobs = allUserJobs
-      .filter(job => job.status === 'open') // Only show 'open' jobs
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    return openJobs;
+
+    const matchedAndOpenJobs = allUserJobs.filter(job => {
+      if (job.status !== 'open') return false; // Must be open
+
+      if (job.workPreference === 'remote') {
+        return true; // Remote jobs are always a potential match
+      }
+
+      if (job.workPreference === 'local') {
+        // For local jobs, match if the designer has a city and it matches the job's client city (case-insensitive)
+        if (designerCity && job.clientCity) {
+          return designerCity.toLowerCase() === job.clientCity.toLowerCase();
+        }
+        return false; // No match if job is local and either party is missing city info or cities don't match
+      }
+      // Default to true if workPreference is somehow not 'remote' or 'local' (should not happen with proper data)
+      // Or, if workPreference isn't set, consider it a match.
+      return true; 
+    }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    return matchedAndOpenJobs;
+
   } catch (error) {
     console.error("Failed to get matched jobs from localStorage", error);
     return [];
@@ -48,16 +67,24 @@ async function getMatchedJobs(designerId: string): Promise<JobPosting[]> {
 }
 
 async function getGeneralJobs(): Promise<JobPosting[]> {
-    console.log("Fetching general jobs (currently returns empty as matched jobs show all open jobs)");
+    console.log("Fetching general jobs (currently returns empty as matched jobs show all open jobs that match location preference)");
     // This function can be expanded later to fetch jobs that are not "matched"
-    // if a specific matching algorithm is implemented for getMatchedJobs.
-    // For now, returning an empty array as getMatchedJobs fetches all open jobs.
+    // For now, returning an empty array as getMatchedJobs aims to fetch all relevant open jobs.
     return [];
 }
 
 
 export default function DesignerDashboardPage() {
-  const { isAuthenticated, userType, userId: authDesignerId, isLoading: authIsLoading, profileSetupComplete, designerTokens, displayName } = useAuth();
+  const { 
+    isAuthenticated, 
+    userType, 
+    userId: authDesignerId, 
+    isLoading: authIsLoading, 
+    profileSetupComplete, 
+    designerTokens, 
+    displayName,
+    designerCity // Get designer's city from auth context
+  } = useAuth();
   const router = useRouter();
 
   const [matchedJobs, setMatchedJobs] = useState<JobPosting[]>([]);
@@ -86,7 +113,7 @@ export default function DesignerDashboardPage() {
       setPageLoading(true);
       setSelectedJob(null); 
       Promise.all([
-        getMatchedJobs(authDesignerId),
+        getMatchedJobs(authDesignerId, designerCity), // Pass designerCity to getMatchedJobs
         getGeneralJobs()
       ]).then(([matched, general]) => {
         setMatchedJobs(matched);
@@ -99,7 +126,7 @@ export default function DesignerDashboardPage() {
     } else if (!authIsLoading) { 
         setPageLoading(false); 
     }
-  }, [isAuthenticated, userType, profileSetupComplete, authDesignerId, authIsLoading]);
+  }, [isAuthenticated, userType, profileSetupComplete, authDesignerId, authIsLoading, designerCity]); // Add designerCity to dependencies
 
   const handleJobSelect = (job: JobPosting) => {
     setSelectedJob(job);
@@ -107,7 +134,7 @@ export default function DesignerDashboardPage() {
 
   const mockDesignerStats = {
     profileViews: 156,
-    activeApplications: selectedJob?.applicants?.length || 0, // Example: show applicants for selected job or a general count
+    activeApplications: selectedJob?.applicants?.length || 0, 
     tokensRemaining: designerTokens ?? 0, 
   };
 
@@ -152,7 +179,7 @@ export default function DesignerDashboardPage() {
             </Link>
             </Button>
             <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Link href="/designers"> {/* Changed from /jobs/search as that page might not exist */}
+            <Link href="/designers"> 
                 <Search className="mr-2 h-4 w-4" /> Find More Jobs
             </Link>
             </Button>
@@ -204,11 +231,11 @@ export default function DesignerDashboardPage() {
                 <DesignerJobList 
                     jobs={matchedJobs} 
                     title="Available Job Postings" 
-                    emptyStateMessage="No jobs currently available or matched to your profile. Check back soon!"
+                    emptyStateMessage="No jobs currently available or matched to your profile and location preferences. Check back soon!"
                     onJobSelect={handleJobSelect}
                     selectedJobId={selectedJob?.id}
                 />
-                {generalJobs.length > 0 && ( // Only render this list if there are general jobs
+                {generalJobs.length > 0 && ( 
                     <DesignerJobList 
                         jobs={generalJobs} 
                         title="Other Job Postings"
