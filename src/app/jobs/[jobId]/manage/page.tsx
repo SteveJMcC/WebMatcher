@@ -1,4 +1,3 @@
-
 "use client"; 
 
 import { JobBidsDisplay } from "@/components/features/job-bids-display";
@@ -22,8 +21,9 @@ async function getJobDetails(jobId: string, userId: string): Promise<JobPosting 
       if (jobsString) {
         const parsedJobs = JSON.parse(jobsString) as JobPosting[];
         const job = parsedJobs.find(job => job.id === jobId) || null;
-        if (job && job.applicants === undefined) { // Ensure applicants array exists
-            job.applicants = [];
+        if (job) {
+            job.applicants = job.applicants || []; // Ensure applicants array exists
+            job.bidsCount = job.bidsCount || (job.applicants?.length || 0); // Ensure bidsCount is accurate
         }
         return job;
       }
@@ -31,54 +31,52 @@ async function getJobDetails(jobId: string, userId: string): Promise<JobPosting 
       console.error("Failed to get job details from localStorage", error);
     }
   }
-  // Fallback mock should also include applicants array if necessary
-  if (jobId === "job-1") { 
-    return {
-      id: "job-1",
-      userId: "mock-client-email@example.com_user", 
-      title: "E-commerce Platform Redesign",
-      description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends. The project involves creating a new visual identity, a full set of responsive page designs (homepage, product listings, product details, cart, checkout), and a style guide. We expect collaboration with our development team to ensure design feasibility. Please include examples of similar e-commerce projects in your application.",
-      budget: "under £5000", 
-      clientEmail: "client.user@example.com",
-      clientPhone: "+12345678900",
-      clientCity: "London",
-      clientPostalCode: "E1 6AN",
-      skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
-      limitContacts: "16", 
-      createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
-      status: "open",
-      workPreference: "remote",
-      professionalCategory: "Web Designer",
-      applicants: [],
-    };
-  }
   return null;
 }
 
-async function getJobBids(jobId: string): Promise<Bid[]> {
- if (jobId === "job-1") { 
-    return [
-      {
-        id: "bid-101", jobId: "job-1", designerId: "designer-A", designerName: "Alice Wonderland", bidAmount: 2500,
-        coverLetter: "I'm an expert in e-commerce UI/UX with 5 years of experience. I can deliver a stunning and high-converting design for your platform. My portfolio showcases several successful e-commerce projects. I'm proficient in Figma and can provide a detailed style guide.",
-        experienceSummary: "5+ years in UI/UX, specialized in e-commerce. Strong Figma skills. Proven track record of increasing conversion rates through design.",
-        submittedAt: new Date('2023-10-02T11:00:00.000Z').toISOString(),
-      },
-      {
-        id: "bid-102", jobId: "job-1", designerId: "designer-B", designerName: "Bob The Builder", bidAmount: 3000,
-        coverLetter: "I have extensive experience redesigning platforms for better user engagement. I focus on mobile-first design and can help improve your site's performance metrics. I'm available to start immediately and can work closely with your dev team.",
-        experienceSummary: "7 years as a web designer. Focus on mobile-first and performance. Excellent collaborator.",
-        submittedAt: new Date('2023-10-03T15:30:00.000Z').toISOString(),
-      },
-      {
-        id: "bid-103", jobId: "job-1", designerId: "designer-C", designerName: "Carol Danvers", bidAmount: 1800,
-        coverLetter: "As a newer designer with a fresh perspective, I'm eager to tackle this e-commerce redesign. I offer competitive pricing and a strong commitment to quality. I'm a fast learner and highly skilled in Figma.",
-        experienceSummary: "2 years in web design, strong Figma skills. Highly motivated and dedicated to delivering quality work. Recent graduate with modern design sensibilities.",
-        submittedAt: new Date('2023-10-04T09:20:00.000Z').toISOString(),
-      },
-    ];
-  }
-  return [];
+
+async function getFullDesignerProfile(designerId: string): Promise<DesignerProfile | null> {
+    // In a real app, this would fetch from a DB or a more robust localStorage structure for designer profiles.
+    // For now, we'll try to retrieve it from the combined profiles in localStorage.
+    if (typeof window !== 'undefined') {
+        const profilesString = localStorage.getItem('mockUserProfiles');
+        if (profilesString) {
+            const allProfiles = JSON.parse(profilesString) as Record<string, any>;
+            // Designer profiles might be stored under a key like 'email_designer'
+            // And their userId is 'mock-designer-email'
+            // This lookup is a bit fragile and depends on how designer IDs are formed and stored.
+            const designerEntry = Object.values(allProfiles).find(
+                (p) => p.userType === 'designer' && p.userId === designerId
+            );
+
+            if (designerEntry) {
+                return {
+                    id: designerEntry.userId,
+                    userId: designerEntry.userId,
+                    name: designerEntry.displayName || "Unknown Designer",
+                    headline: designerEntry.designerHeadline || "Web Professional",
+                    avatarUrl: designerEntry.designerAvatarUrl,
+                    skills: designerEntry.designerSkills || [],
+                    bio: designerEntry.designerBio || "No bio available.",
+                    portfolioLinks: designerEntry.designerPortfolioLinks || [],
+                    budgetMin: designerEntry.designerBudgetMin ?? 0,
+                    budgetMax: designerEntry.designerBudgetMax ?? 0,
+                    email: designerEntry.designerEmail || designerEntry.email,
+                    phone: designerEntry.designerPhone,
+                    tokens: designerEntry.designerTokens ?? 0,
+                    joinedDate: designerEntry.joinedDate || new Date().toISOString(), 
+                };
+            }
+        }
+    }
+
+    // Fallback mock data if not found - this part might become less relevant as localStorage becomes source of truth
+    const profiles: Record<string, DesignerProfile> = {
+        "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design, focusing on creating intuitive and high-converting user experiences. Over 5 years of experience helping businesses grow their online presence.", budgetMin: 2000, budgetMax: 6000, email: "alice.w@example.com", phone: "+15551110000", portfolioLinks: [{title: "Portfolio", url: "https://example.com/alice"}], tokens: 50, joinedDate: new Date('2022-03-10T10:00:00.000Z').toISOString() },
+        "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer & Developer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}, {id:"react", text:"React"}], bio: "Building engaging mobile-first web experiences for startups and established companies. Proficient in modern JavaScript frameworks and responsive design principles.", budgetMin: 2500, budgetMax: 7000, email: "bob.builder@example.com", phone: "+15552220000", portfolioLinks: [{title: "GitHub", url:"https://github.com/bob"}], tokens: 35, joinedDate: new Date('2021-08-15T10:00:00.000Z').toISOString() },
+        "designer-C": { id: "designer-C", userId: "user-C", name: "Carol Danvers", headline: "Modern & Affordable Web Designer", avatarUrl: "https://picsum.photos/seed/carol/100/100", skills: [{id:"web-design", text:"Web Design"}, {id:"figma", text:"Figma"}, {id:"wordpress", text:"WordPress"}], bio: "Delivering fresh design perspectives at great value. Specializing in WordPress and Figma, I help small businesses and individuals create a strong online presence.", budgetMin: 1500, budgetMax: 4000, email: "carol.d@example.com", phone: undefined, portfolioLinks: [], tokens: 20, joinedDate: new Date('2023-01-20T10:00:00.000Z').toISOString() },
+    };
+    return profiles[designerId] || null;
 }
 
 async function getDesignerProfileForAI(designerId: string): Promise<string> {
@@ -94,16 +92,6 @@ async function getDesignerProfileForAI(designerId: string): Promise<string> {
     return profileString;
 }
 
-async function getFullDesignerProfile(designerId: string): Promise<DesignerProfile | null> {
-    // Mock data for designer profiles based on IDs used in bids
-    const profiles: Record<string, DesignerProfile> = {
-        "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design, focusing on creating intuitive and high-converting user experiences. Over 5 years of experience helping businesses grow their online presence.", budgetMin: 2000, budgetMax: 6000, email: "alice.w@example.com", phone: "+15551110000", portfolioLinks: [{title: "Portfolio", url: "https://example.com/alice"}], tokens: 50, joinedDate: new Date('2022-03-10T10:00:00.000Z').toISOString() },
-        "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer & Developer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}, {id:"react", text:"React"}], bio: "Building engaging mobile-first web experiences for startups and established companies. Proficient in modern JavaScript frameworks and responsive design principles.", budgetMin: 2500, budgetMax: 7000, email: "bob.builder@example.com", phone: "+15552220000", portfolioLinks: [{title: "GitHub", url:"https://github.com/bob"}], tokens: 35, joinedDate: new Date('2021-08-15T10:00:00.000Z').toISOString() },
-        "designer-C": { id: "designer-C", userId: "user-C", name: "Carol Danvers", headline: "Modern & Affordable Web Designer", avatarUrl: "https://picsum.photos/seed/carol/100/100", skills: [{id:"web-design", text:"Web Design"}, {id:"figma", text:"Figma"}, {id:"wordpress", text:"WordPress"}], bio: "Delivering fresh design perspectives at great value. Specializing in WordPress and Figma, I help small businesses and individuals create a strong online presence.", budgetMin: 1500, budgetMax: 4000, email: "carol.d@example.com", phone: undefined, portfolioLinks: [], tokens: 20, joinedDate: new Date('2023-01-20T10:00:00.000Z').toISOString() },
-    };
-    return profiles[designerId] || null;
-}
-
 
 export default function ManageJobPage() {
   const params = useParams();
@@ -115,7 +103,7 @@ export default function ManageJobPage() {
   const [bids, setBids] = useState<Bid[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [applicants, setApplicants] = useState<DesignerProfile[]>([]);
+  // const [applicants, setApplicants] = useState<DesignerProfile[]>([]); // applicants state might not be needed if bids are derived
 
   useEffect(() => {
     if (job && typeof document !== 'undefined') {
@@ -143,30 +131,42 @@ export default function ManageJobPage() {
       if (authUserId && jobId) {
         setPageLoading(true);
         setError(null);
-        Promise.all([
-          getJobDetails(jobId, authUserId),
-          getJobBids(jobId) 
-        ]).then(async ([jobData, bidsData]) => {
-          if (jobData) {
-            setJob(jobData);
-            setBids(bidsData);
-            if (jobData.applicants && jobData.applicants.length > 0) {
-              const applicantProfiles = await Promise.all(
-                jobData.applicants.map(app => getFullDesignerProfile(app.designerId))
-              );
-              setApplicants(applicantProfiles.filter(p => p !== null) as DesignerProfile[]);
+        getJobDetails(jobId, authUserId)
+          .then(async (jobData) => {
+            if (jobData) {
+              setJob(jobData);
+              // Construct bidsData from jobData.applicants
+              if (jobData.applicants && jobData.applicants.length > 0) {
+                const realBidsData: Bid[] = await Promise.all(
+                  jobData.applicants.map(async (applicant) => {
+                    const designerDetails = await getFullDesignerProfile(applicant.designerId);
+                    return {
+                      id: `bid-${jobData.id}-${applicant.designerId}-${new Date(applicant.appliedAt).getTime()}`,
+                      jobId: jobData.id,
+                      designerId: applicant.designerId,
+                      designerName: designerDetails?.name || "Web Professional",
+                      designerAvatar: designerDetails?.avatarUrl, // For JobBidsDisplay to use if needed
+                      bidAmount: 0, // Placeholder as current flow doesn't capture bid amount
+                      coverLetter: `This professional has expressed interest in "${jobData.title}" and unlocked contact details. Review their profile for experience.`, // Placeholder
+                      experienceSummary: designerDetails?.bio ? `${designerDetails.bio.substring(0, 150)}...` : "Refer to designer's profile for experience details.", // Placeholder
+                      submittedAt: applicant.appliedAt,
+                    };
+                  })
+                );
+                setBids(realBidsData);
+              } else {
+                setBids([]); // No applicants, so no bids to display from this source
+              }
             } else {
-              setApplicants([]);
+              setError("Job not found or you don't have permission to view it.");
             }
-          } else {
-            setError("Job not found or you don't have permission to view it.");
-          }
-          setPageLoading(false);
-        }).catch(err => {
-          console.error("Failed to load job or bids:", err);
-          setError("Failed to load job details. Please try again.");
-          setPageLoading(false);
-        });
+            setPageLoading(false);
+          })
+          .catch((err) => {
+            console.error("Failed to load job or construct bids:", err);
+            setError("Failed to load job details. Please try again.");
+            setPageLoading(false);
+          });
       } else {
         setPageLoading(false);
         if (!jobId) setError("Job ID is missing.");
@@ -286,6 +286,10 @@ export default function ManageJobPage() {
                         <p className="text-lg font-semibold text-foreground">{getLimitContactsDisplayValue(job.limitContacts)}</p>
                     </div>
                  )}
+                 <div>
+                    <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><Users className="h-4 w-4 mr-1 text-primary" />Applicants</h4>
+                    <p className="text-lg font-semibold text-foreground">{job.applicants?.length || 0}</p>
+                </div>
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground flex items-center mb-1"><Mail className="h-4 w-4 mr-1 text-primary" />Contact Email</h4>
                     <p className="text-lg font-semibold text-foreground">{job.clientEmail}</p>
@@ -306,12 +310,11 @@ export default function ManageJobPage() {
       
       <JobBidsDisplay
         job={job}
-        initialBids={bids}
+        initialBids={bids} // These are now derived from job.applicants
         getDesignerProfileString={getDesignerProfileForAI}
         getDesignerDetails={getFullDesignerProfile}
-        // applicants={applicants} // This prop is not used by JobBidsDisplay directly based on its current implementation.
-                                // If JobBidsDisplay is updated to use this, it can be uncommented.
       />
     </div>
   );
 }
+

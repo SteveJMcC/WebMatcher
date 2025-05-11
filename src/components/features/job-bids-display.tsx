@@ -33,12 +33,16 @@ const getInitials = (name: string) => {
 };
 
 export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, getDesignerDetails }: JobBidsDisplayProps) {
-  const [displayBids, setDisplayBids] = useState<DisplayBid[]>(initialBids.map(b => ({...b, isLoadingSummary: false })));
+  const [displayBids, setDisplayBids] = useState<DisplayBid[]>([]);
   const [isSummarizingAll, setIsSummarizingAll] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     const fetchDesignerDetailsForBids = async () => {
+      if (!initialBids || initialBids.length === 0) {
+        setDisplayBids([]);
+        return;
+      }
       const bidsWithDetails = await Promise.all(
         initialBids.map(async (bid) => {
           const details = await getDesignerDetails(bid.designerId);
@@ -47,6 +51,7 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
       );
       setDisplayBids(bidsWithDetails);
     };
+    
     fetchDesignerDetailsForBids();
   }, [initialBids, getDesignerDetails]);
 
@@ -128,10 +133,9 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
 
         const updatedBids = displayBids.map(originalBid => {
             const summaryForThisBid = summariesOutput.find(s => {
-                const matchingProcessedBid = bidsToProcess.find(pBid => pBid.designerProfile === s.designerProfile);
-                if (!matchingProcessedBid) return false;
-                return matchingProcessedBid.bidAmount === originalBid.bidAmount &&
-                       matchingProcessedBid.coverLetter.startsWith(originalBid.coverLetter.substring(0,20));
+                // Attempt to match based on designerProfile string, as this was what was sent to AI
+                // This matching logic might need to be more robust if designerProfile strings can vary
+                return s.designerProfile.includes(originalBid.designerName);
             });
 
 
@@ -159,33 +163,35 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
     return (
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl">No Bids Received Yet</CardTitle>
-          <CardDescription>Check back later to see applications from talented designers.</CardDescription>
+          <CardTitle className="text-2xl">No Applications Received Yet</CardTitle>
+          <CardDescription>Once web professionals apply to your job, their interest will appear here.</CardDescription>
         </CardHeader>
         <CardContent className="text-center py-10">
             <MessageSquare className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">Once designers start applying, their bids will appear here.</p>
+            <p className="text-muted-foreground">Check back later or share your job posting to attract talent.</p>
         </CardContent>
       </Card>
     );
   }
 
   const rankedBids = [...displayBids].sort((a, b) => {
+    if (a.bidAmount === 0 && b.bidAmount !== 0) return 1; // Put 0-amount bids (placeholders) last
+    if (a.bidAmount !== 0 && b.bidAmount === 0) return -1;
     if (a.bidAmount < b.bidAmount) return -1;
     if (a.bidAmount > b.bidAmount) return 1;
     if (a.aiSummaryText && !b.aiSummaryText) return -1; 
     if (!a.aiSummaryText && b.aiSummaryText) return 1;
-    return 0;
+    return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(); // Newest first as tie-breaker
   }).map((bid, index) => ({...bid, rank: index + 1}));
 
 
   return (
     <div className="space-y-6">
         <div className="flex justify-between items-center">
-            <h2 className="text-3xl font-semibold text-foreground">Received Bids ({rankedBids.length})</h2>
+            <h2 className="text-3xl font-semibold text-foreground">Received Applications ({rankedBids.length})</h2>
             <Button onClick={handleSummarizeAllBids} disabled={isSummarizingAll || rankedBids.every(b => b.aiSummaryText)}>
                 {isSummarizingAll ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                {isSummarizingAll ? "Summarizing..." : "Summarize All Bids with AI"}
+                {isSummarizingAll ? "Summarizing..." : "Summarize All with AI"}
             </Button>
         </div>
         <Accordion type="single" collapsible className="w-full space-y-4">
@@ -206,14 +212,20 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                     <h3 className="text-lg font-semibold text-primary group-hover:underline">
                         <Link href={`/designer/${bid.designerId}`} onClick={(e) => e.stopPropagation()}>{bid.designerName}</Link>
                     </h3>
-                    <p className="text-sm text-muted-foreground">{bid.designerDetails?.headline || 'Professional Designer'}</p>
+                    <p className="text-sm text-muted-foreground">{bid.designerDetails?.headline || 'Professional Web Pro'}</p>
                   </div>
                 </div>
                 <div className="flex flex-col items-start md:items-end gap-1 text-sm md:text-right">
-                    <Badge variant="secondary" className="text-lg px-3 py-1.5 bg-primary/10 text-primary">
-                        <DollarSign className="mr-1.5 h-5 w-5" /> ${bid.bidAmount.toLocaleString()}
-                    </Badge>
-                    <p className="text-xs text-muted-foreground">Submitted: {new Date(bid.submittedAt).toLocaleDateString()}</p>
+                    {bid.bidAmount > 0 ? (
+                      <Badge variant="secondary" className="text-lg px-3 py-1.5 bg-primary/10 text-primary">
+                          <DollarSign className="mr-1.5 h-5 w-5" /> ${bid.bidAmount.toLocaleString()}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-sm px-2 py-1 border-dashed">
+                        Contact Unlocked
+                      </Badge>
+                    )}
+                    <p className="text-xs text-muted-foreground">Applied: {new Date(bid.submittedAt).toLocaleDateString()}</p>
                     {bid.rank && <Badge variant="outline" className="border-accent text-accent">Rank #{bid.rank}</Badge>}
                 </div>
               </div>
@@ -244,7 +256,7 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                 )}
                 
                 <div>
-                  <h4 className="font-semibold text-foreground mb-1">Cover Letter Snippet:</h4>
+                  <h4 className="font-semibold text-foreground mb-1">Interest Note / Cover Letter:</h4>
                   <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-line">{bid.coverLetter}</p>
                 </div>
                 <div>
@@ -252,15 +264,14 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                   <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-line">{bid.experienceSummary}</p>
                 </div>
 
-                {/* Contact Information Section */}
                 {bid.designerDetails && (
                     <Card className="bg-secondary/30 border-secondary">
                       <CardHeader className="pb-2 pt-4">
                         <CardTitle className="text-md flex items-center text-foreground">
-                          <UserCircle className="mr-2 h-5 w-5 text-primary"/> Designer Contact
+                          <UserCircle className="mr-2 h-5 w-5 text-primary"/> Web Professional Contact
                         </CardTitle>
                          <CardDescription className="text-xs">
-                            Contact information provided by the designer.
+                            Contact information provided by the web professional.
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-1 pb-4">
@@ -275,7 +286,7 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                           </p>
                         )}
                         {(!bid.designerDetails.email && !bid.designerDetails.phone) && (
-                            <p className="text-sm text-muted-foreground italic">Contact information not publicly shared by the designer.</p>
+                            <p className="text-sm text-muted-foreground italic">Contact information not publicly shared.</p>
                         )}
                       </CardContent>
                     </Card>
@@ -283,9 +294,10 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t mt-4">
                   <Button asChild className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
-                    <Link href={`/designer/${bid.designerId}/contact`}> {/* Placeholder contact link */}
+                    {/* This link might need to be dynamic based on actual contact flow */}
+                    <a href={`mailto:${bid.designerDetails?.email || ''}?subject=Regarding your application for: ${job.title}`}> 
                       <MessageSquare className="mr-2 h-4 w-4" /> Contact {bid.designerName.split(' ')[0]}
-                    </Link>
+                    </a>
                   </Button>
                   <Button variant="outline" className="flex-1">
                     <ThumbsUp className="mr-2 h-4 w-4" /> Shortlist
@@ -302,3 +314,4 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
     </div>
   );
 }
+
