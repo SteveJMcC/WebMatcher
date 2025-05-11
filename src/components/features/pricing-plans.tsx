@@ -56,21 +56,21 @@ const getPlanStyles = (planId: string): PlanStyles => {
   switch (planId) {
     case "gold":
       return {
-        cardBg: "bg-accent/5", // Gold-ish background
-        cardBorder: "border-accent", // Gold border
+        cardBg: "bg-accent/5", 
+        cardBorder: "border-accent", 
         buttonClass: "bg-accent hover:bg-accent/90 text-accent-foreground",
       };
     case "silver":
       return {
-        cardBg: "bg-secondary/30", // Light gray background for silver
-        cardBorder: "border-secondary", // Light gray border for silver
-        buttonClass: "bg-secondary hover:bg-secondary/80 text-secondary-foreground",
+        cardBg: "bg-secondary/30", 
+        cardBorder: "border-secondary", 
+        buttonClass: "bg-muted hover:bg-muted/80 text-muted-foreground border border-border",
       };
     case "bronze":
       return {
-        cardBg: "bg-primary/5", 
-        cardBorder: "border-primary", 
-        buttonClass: "bg-primary hover:bg-primary/90 text-primary-foreground",
+        cardBg: "bg-accent/10", // Use accent (gold/yellow) for a bronze feel - very light gold
+        cardBorder: "border-accent border-opacity-75", // Gold border, slightly less opaque
+        buttonClass: "bg-accent/80 hover:bg-accent/70 text-accent-foreground", // Gold button, less opaque/vibrant
       };
     default:
       return {
@@ -106,16 +106,15 @@ export function PricingPlans() {
                 cardSpecificClasses = cn(planStyles.cardBg, "border-2", planStyles.cardBorder, "ring-2 ring-border");
                 popularBadgeVariant = "outline";
                 popularBadgeClasses = "bg-muted text-muted-foreground border-border";
-              } else {
+              } else { // For other popular plans (e.g. if Gold becomes popular)
                 cardSpecificClasses = cn(planStyles.cardBg, "border-2 border-accent ring-2 ring-accent/50");
-                // Default popular badge classes remain for non-silver popular plans
               }
             }
             
-            const buttonClass = plan.isPopular && plan.id !== "silver" // Gold plan's popular button
+            const buttonClass = plan.isPopular && plan.id !== "silver" 
               ? "bg-accent hover:bg-accent/90 text-accent-foreground" 
-              : plan.isPopular && plan.id === "silver" // Silver plan's popular button
-              ? "bg-muted hover:bg-muted/80 text-muted-foreground border border-border" // Make silver button more distinct
+              : plan.isPopular && plan.id === "silver" 
+              ? "bg-muted hover:bg-muted/80 text-muted-foreground border border-border" 
               : planStyles.buttonClass;
 
 
