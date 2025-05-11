@@ -1,3 +1,4 @@
+
 "use client"; 
 
 import { JobBidsDisplay } from "@/components/features/job-bids-display";
@@ -5,7 +6,7 @@ import type { JobPosting, Bid, DesignerProfile } from "@/lib/types";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2, Mail, Phone, HomeIcon } from "lucide-react";
+import { Briefcase, DollarSign, Edit3, Settings, Share2, Users, Loader2, AlertTriangle, MapPin, Users2, Mail, Phone, HomeIcon, LayoutDashboard } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
@@ -53,7 +54,7 @@ async function getFullDesignerProfile(designerId: string): Promise<DesignerProfi
                 return {
                     id: designerEntry.userId,
                     userId: designerEntry.userId,
-                    name: designerEntry.displayName || "Unknown Designer",
+                    name: designerEntry.displayName || "Unknown Web Professional",
                     headline: designerEntry.designerHeadline || "Web Professional",
                     avatarUrl: designerEntry.designerAvatarUrl,
                     skills: designerEntry.designerSkills || [],
@@ -81,7 +82,7 @@ async function getFullDesignerProfile(designerId: string): Promise<DesignerProfi
 
 async function getDesignerProfileForAI(designerId: string): Promise<string> {
     const designer = await getFullDesignerProfile(designerId);
-    if (!designer) return "Designer profile not available.";
+    if (!designer) return "Web Professional profile not available.";
     let profileString = `Name: ${designer.name}. Headline: ${designer.headline}. Skills: ${designer.skills.map(s => typeof s === 'string' ? s : s.text).join(', ')}. Experience: ${designer.bio.substring(0,100)}... Budget Range: $${designer.budgetMin}-$${designer.budgetMax}.`;
     if (designer.email) {
         profileString += ` Email: ${designer.email}.`;
@@ -103,7 +104,6 @@ export default function ManageJobPage() {
   const [bids, setBids] = useState<Bid[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // const [applicants, setApplicants] = useState<DesignerProfile[]>([]); // applicants state might not be needed if bids are derived
 
   useEffect(() => {
     if (job && typeof document !== 'undefined') {
@@ -135,7 +135,6 @@ export default function ManageJobPage() {
           .then(async (jobData) => {
             if (jobData) {
               setJob(jobData);
-              // Construct bidsData from jobData.applicants
               if (jobData.applicants && jobData.applicants.length > 0) {
                 const realBidsData: Bid[] = await Promise.all(
                   jobData.applicants.map(async (applicant) => {
@@ -145,17 +144,17 @@ export default function ManageJobPage() {
                       jobId: jobData.id,
                       designerId: applicant.designerId,
                       designerName: designerDetails?.name || "Web Professional",
-                      designerAvatar: designerDetails?.avatarUrl, // For JobBidsDisplay to use if needed
-                      bidAmount: 0, // Placeholder as current flow doesn't capture bid amount
-                      coverLetter: `This professional has expressed interest in "${jobData.title}" and unlocked contact details. Review their profile for experience.`, // Placeholder
-                      experienceSummary: designerDetails?.bio ? `${designerDetails.bio.substring(0, 150)}...` : "Refer to designer's profile for experience details.", // Placeholder
+                      designerAvatar: designerDetails?.avatarUrl, 
+                      bidAmount: 0, 
+                      coverLetter: `This professional has expressed interest in "${jobData.title}" and unlocked contact details. Review their profile for experience.`, 
+                      experienceSummary: designerDetails?.bio ? `${designerDetails.bio.substring(0, 150)}...` : "Refer to professional's profile for experience details.", 
                       submittedAt: applicant.appliedAt,
                     };
                   })
                 );
                 setBids(realBidsData);
               } else {
-                setBids([]); // No applicants, so no bids to display from this source
+                setBids([]);
               }
             } else {
               setError("Job not found or you don't have permission to view it.");
@@ -234,6 +233,11 @@ export default function ManageJobPage() {
                 </div>
                 <div className="flex flex-col sm:flex-row md:flex-col lg:flex-row gap-2 items-start md:items-end self-start md:self-center lg:self-start">
                     <Button variant="outline" asChild>
+                        <Link href="/user-dashboard"> 
+                            <LayoutDashboard className="mr-2 h-4 w-4" /> Back to Dashboard
+                        </Link>
+                    </Button>
+                    <Button variant="outline" asChild>
                         <Link href={`/jobs/${job.id}/edit`}> 
                             <Edit3 className="mr-2 h-4 w-4" /> Edit Job
                         </Link>
@@ -310,7 +314,7 @@ export default function ManageJobPage() {
       
       <JobBidsDisplay
         job={job}
-        initialBids={bids} // These are now derived from job.applicants
+        initialBids={bids}
         getDesignerProfileString={getDesignerProfileForAI}
         getDesignerDetails={getFullDesignerProfile}
       />
