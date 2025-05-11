@@ -25,8 +25,13 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
       {/* Profile Header Card */}
       <Card className="overflow-hidden shadow-xl">
         <div className="relative h-48 bg-gradient-to-r from-primary to-teal-400">
-            {/* Optional: Banner image */}
-            <Image src="https://picsum.photos/seed/designerbg/1200/200" alt="Profile banner" layout="fill" objectFit="cover" data-ai-hint="abstract background" />
+            <Image 
+              src={`https://picsum.photos/seed/${profile.id || 'designerbg'}/1200/200?grayscale&blur=5`} 
+              alt="Profile banner" 
+              layout="fill" 
+              objectFit="cover" 
+              data-ai-hint="blurred background" 
+            />
             <div className="absolute inset-0 bg-black/30" />
         </div>
         <CardContent className="relative -mt-16 flex flex-col items-center text-center p-6 pt-0 md:flex-row md:items-end md:text-left md:space-x-6">
