@@ -264,20 +264,7 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                   <h4 className="font-semibold text-foreground mb-1">Experience Summary:</h4>
                   <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-line">{bid.experienceSummary}</p>
                 </div>
-
-                <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t mt-4">
-                  <Button asChild className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
-                    <Link href={`/designer/${bid.designerId}`} onClick={(e) => e.stopPropagation()}> 
-                      <UserCircle className="mr-2 h-4 w-4" /> View {bid.designerName.split(' ')[0]}'s Profile
-                    </Link>
-                  </Button>
-                  <Button variant="outline" className="flex-1">
-                    <ThumbsUp className="mr-2 h-4 w-4" /> Shortlist
-                  </Button>
-                   <Button variant="ghost" className="flex-1 text-destructive hover:bg-destructive/10 hover:text-destructive">
-                    <ThumbsDown className="mr-2 h-4 w-4" /> Decline
-                  </Button>
-                </div>
+                {/* Removed "View Profile", "Shortlist", and "Decline" buttons section */}
               </div>
             </AccordionContent>
           </AccordionItem>
