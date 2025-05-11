@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Bid, JobPosting, SummarizedBidOutput, SummarizeBidsServiceInput, BidForSummary } from "@/lib/types";
@@ -163,7 +164,7 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
     return (
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl">No Applications Received Yet</CardTitle>
+          <CardTitle className="text-2xl">No Responses Received Yet</CardTitle>
           <CardDescription>Once web professionals apply to your job, their interest will appear here.</CardDescription>
         </CardHeader>
         <CardContent className="text-center py-10">
@@ -188,7 +189,7 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
   return (
     <div className="space-y-6">
         <div className="flex justify-between items-center">
-            <h2 className="text-3xl font-semibold text-foreground">Received Applications ({rankedBids.length})</h2>
+            <h2 className="text-3xl font-semibold text-foreground">Received Responses ({rankedBids.length})</h2>
             <Button onClick={handleSummarizeAllBids} disabled={isSummarizingAll || rankedBids.every(b => b.aiSummaryText)}>
                 {isSummarizingAll ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                 {isSummarizingAll ? "Summarizing..." : "Summarize All with AI"}
