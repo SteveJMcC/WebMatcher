@@ -87,35 +87,6 @@ export default function AdminPage() {
       </header>
 
       <div className="grid md:grid-cols-2 gap-8">
-        {/* Web Professionals List */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl flex items-center"><Briefcase className="mr-2 h-6 w-6 text-primary"/> Web Professionals ({designers.length})</CardTitle>
-            <CardDescription>List of all registered designers and web professionals.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
-            {designers.length > 0 ? designers.map(designer => (
-              <Card key={designer.userId} className="p-4 flex items-center justify-between hover:shadow-md transition-shadow">
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12 border">
-                    <AvatarImage src={designer.designerAvatarUrl || `https://i.pravatar.cc/150?u=${designer.email}`} alt={designer.displayName || 'Designer'} data-ai-hint="designer avatar" />
-                    <AvatarFallback>{getInitials(designer.displayName)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-foreground">{designer.displayName || 'N/A'}</p>
-                    <p className="text-sm text-muted-foreground">{designer.email}</p>
-                  </div>
-                </div>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={`/designer/${designer.userId}`}>
-                    <Eye className="mr-1.5 h-4 w-4" /> View Profile
-                  </Link>
-                </Button>
-              </Card>
-            )) : <p className="text-muted-foreground">No web professionals found.</p>}
-          </CardContent>
-        </Card>
-
         {/* Clients List */}
         <Card className="shadow-lg">
           <CardHeader>
@@ -142,6 +113,35 @@ export default function AdminPage() {
                 </Button>
               </Card>
             )) : <p className="text-muted-foreground">No clients found.</p>}
+          </CardContent>
+        </Card>
+
+        {/* Web Professionals List */}
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-2xl flex items-center"><Briefcase className="mr-2 h-6 w-6 text-primary"/> Web Professionals ({designers.length})</CardTitle>
+            <CardDescription>List of all registered designers and web professionals.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
+            {designers.length > 0 ? designers.map(designer => (
+              <Card key={designer.userId} className="p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12 border">
+                    <AvatarImage src={designer.designerAvatarUrl || `https://i.pravatar.cc/150?u=${designer.email}`} alt={designer.displayName || 'Designer'} data-ai-hint="designer avatar" />
+                    <AvatarFallback>{getInitials(designer.displayName)}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-semibold text-foreground">{designer.displayName || 'N/A'}</p>
+                    <p className="text-sm text-muted-foreground">{designer.email}</p>
+                  </div>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link href={`/designer/${designer.userId}`}>
+                    <Eye className="mr-1.5 h-4 w-4" /> View Profile
+                  </Link>
+                </Button>
+              </Card>
+            )) : <p className="text-muted-foreground">No web professionals found.</p>}
           </CardContent>
         </Card>
       </div>
