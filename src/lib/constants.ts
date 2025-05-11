@@ -2,6 +2,8 @@ import type { Tag } from "./types";
 
 export const allSkillsOptions: Tag[] = [
   // High-level skills first
+  { id: "seo", text: "SEO" },
+  { id: "copywriting", text: "Copywriting" },
   { id: "web-design", text: "Web Design" },
   { id: "graphic-design", text: "Graphic Design" },
   { id: "ui-design", text: "UI Design" },
@@ -9,8 +11,6 @@ export const allSkillsOptions: Tag[] = [
   { id: "branding", text: "Branding" },
   { id: "logo-design", text: "Logo Design" },
   { id: "content-writing", text: "Content Writing" },
-  { id: "copywriting", text: "Copywriting" },
-  { id: "seo", text: "SEO" },
   { id: "social-media-marketing", text: "Social Media Marketing" },
   { id: "email-marketing", text: "Email Marketing" },
   { id: "project-management", text: "Project Management" },
@@ -40,6 +40,7 @@ export const allSkillsOptions: Tag[] = [
   { id: "nextjs", text: "Next.js" },
   { id: "vue", text: "Vue.js" },
   { id: "angular", text: "Angular" },
+  { id: "dont-know", text: "Don't know / Not sure" }, // Added for skillsRequired default
 ];
 
 
@@ -66,3 +67,11 @@ export const budgetOptions = [
 
 export const budgetValues = budgetOptions.map(option => option.value);
 
+export const limitContactsOptions = [
+  { value: "unlimited", label: "Unlimited" },
+  { value: "7", label: "Under 7" },
+  { value: "11", label: "Under 11" },
+  { value: "16", label: "Under 16" },
+] as const;
+
+export const limitContactsValues = limitContactsOptions.map(option => option.value);

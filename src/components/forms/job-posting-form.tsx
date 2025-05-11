@@ -28,7 +28,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { allSkillsOptions, professionalCategoryOptions, budgetOptions } from "@/lib/constants"; // Import from constants
+import { allSkillsOptions, professionalCategoryOptions, budgetOptions, limitContactsOptions } from "@/lib/constants"; 
 
 interface JobPostingFormProps {
   jobToEdit?: JobPosting | null;
@@ -39,7 +39,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
   const router = useRouter();
   const { userId: authUserId, email: authEmail, userType } = useAuth(); 
   
-  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(jobToEdit?.skillsRequired || []);
+  const [selectedSkills, setSelectedSkills] = useState<Tag[]>(jobToEdit?.skillsRequired.find(skill => skill.id === 'dont-know') ? [] : jobToEdit?.skillsRequired || []);
 
   const form = useForm<JobPostingFormData>({
     resolver: zodResolver(JobPostingSchema),
@@ -47,8 +47,8 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       title: jobToEdit.title,
       description: jobToEdit.description,
       budget: jobToEdit.budget as typeof budgetOptions[number]['value'], 
-      skillsRequired: jobToEdit.skillsRequired || [],
-      limitContacts: jobToEdit.limitContacts,
+      skillsRequired: jobToEdit.skillsRequired.find(skill => skill.id === 'dont-know') ? [] : jobToEdit.skillsRequired || [],
+      limitContacts: jobToEdit.limitContacts || 'unlimited',
       workPreference: jobToEdit.workPreference || 'remote',
       professionalCategory: jobToEdit.professionalCategory || '',
       customProfessionalCategory: jobToEdit.customProfessionalCategory || '',
@@ -56,8 +56,8 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       title: "",
       description: "",
       budget: undefined, 
-      skillsRequired: [],
-      limitContacts: 10,
+      skillsRequired: [], // Default to empty array for skills
+      limitContacts: 'unlimited', // Default to "Unlimited"
       workPreference: 'remote',
       professionalCategory: '',
       customProfessionalCategory: '',
@@ -66,26 +66,26 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
 
   useEffect(() => {
     if (jobToEdit) {
+      const initialSkills = jobToEdit.skillsRequired.find(skill => skill.id === 'dont-know') ? [] : jobToEdit.skillsRequired || [];
       form.reset({
         title: jobToEdit.title,
         description: jobToEdit.description,
         budget: jobToEdit.budget as typeof budgetOptions[number]['value'],
-        skillsRequired: jobToEdit.skillsRequired || [],
-        limitContacts: jobToEdit.limitContacts,
+        skillsRequired: initialSkills,
+        limitContacts: jobToEdit.limitContacts || 'unlimited',
         workPreference: jobToEdit.workPreference || 'remote',
         professionalCategory: jobToEdit.professionalCategory || '',
         customProfessionalCategory: jobToEdit.customProfessionalCategory || '',
       });
-      setSelectedSkills(jobToEdit.skillsRequired || []);
+      setSelectedSkills(initialSkills);
     } else {
-      // Only reset to initial empty if it's not an edit and form is not dirty.
       if (!form.formState.isDirty) {
         form.reset({
           title: "",
           description: "",
           budget: undefined,
           skillsRequired: [],
-          limitContacts: 10,
+          limitContacts: 'unlimited',
           workPreference: 'remote',
           professionalCategory: '',
           customProfessionalCategory: '',
@@ -109,14 +109,19 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
 
     const isEditing = !!jobToEdit;
 
+    // If skillsRequired is empty, set it to the "Don't know" tag
+    const finalSkillsRequired = data.skillsRequired && data.skillsRequired.length > 0 
+      ? data.skillsRequired 
+      : [{ id: "dont-know", text: "Don't know / Not sure" }];
+
     const jobData: JobPosting = {
       id: isEditing ? jobToEdit.id : `job-${Date.now()}`,
       userId: authUserId,
       title: data.title,
       description: data.description,
       budget: data.budget, 
-      skillsRequired: data.skillsRequired || [], // Ensure skillsRequired is an array
-      limitContacts: data.limitContacts,
+      skillsRequired: finalSkillsRequired,
+      limitContacts: data.limitContacts === 'unlimited' ? undefined : data.limitContacts,
       workPreference: data.workPreference,
       professionalCategory: data.professionalCategory,
       customProfessionalCategory: data.professionalCategory === 'Other' ? data.customProfessionalCategory : undefined,
@@ -124,7 +129,6 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
       status: isEditing ? jobToEdit.status : "open",
       bidsCount: isEditing ? jobToEdit.bidsCount : 0,
       clientEmail: authEmail, 
-      // Ensure applicants array exists, especially for new jobs
       applicants: isEditing && jobToEdit.applicants ? jobToEdit.applicants : [], 
     };
 
@@ -154,7 +158,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
           description: "",
           budget: undefined,
           skillsRequired: [],
-          limitContacts: 10,
+          limitContacts: 'unlimited',
           workPreference: 'remote',
           professionalCategory: '',
           customProfessionalCategory: '',
@@ -335,35 +339,36 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
                           setSelectedSkills(newSkills); 
                           field.onChange(newSkills);  
                         }}
-                        options={allSkillsOptions}
+                        options={allSkillsOptions.filter(opt => opt.id !== 'dont-know')} // Exclude "Don't know" from selectable options here
                         placeholder="Select skills, or leave blank if unsure"
                       />
                   </FormControl>
-                  <FormDescription>Select specific skills or technologies needed for this project (optional).</FormDescription>
+                  <FormDescription>Select specific skills or technologies needed for this project (optional). If unsure, leave blank and this will default to "Don't know".</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
+            
             <FormField
               control={form.control}
               name="limitContacts"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg flex items-center"><Users className="mr-2 h-5 w-5 text-primary" />Limit Web Professional Contacts (Optional)</FormLabel>
-                   <div className="relative">
-                       <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                    <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="e.g., 10" 
-                        {...field} 
-                        value={field.value ?? ""} 
-                        onChange={e => field.onChange(e.target.value === '' ? undefined : +e.target.value)} 
-                        className="pl-10 text-base py-6" 
-                       />
-                    </FormControl>
-                  </div>
+                  <FormLabel className="text-lg flex items-center"><Users className="mr-2 h-5 w-5 text-primary" />Max. number of web professionals?</FormLabel>
+                   <Select onValueChange={field.onChange} value={field.value || "unlimited"} >
+                      <FormControl>
+                        <SelectTrigger className="text-base py-6">
+                          <SelectValue placeholder="Select contact limit" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {limitContactsOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   <FormDescription>
                     Set a maximum number of Web Professionals who can contact you for this job.
                   </FormDescription>
@@ -371,6 +376,7 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
                 </FormItem>
               )}
             />
+
 
             <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-lg py-6" disabled={form.formState.isSubmitting}>
               {form.formState.isSubmitting 
@@ -384,4 +390,3 @@ export function JobPostingForm({ jobToEdit }: JobPostingFormProps) {
     </Card>
   );
 }
-

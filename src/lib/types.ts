@@ -1,9 +1,13 @@
+import type { limitContactsOptions } from "./constants";
+
+export type LimitContactsValue = typeof limitContactsOptions[number]['value'];
+
 export interface JobPostingCore {
   title: string;
   description: string;
-  budget: string; // Changed from number to string
+  budget: string; 
   skillsRequired: Tag[]; 
-  limitContacts?: number;
+  limitContacts?: LimitContactsValue;
   workPreference: 'remote' | 'local';
   professionalCategory: string;
   customProfessionalCategory?: string;
@@ -17,6 +21,7 @@ export interface JobPosting extends JobPostingCore {
   createdAt: string; 
   status: 'open' | 'in-progress' | 'closed';
   bidsCount?: number;
+  applicants?: { designerId: string; appliedAt: string }[];
 }
 
 export interface DesignerProfileCore {
@@ -74,7 +79,7 @@ export interface BidForSummary {
 
 export interface SummarizeBidsServiceInput {
   jobDescription: string;
-  jobBudget: string; // Changed from number to string
+  jobBudget: string; 
   bids: BidForSummary[];
 }
 

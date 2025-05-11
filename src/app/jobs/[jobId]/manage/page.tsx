@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/auth-context";
 import { Skeleton } from "@/components/ui/skeleton";
+import { limitContactsOptions } from "@/lib/constants";
 
 async function getJobDetails(jobId: string, userId: string): Promise<JobPosting | null> {
   if (typeof window !== 'undefined') {
@@ -19,27 +20,33 @@ async function getJobDetails(jobId: string, userId: string): Promise<JobPosting 
       const jobsString = localStorage.getItem(storageKey);
       if (jobsString) {
         const parsedJobs = JSON.parse(jobsString) as JobPosting[];
-        return parsedJobs.find(job => job.id === jobId) || null;
+        const job = parsedJobs.find(job => job.id === jobId) || null;
+        if (job && job.applicants === undefined) { // Ensure applicants array exists
+            job.applicants = [];
+        }
+        return job;
       }
     } catch (error) {
       console.error("Failed to get job details from localStorage", error);
     }
   }
-  if (jobId === "job-1") { // Fallback mock
+  // Fallback mock should also include applicants array if necessary
+  if (jobId === "job-1") { 
     return {
       id: "job-1",
       userId: "mock-client-email@example.com_user", 
       title: "E-commerce Platform Redesign",
       description: "Looking for a skilled designer to revamp our existing e-commerce website. Focus on modern UI, improved UX, and mobile responsiveness. We need someone proficient in Figma and understanding of current e-commerce trends. The project involves creating a new visual identity, a full set of responsive page designs (homepage, product listings, product details, cart, checkout), and a style guide. We expect collaboration with our development team to ensure design feasibility. Please include examples of similar e-commerce projects in your application.",
-      budget: "under £5000", // Updated to string
+      budget: "under £5000", 
       skillsRequired: [{id:"ui", text:"UI Design"}, {id:"ux", text:"UX Design"}, {id:"figma", text:"Figma"}, {id:"e-commerce", text:"E-commerce"}],
-      limitContacts: 15,
+      limitContacts: "16", // Updated to string value from options
       createdAt: new Date('2023-10-01T10:00:00.000Z').toISOString(),
       status: "open",
       clientEmail: "client.user@example.com",
       clientPhone: "+12345678900",
       workPreference: "remote",
       professionalCategory: "Web Designer",
+      applicants: [],
     };
   }
   return null;
@@ -85,10 +92,11 @@ async function getDesignerProfileForAI(designerId: string): Promise<string> {
 }
 
 async function getFullDesignerProfile(designerId: string): Promise<DesignerProfile | null> {
+    // Mock data for designer profiles based on IDs used in bids
     const profiles: Record<string, DesignerProfile> = {
-        "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design...", budgetMin: 2000, budgetMax: 6000, email: "alice@example.com", phone: "+15550001111", portfolioLinks: [], tokens: 10, joinedDate: new Date().toISOString() },
-        "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}], bio: "Building engaging mobile experiences...", budgetMin: 2500, budgetMax: 7000, email: "bob@example.com", phone: "+15550002222", portfolioLinks: [], tokens: 15, joinedDate: new Date().toISOString() },
-        "designer-C": { id: "designer-C", userId: "user-C", name: "Carol Danvers", headline: "Modern & Affordable Web Designer", avatarUrl: "https://picsum.photos/seed/carol/100/100", skills: [{id:"web-design", text:"Web Design"}, {id:"figma", text:"Figma"}], bio: "Fresh design perspectives at great value...", budgetMin: 1500, budgetMax: 4000, email: "carol@example.com", phone: undefined, portfolioLinks: [], tokens: 5, joinedDate: new Date().toISOString() },
+        "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design, focusing on creating intuitive and high-converting user experiences. Over 5 years of experience helping businesses grow their online presence.", budgetMin: 2000, budgetMax: 6000, email: "alice.w@example.com", phone: "+15551110000", portfolioLinks: [{title: "Portfolio", url: "https://example.com/alice"}], tokens: 50, joinedDate: new Date('2022-03-10T10:00:00.000Z').toISOString() },
+        "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer & Developer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}, {id:"react", text:"React"}], bio: "Building engaging mobile-first web experiences for startups and established companies. Proficient in modern JavaScript frameworks and responsive design principles.", budgetMin: 2500, budgetMax: 7000, email: "bob.builder@example.com", phone: "+15552220000", portfolioLinks: [{title: "GitHub", url:"https://github.com/bob"}], tokens: 35, joinedDate: new Date('2021-08-15T10:00:00.000Z').toISOString() },
+        "designer-C": { id: "designer-C", userId: "user-C", name: "Carol Danvers", headline: "Modern & Affordable Web Designer", avatarUrl: "https://picsum.photos/seed/carol/100/100", skills: [{id:"web-design", text:"Web Design"}, {id:"figma", text:"Figma"}, {id:"wordpress", text:"WordPress"}], bio: "Delivering fresh design perspectives at great value. Specializing in WordPress and Figma, I help small businesses and individuals create a strong online presence.", budgetMin: 1500, budgetMax: 4000, email: "carol.d@example.com", phone: undefined, portfolioLinks: [], tokens: 20, joinedDate: new Date('2023-01-20T10:00:00.000Z').toISOString() },
     };
     return profiles[designerId] || null;
 }
@@ -104,6 +112,7 @@ export default function ManageJobPage() {
   const [bids, setBids] = useState<Bid[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [applicants, setApplicants] = useState<DesignerProfile[]>([]);
 
   useEffect(() => {
     if (job && typeof document !== 'undefined') {
@@ -134,10 +143,18 @@ export default function ManageJobPage() {
         Promise.all([
           getJobDetails(jobId, authUserId),
           getJobBids(jobId) 
-        ]).then(([jobData, bidsData]) => {
+        ]).then(async ([jobData, bidsData]) => {
           if (jobData) {
             setJob(jobData);
             setBids(bidsData);
+            if (jobData.applicants && jobData.applicants.length > 0) {
+              const applicantProfiles = await Promise.all(
+                jobData.applicants.map(app => getFullDesignerProfile(app.designerId))
+              );
+              setApplicants(applicantProfiles.filter(p => p !== null) as DesignerProfile[]);
+            } else {
+              setApplicants([]);
+            }
           } else {
             setError("Job not found or you don't have permission to view it.");
           }
@@ -190,6 +207,14 @@ export default function ManageJobPage() {
       </div>
     );
   }
+
+  const getLimitContactsDisplayValue = (limitValue?: typeof job.limitContacts) => {
+    if (!limitValue || limitValue === "unlimited") {
+      return "Unlimited";
+    }
+    const option = limitContactsOptions.find(opt => opt.value === limitValue);
+    return option ? option.label : `${limitValue} professionals`;
+  };
 
   return (
     <div className="container mx-auto px-4 py-12 space-y-10">
@@ -255,7 +280,7 @@ export default function ManageJobPage() {
                  {job.limitContacts && (
                      <div>
                         <h4 className="text-sm font-medium text-muted-foreground">Contact Limit</h4>
-                        <p className="text-lg font-semibold text-foreground">{job.limitContacts} web professionals</p>
+                        <p className="text-lg font-semibold text-foreground">{getLimitContactsDisplayValue(job.limitContacts)}</p>
                     </div>
                  )}
             </div>
@@ -267,6 +292,7 @@ export default function ManageJobPage() {
         initialBids={bids}
         getDesignerProfileString={getDesignerProfileForAI}
         getDesignerDetails={getFullDesignerProfile}
+        applicants={applicants}
       />
     </div>
   );

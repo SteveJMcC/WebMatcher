@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { budgetValues, professionalCategoryOptions as schemaProfessionalCategoryOptions } from './constants'; // Import from constants
+import { budgetValues, professionalCategoryOptions as schemaProfessionalCategoryOptions, limitContactsValues } from './constants'; // Import from constants
 
-export { budgetOptions } from './constants'; // Re-export for use in forms
+export { budgetOptions, limitContactsOptions } from './constants'; // Re-export for use in forms
 
 
 const professionalCategoryValues = schemaProfessionalCategoryOptions.map(option => option.value);
@@ -14,7 +14,9 @@ export const JobPostingSchema = z.object({
     required_error: "Please select a budget range.",
   }).describe("The estimated budget range for this project."),
   skillsRequired: z.array(z.object({ id: z.string(), text: z.string() })).optional().default([]),
-  limitContacts: z.coerce.number().int().min(1, "Limit must be at least 1").max(50, "Limit cannot exceed 50").optional(),
+  limitContacts: z.enum(limitContactsValues as [string, ...string[]], {
+    required_error: "Please select a contact limit option.",
+  }).optional().default('unlimited'),
   workPreference: z.enum(['remote', 'local'], {
     required_error: "You must select a work preference.",
   }),
@@ -41,7 +43,7 @@ export const DesignerProfileSchema = z.object({
   portfolioLinks: z.array(z.object({
     title: z.string().min(1, "Link title cannot be empty.").max(50, "Link title too long."),
     url: z.string().url("Link URL must be a valid URL."),
-  })).max(5, "You can add up to 5 portfolio links.").optional(),
+  })).max(5, "You can add up to 5 portfolio links.").optional().default([{ title: "", url: "" }]),
   budgetMin: z.coerce.number().min(0, "Minimum budget must be a non-negative number."),
   budgetMax: z.coerce.number().min(0, "Maximum budget must be a non-negative number."),
   email: z.string().email("Invalid email address.").optional().or(z.literal('')),
@@ -62,4 +64,3 @@ export const UserProfileSchema = z.object({
 export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
 export type DesignerProfileFormData = z.infer<typeof DesignerProfileSchema>;
 export type UserProfileFormData = z.infer<typeof UserProfileSchema>;
-

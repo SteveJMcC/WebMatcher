@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/auth-context";
 import { useToast } from "@/hooks/use-toast";
+import { limitContactsOptions } from "@/lib/constants";
 
 interface DesignerJobDetailPanelProps {
   job: JobPosting | null;
@@ -19,22 +20,32 @@ interface DesignerJobDetailPanelProps {
 const TOKEN_COST_PER_APPLICATION = 1;
 
 export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
-  const { designerTokens, updateDesignerTokens } = useAuth();
+  const { designerTokens, updateDesignerTokens, userId, email, userType } = useAuth();
   const { toast } = useToast();
 
   const [showContactDetails, setShowContactDetails] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const [applicationError, setApplicationError] = useState<string | null>(null);
+  const [hasApplied, setHasApplied] = useState(false);
 
-  // Reset state when job changes
   useEffect(() => {
     setShowContactDetails(false);
     setIsApplying(false);
     setApplicationError(null);
-  }, [job]);
+    if (job && userId) {
+        // Check if current designer has already applied to this job
+        const alreadyApplied = job.applicants?.some(app => app.designerId === userId);
+        setHasApplied(!!alreadyApplied);
+        if (alreadyApplied) {
+            setShowContactDetails(true); // If already applied, show contact details
+        }
+    } else {
+        setHasApplied(false);
+    }
+  }, [job, userId]);
 
   const handleApplyAndRevealContact = async () => {
-    if (!job) return;
+    if (!job || !userId || !email || userType !== 'designer') return;
 
     setIsApplying(true);
     setApplicationError(null);
@@ -45,12 +56,30 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
       return;
     }
 
-    // Simulate API call / delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     try {
       updateDesignerTokens(-TOKEN_COST_PER_APPLICATION);
+      
+      // Add applicant to job posting in localStorage
+      if (typeof window !== 'undefined') {
+        const clientJobsStorageKey = `userJobs_${job.userId}`;
+        const clientJobsString = localStorage.getItem(clientJobsStorageKey);
+        let clientJobs: JobPosting[] = clientJobsString ? JSON.parse(clientJobsString) : [];
+        
+        clientJobs = clientJobs.map(j => {
+            if (j.id === job.id) {
+                const newApplicants = [...(j.applicants || []), { designerId: userId, appliedAt: new Date().toISOString() }];
+                return { ...j, applicants: newApplicants, bidsCount: (j.bidsCount || 0) + 1 };
+            }
+            return j;
+        });
+        localStorage.setItem(clientJobsStorageKey, JSON.stringify(clientJobs));
+      }
+
+
       setShowContactDetails(true);
+      setHasApplied(true);
       toast({
         title: "Application Successful!",
         description: "Client contact details revealed. You can now contact the client directly.",
@@ -59,6 +88,8 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
     } catch (error) {
       console.error("Error applying for job:", error);
       setApplicationError("An error occurred while applying. Please try again.");
+      // Revert token deduction if API call failed (in a real scenario)
+      // updateDesignerTokens(TOKEN_COST_PER_APPLICATION); 
       toast({
         title: "Application Failed",
         description: (error as Error).message || "Could not process application.",
@@ -67,6 +98,14 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
     } finally {
       setIsApplying(false);
     }
+  };
+
+  const getLimitContactsDisplayValue = (limitValue?: typeof job.limitContacts) => {
+    if (!job || !limitValue || limitValue === "unlimited") {
+      return "Client will accept unlimited web professional contacts for this job.";
+    }
+    const option = limitContactsOptions.find(opt => opt.value === limitValue);
+    return option ? `Client will accept contacts up to ${option.label.toLowerCase()} web professionals.` : `Client will accept up to ${limitValue} web professional contacts for this job.`;
   };
 
 
@@ -149,12 +188,11 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
              <div className="pt-4 border-t">
                 <h4 className="text-sm font-medium text-muted-foreground mb-1">Contact Limit</h4>
                 <p className="text-md text-foreground">
-                    Client will accept up to {job.limitContacts} web professional contacts for this job.
+                    {getLimitContactsDisplayValue(job.limitContacts)}
                 </p>
             </div>
         )}
 
-        {/* Client Contact Information Section */}
         <div className="pt-4 border-t">
             <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                 {showContactDetails ? <Unlock className="mr-2 h-5 w-5 text-green-500" /> : <Lock className="mr-2 h-5 w-5 text-orange-500" />}
@@ -195,9 +233,9 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
 
       </CardContent>
       <CardFooter className="border-t pt-6 flex flex-col items-stretch gap-3">
-         {showContactDetails ? (
+         {hasApplied ? (
              <Button size="lg" variant="outline" disabled className="w-full text-base py-3">
-                <CheckCircle className="mr-2 h-5 w-5 text-green-500" /> Contact Details Unlocked
+                <CheckCircle className="mr-2 h-5 w-5 text-green-500" /> Applied & Contact Details Unlocked
             </Button>
          ) : (
             <Button 
@@ -210,7 +248,7 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                 {isApplying ? "Applying..." : `Apply & Reveal Contact (Cost: ${TOKEN_COST_PER_APPLICATION} Token)`}
             </Button>
          )}
-          { (designerTokens ?? 0) < TOKEN_COST_PER_APPLICATION && !showContactDetails && (
+          { (designerTokens ?? 0) < TOKEN_COST_PER_APPLICATION && !hasApplied && (
             <Button variant="link" asChild className="text-sm text-accent p-0">
                 <Link href="/pricing">Buy More Tokens</Link>
             </Button>
