@@ -2,7 +2,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -24,18 +24,8 @@ import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palett
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag } from "@/lib/types";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { allSkillsOptions } from "@/lib/constants"; 
-
-const STABLE_EMPTY_PROFILE_VALUES: Omit<DesignerProfileFormData, 'name' | 'email' | 'phone' | 'city' | 'postalCode'> & { name?: string; email?: string; phone?: string; city?: string; postalCode?: string; } = {
-  headline: "",
-  avatarUrl: "",
-  skills: [],
-  bio: "",
-  portfolioLinks: [{ title: "", url: "" }],
-  budgetMin: 0,
-  budgetMax: 0,
-};
 
 
 export function DesignerProfileForm() {
@@ -47,7 +37,7 @@ export function DesignerProfileForm() {
     const baseValues: DesignerProfileFormData = {
       name: auth.displayName || "",
       headline: "",
-      avatarUrl: "",
+      avatarUrl: auth.designerAvatarUrl || "", // Use auth.designerAvatarUrl as a base
       skills: [],
       bio: "",
       portfolioLinks: [{ title: "", url: "" }],
@@ -105,12 +95,15 @@ export function DesignerProfileForm() {
   });
 
   useEffect(() => {
-    if (!form.formState.isDirty || JSON.stringify(form.getValues()) !== JSON.stringify(initialFormValues)) {
-        form.reset(initialFormValues);
-        setSelectedSkills(initialFormValues.skills || []);
-        setAvatarPreview(initialFormValues.avatarUrl || "");
+    // Only reset the form if auth is fully loaded and we have a user.
+    // This prevents resetting while auth data might still be streaming in,
+    // and avoids resetting if initialFormValues hasn't actually changed meaningfully.
+    if (!auth.isLoading && auth.userId) {
+      form.reset(initialFormValues);
+      setSelectedSkills(initialFormValues.skills || []);
+      setAvatarPreview(initialFormValues.avatarUrl || "");
     }
-  }, [form, initialFormValues]);
+  }, [form, initialFormValues, auth.isLoading, auth.userId]);
 
 
 
@@ -425,3 +418,4 @@ export function DesignerProfileForm() {
     </Card>
   );
 }
+
