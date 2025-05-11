@@ -22,7 +22,7 @@ const getInitials = (name: string) => {
 export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
   return (
     <div className="space-y-8">
-      {/* Profile Header Card */}
+      {/* Profile Header Card - Avatar and Name */}
       <Card className="overflow-hidden shadow-xl">
         <div className="relative h-48 bg-gradient-to-r from-primary to-teal-400">
             <Image 
@@ -41,23 +41,37 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
             </Avatar>
             <div className="mt-4 md:mt-0 md:pb-2 flex-grow">
               <h1 className="text-3xl font-bold text-foreground">{profile.name}</h1>
-              <p className="text-lg text-primary">{profile.headline}</p>
-              <div className="flex items-center justify-center md:justify-start space-x-2 text-sm text-muted-foreground mt-1">
-                <MapPin className="h-4 w-4" /> 
-                <span>{profile.city && profile.postalCode ? `${profile.city}, ${profile.postalCode}` : 'Global'}</span>
-                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" /> <span>4.9 (120 reviews)</span> {/* Placeholder */}
-              </div>
-            </div>
-            <div className="mt-4 md:mt-0 md:pb-2 space-x-2">
-              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Mail className="mr-2 h-4 w-4" /> Contact {profile.name.split(' ')[0]}
-              </Button>
-              <Button variant="outline">
-                <Briefcase className="mr-2 h-4 w-4" /> Invite to Job
-              </Button>
+              {/* Headline, location, reviews, and buttons are moved to the card below */}
             </div>
         </CardContent>
       </Card>
+
+      {/* Details and Actions Card */}
+      <Card className="shadow-lg">
+        <CardContent className="p-6 space-y-4">
+          <div>
+            <p className="text-xl text-primary">{profile.headline}</p>
+            <div className="flex items-center flex-wrap space-x-2 text-sm text-muted-foreground mt-1">
+              <MapPin className="h-4 w-4" /> 
+              <span>{profile.city && profile.postalCode ? `${profile.city}, ${profile.postalCode}` : 'Global'}</span>
+              <span className="hidden sm:inline">•</span>
+              <div className="flex items-center">
+                <Star className="h-4 w-4 text-yellow-400 fill-yellow-400 mr-1" /> 
+                <span>4.9 (120 reviews)</span> {/* Placeholder */}
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row sm:space-x-2 space-y-2 sm:space-y-0">
+            <Button className="bg-accent hover:bg-accent/90 text-accent-foreground w-full sm:w-auto">
+              <Mail className="mr-2 h-4 w-4" /> Contact {profile.name.split(' ')[0]}
+            </Button>
+            <Button variant="outline" className="w-full sm:w-auto">
+              <Briefcase className="mr-2 h-4 w-4" /> Invite to Job
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
 
       <div className="grid md:grid-cols-3 gap-8">
         {/* Left Column: About, Skills, Budget */}
