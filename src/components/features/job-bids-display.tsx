@@ -265,6 +265,8 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                   <p className="text-sm text-muted-foreground line-clamp-3 whitespace-pre-line">{bid.experienceSummary}</p>
                 </div>
 
+                {/* Web Professional Contact Details Removed as per request */}
+                {/* 
                 {bid.designerDetails && (
                     <Card className="bg-secondary/30 border-secondary">
                       <CardHeader className="pb-2 pt-4">
@@ -292,13 +294,15 @@ export function JobBidsDisplay({ job, initialBids, getDesignerProfileString, get
                       </CardContent>
                     </Card>
                   )}
+                */}
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t mt-4">
                   <Button asChild className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
                     {/* This link might need to be dynamic based on actual contact flow */}
-                    <a href={`mailto:${bid.designerDetails?.email || ''}?subject=Regarding your application for: ${job.title}`}> 
-                      <MessageSquare className="mr-2 h-4 w-4" /> Contact {bid.designerName.split(' ')[0]}
-                    </a>
+                    {/* For now, it's a placeholder to view profile which is more appropriate */}
+                    <Link href={`/designer/${bid.designerId}`} onClick={(e) => e.stopPropagation()}> 
+                      <UserCircle className="mr-2 h-4 w-4" /> View {bid.designerName.split(' ')[0]}'s Profile
+                    </Link>
                   </Button>
                   <Button variant="outline" className="flex-1">
                     <ThumbsUp className="mr-2 h-4 w-4" /> Shortlist
