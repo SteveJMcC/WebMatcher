@@ -111,13 +111,20 @@ export default function DesignerDashboardPage() {
   useEffect(() => {
     if (isAuthenticated && userType === 'designer' && profileSetupComplete && authDesignerId) {
       setPageLoading(true);
-      setSelectedJob(null); 
+      // setSelectedJob(null); // Keep selected job if already set, or set to first job after fetch
       Promise.all([
         getMatchedJobs(authDesignerId, designerCity), // Pass designerCity to getMatchedJobs
         getGeneralJobs()
       ]).then(([matched, general]) => {
         setMatchedJobs(matched);
         setGeneralJobs(general);
+        if (matched.length > 0) {
+          setSelectedJob(matched[0]); // Select the first (most recent) matched job by default
+        } else if (general.length > 0) {
+          setSelectedJob(general[0]); // Or the first general job if no matched jobs
+        } else {
+          setSelectedJob(null); // No jobs, so no selection
+        }
         setPageLoading(false);
       }).catch(error => {
         console.error("Failed to fetch designer jobs:", error);
