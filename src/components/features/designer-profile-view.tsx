@@ -24,15 +24,16 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
     <div className="space-y-8">
       {/* Profile Header Card - Avatar and Name */}
       <Card className="overflow-hidden shadow-xl">
-        <div className="relative h-48 bg-gradient-to-r from-primary to-teal-400">
+        <div className="relative h-48 bg-gradient-to-r from-primary/70 to-teal-400/70">
             <Image 
-              src={`https://picsum.photos/seed/${profile.id || 'designerbg'}/1200/200?grayscale&blur=5`} 
+              src={`https://picsum.photos/seed/${profile.id || 'designerbg'}/1200/200?grayscale&blur=2`} 
               alt="Profile banner" 
               layout="fill" 
               objectFit="cover" 
-              data-ai-hint="blurred background" 
+              data-ai-hint="abstract banner"
+              className="opacity-70"
             />
-            <div className="absolute inset-0 bg-black/30" />
+            <div className="absolute inset-0 bg-black/20" />
         </div>
         <CardContent className="relative -mt-16 flex flex-col items-center text-center p-6 pt-0 md:flex-row md:items-end md:text-left md:space-x-6">
             <Avatar className="h-32 w-32 border-4 border-background shadow-lg">
@@ -48,7 +49,10 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
 
       {/* Details and Actions Card */}
       <Card className="shadow-lg">
-        <CardContent className="p-6 space-y-4">
+        <CardHeader>
+            <CardTitle className="text-2xl flex items-center">Why employ {profile.name.split(' ')[0]}?</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 pt-0 space-y-4"> {/* Adjusted pt-0 as CardHeader is present */}
           <div>
             <p className="text-xl text-primary">{profile.headline}</p>
             <div className="flex items-center flex-wrap space-x-2 text-sm text-muted-foreground mt-1">
@@ -113,13 +117,13 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
             </CardContent>
           </Card>
           
-          {profile.portfolioLinks && profile.portfolioLinks.length > 0 && (
+          {profile.portfolioLinks && profile.portfolioLinks.length > 0 && profile.portfolioLinks.some(l => l.url.trim() !== "") && (
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="text-xl flex items-center"><Briefcase className="mr-2 h-5 w-5 text-primary" /> Portfolio</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {profile.portfolioLinks.map((link, index) => (
+                {profile.portfolioLinks.filter(l => l.url.trim() !== "").map((link, index) => (
                   <a
                     key={index}
                     href={link.url}
@@ -128,7 +132,7 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
                     className="flex items-center text-primary hover:underline group"
                   >
                     <ExternalLink className="mr-2 h-4 w-4 flex-shrink-0" />
-                    <span className="truncate group-hover:text-primary/80">{link.title}</span>
+                    <span className="truncate group-hover:text-primary/80">{link.title || link.url}</span>
                   </a>
                 ))}
               </CardContent>
@@ -184,3 +188,4 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
     </div>
   );
 }
+
