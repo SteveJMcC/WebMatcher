@@ -102,9 +102,9 @@ export default function ManageJobPage() {
 
   useEffect(() => {
     if (job && typeof document !== 'undefined') {
-      document.title = `Manage Job: ${job.title} | WebConnect`;
+      document.title = `Manage Job: ${job.title} | WebMatcher`;
     } else if (!job && !pageLoading && typeof document !== 'undefined') {
-      document.title = `Job Not Found | WebConnect`;
+      document.title = `Job Not Found | WebMatcher`;
     }
   }, [job, pageLoading]);
 
@@ -396,3 +396,4 @@ export default function ManageJobPage() {
     </div>
   );
 }
+

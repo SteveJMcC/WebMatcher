@@ -41,7 +41,7 @@ export default function EditJobPage() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.title = jobToEdit ? `Edit Job: ${jobToEdit.title} - WebConnect` : "Edit Job - WebConnect";
+      document.title = jobToEdit ? `Edit Job: ${jobToEdit.title} - WebMatcher` : "Edit Job - WebMatcher";
     }
   }, [jobToEdit]);
 
@@ -137,3 +137,4 @@ export default function EditJobPage() {
     </div>
   );
 }
+

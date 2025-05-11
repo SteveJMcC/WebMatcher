@@ -1,3 +1,4 @@
+
 "use client";
 
 import { UserJobList } from "@/components/features/user-job-list";
@@ -38,7 +39,7 @@ export default function UserDashboardPage() {
 
   useEffect(() => {
      if (typeof document !== 'undefined') {
-        document.title = `My Jobs - ${displayName || 'Client'} Dashboard | WebConnect`;
+        document.title = `My Jobs - ${displayName || 'Client'} Dashboard | WebMatcher`;
     }
 
     if (!authIsLoading) {
@@ -107,3 +108,4 @@ export default function UserDashboardPage() {
     </div>
   );
 }
+

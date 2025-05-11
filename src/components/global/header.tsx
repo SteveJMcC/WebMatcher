@@ -52,7 +52,7 @@ export function Header() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2 text-2xl font-bold text-primary">
           <Sparkles className="h-7 w-7" />
-          WebConnect
+          WebMatcher
         </Link>
 
         <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
@@ -186,3 +186,4 @@ export function Header() {
     </header>
   );
 }
+

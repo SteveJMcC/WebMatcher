@@ -41,8 +41,8 @@ export default function LoginPage() {
   useEffect(() => {
     if (typeof document !== 'undefined') {
       document.title = loginStep === 'roleSelection'
-        ? "Login - Select Role | WebConnect"
-        : `Login as ${currentUserType === 'designer' ? 'Web Professional' : 'Client'} | WebConnect`;
+        ? "Login - Select Role | WebMatcher"
+        : `Login as ${currentUserType === 'designer' ? 'Web Professional' : 'Client'} | WebMatcher`;
     }
   }, [loginStep, currentUserType]);
 
@@ -82,7 +82,7 @@ export default function LoginPage() {
         <Card className="w-full max-w-md shadow-xl">
           <CardHeader className="text-center">
             <LogIn className="mx-auto h-12 w-12 text-primary mb-4" />
-            <CardTitle className="text-3xl font-bold">Login to WebConnect</CardTitle>
+            <CardTitle className="text-3xl font-bold">Login to WebMatcher</CardTitle>
             <CardDescription>Are you a Client or a Web Professional?</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -173,3 +173,4 @@ export default function LoginPage() {
     </div>
   );
 }
+

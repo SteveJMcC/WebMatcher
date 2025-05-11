@@ -2,8 +2,8 @@ import { PricingPlans } from "@/components/features/pricing-plans";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pricing - WebConnect",
-  description: "Explore token plans for designers to apply for jobs and enhance their visibility on WebConnect.",
+  title: "Pricing - WebMatcher",
+  description: "Explore token plans for designers to apply for jobs and enhance their visibility on WebMatcher.",
 };
 
 export default function PricingPage() {
@@ -13,3 +13,4 @@ export default function PricingPage() {
     </div>
   );
 }
+

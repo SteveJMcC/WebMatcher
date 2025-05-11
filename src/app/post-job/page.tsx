@@ -15,7 +15,7 @@ export default function PostJobPage() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-        document.title = "Post a Job - WebConnect";
+        document.title = "Post a Job - WebMatcher";
     }
 
     if (!authIsLoading) {
@@ -50,3 +50,4 @@ export default function PostJobPage() {
     </div>
   );
 }
+

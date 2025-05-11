@@ -14,7 +14,7 @@ export default function SetupDesignerProfilePage() {
 
   useEffect(() => {
      if (typeof document !== 'undefined') {
-        document.title = (profileSetupComplete && userType === 'designer') ? "Update Designer Profile - WebConnect" : "Setup Designer Profile - WebConnect";
+        document.title = (profileSetupComplete && userType === 'designer') ? "Update Designer Profile - WebMatcher" : "Setup Designer Profile - WebMatcher";
     }
 
     if (!authIsLoading) {
@@ -48,3 +48,4 @@ export default function SetupDesignerProfilePage() {
     </div>
   );
 }
+

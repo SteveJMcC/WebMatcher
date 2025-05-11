@@ -94,7 +94,7 @@ export default function DesignerDashboardPage() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-        document.title = `${displayName ? displayName + "'s" : 'Web Professional'} Dashboard - My Opportunities | WebConnect`;
+        document.title = `${displayName ? displayName + "'s" : 'Web Professional'} Dashboard - My Opportunities | WebMatcher`;
     }
 
     if (!authIsLoading) {
@@ -253,3 +253,4 @@ export default function DesignerDashboardPage() {
     </div>
   );
 }
+

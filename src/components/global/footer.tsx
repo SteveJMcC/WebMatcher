@@ -9,7 +9,7 @@ export function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary mb-2">
               <Sparkles className="h-6 w-6" />
-              WebConnect
+              WebMatcher
             </Link>
             <p className="text-sm">Connecting you with top web talent and exciting projects.</p>
           </div>
@@ -31,9 +31,10 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-8 border-t border-border text-center text-sm">
-          <p>&copy; {new Date().getFullYear()} WebConnect. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} WebMatcher. All rights reserved.</p>
         </div>
       </div>
     </footer>
   );
 }
+

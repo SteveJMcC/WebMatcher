@@ -19,7 +19,7 @@ const geistSans = Geist({
 // });
 
 export const metadata: Metadata = {
-  title: 'WebConnect - Connect with Web Professionals',
+  title: 'WebMatcher - Connect with Web Professionals',
   description: 'Find the best designers and developers for your web projects, or showcase your skills to find exciting opportunities.',
 };
 
@@ -49,3 +49,4 @@ export default function RootLayout({
     </html>
   );
 }
+

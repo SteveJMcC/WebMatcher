@@ -89,7 +89,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-      document.title = "Admin Dashboard - WebConnect";
+      document.title = "Admin Dashboard - WebMatcher";
     }
     fetchAdminData();
   }, []);
@@ -451,3 +451,4 @@ export default function AdminPage() {
     </div>
   );
 }
+

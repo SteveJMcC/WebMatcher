@@ -15,7 +15,7 @@ export default function SetupUserProfilePage() {
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
-        document.title = (profileSetupComplete && userType === 'user') ? "Update Client Profile - WebConnect" : "Setup Client Profile - WebConnect";
+        document.title = (profileSetupComplete && userType === 'user') ? "Update Client Profile - WebMatcher" : "Setup Client Profile - WebMatcher";
     }
 
     if (!authIsLoading) {
@@ -47,3 +47,4 @@ export default function SetupUserProfilePage() {
     </div>
   );
 }
+

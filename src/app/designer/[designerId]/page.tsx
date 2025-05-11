@@ -63,9 +63,9 @@ export default function DesignerProfilePage() {
   useEffect(() => {
     if (typeof document !== 'undefined') {
       if (profile) {
-        document.title = `${profile.name} - Designer Profile | WebConnect`;
+        document.title = `${profile.name} - Designer Profile | WebMatcher`;
       } else if (!loading && !profile) {
-        document.title = "Designer Not Found | WebConnect";
+        document.title = "Designer Not Found | WebMatcher";
       }
     }
   }, [profile, loading]);
@@ -152,3 +152,4 @@ export default function DesignerProfilePage() {
     </div>
   );
 }
+

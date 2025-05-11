@@ -53,9 +53,9 @@ export default function ClientProfilePage() {
   
   useEffect(() => {
     if (typeof document !== 'undefined' && profile) {
-      document.title = `${profile.name} - Client Profile | WebConnect`;
+      document.title = `${profile.name} - Client Profile | WebMatcher`;
     } else if (typeof document !== 'undefined' && !profile && !loading) {
-      document.title = "Client Not Found | WebConnect";
+      document.title = "Client Not Found | WebMatcher";
     }
   }, [profile, loading]);
 
@@ -132,3 +132,4 @@ export default function ClientProfilePage() {
     </div>
   );
 }
+

@@ -53,7 +53,7 @@ export default function HomePage() {
             Connect. Create. Conquer.
           </h1>
           <p className="text-lg md:text-xl text-foreground/80 max-w-2xl mx-auto mb-10">
-            WebConnect is your premier platform for finding expert web designers or showcasing your design prowess.
+            WebMatcher is your premier platform for finding expert web designers or showcasing your design prowess.
             Effortless job posting, intelligent matching, and AI-powered insights.
           </p>
           <div className="space-x-4">
@@ -70,7 +70,7 @@ export default function HomePage() {
       {/* Features Section */}
       <section className="w-full py-16 lg:py-24">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12 text-foreground">Why Choose WebConnect?</h2>
+          <h2 className="text-3xl font-bold text-center mb-12 text-foreground">Why Choose WebMatcher?</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <Card key={index} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -124,7 +124,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <p className="text-muted-foreground italic">
-                    "WebConnect made it incredibly easy to find {i % 2 === 0 ? "a skilled designer for my project" : "exciting new projects"}. The platform is intuitive and the AI features are a game-changer!"
+                    "WebMatcher made it incredibly easy to find {i % 2 === 0 ? "a skilled designer for my project" : "exciting new projects"}. The platform is intuitive and the AI features are a game-changer!"
                   </p>
                 </CardContent>
               </Card>
@@ -138,7 +138,7 @@ export default function HomePage() {
         <div className="container mx-auto text-center px-4">
           <h2 className="text-3xl font-bold mb-6">Ready to Start Your Next Web Project?</h2>
           <p className="text-lg max-w-xl mx-auto mb-8">
-            Join WebConnect today and experience a seamless way to connect, collaborate, and create amazing web experiences.
+            Join WebMatcher today and experience a seamless way to connect, collaborate, and create amazing web experiences.
           </p>
           <div className="space-x-4">
             <Button size="lg" variant="secondary" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">

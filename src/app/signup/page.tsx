@@ -60,7 +60,7 @@ export default function SignupPage() {
         <CardHeader className="text-center">
           <UserPlus className="mx-auto h-12 w-12 text-primary mb-4" />
           <CardTitle className="text-3xl font-bold">Create Your Account</CardTitle>
-          <CardDescription>Join WebConnect and start connecting today!</CardDescription>
+          <CardDescription>Join WebMatcher and start connecting today!</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -148,3 +148,4 @@ export default function SignupPage() {
     </div>
   );
 }
+
