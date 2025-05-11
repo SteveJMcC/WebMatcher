@@ -35,7 +35,7 @@ async function getDesignerProfile(designerId: string): Promise<DesignerProfile |
           portfolioLinks: designerData.designerPortfolioLinks || [],
           budgetMin: designerData.designerBudgetMin ?? 0,
           budgetMax: designerData.designerBudgetMax ?? 0,
-          tokens: designerData.designerTokens ?? 0,
+          tokens: designerData.designerTokens ?? 200, // Ensure default to 200 if undefined
           email: designerData.designerEmail || designerData.email || "No email provided",
           phone: designerData.designerPhone || "No phone provided",
           city: designerData.designerCity || "Not specified",

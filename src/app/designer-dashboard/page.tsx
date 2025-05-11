@@ -134,8 +134,8 @@ export default function DesignerDashboardPage() {
 
   const mockDesignerStats = {
     profileViews: 156,
-    activeApplications: selectedJob?.applicants?.length || 0, 
-    tokensRemaining: designerTokens ?? 0, 
+    activeApplications: selectedJob?.applicants?.filter(app => app.status !== 'designer_deleted').length || 0,
+    tokensRemaining: designerTokens ?? 0, // Use designerTokens from useAuth, default to 0 if null/undefined
   };
 
   if (authIsLoading || (!authIsLoading && (!isAuthenticated || userType !== 'designer' || !profileSetupComplete))) {

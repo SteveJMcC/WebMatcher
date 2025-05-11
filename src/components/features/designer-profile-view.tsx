@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, DollarSign, ExternalLink, Mail, MapPin, Palette, Star, CheckCircle, Award, Phone, UserCircle as UserIconLucide, HomeIcon } from "lucide-react";
+import { Briefcase, DollarSign, ExternalLink, Mail, MapPin, Palette, Star, CheckCircle, Award, Phone, UserCircle as UserIconLucide, HomeIcon, Coins } from "lucide-react";
 import Image from "next/image";
 import { maskEmail, maskPhone } from "@/lib/masking-utils";
 
@@ -179,7 +179,12 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
                 <div className="flex justify-between"><span>Jobs Completed:</span> <span className="font-semibold text-foreground">50+</span></div>
                 <div className="flex justify-between"><span>Success Rate:</span> <span className="font-semibold text-foreground">98%</span></div>
                 <div className="flex justify-between"><span>Joined:</span> <span className="font-semibold text-foreground">{new Date(profile.joinedDate).toLocaleDateString()}</span></div>
-                <div className="flex justify-between"><span>Tokens:</span> <span className="font-semibold text-foreground">{profile.tokens}</span></div>
+                <div className="flex justify-between items-center">
+                  <span>Tokens:</span> 
+                  <span className="font-semibold text-foreground flex items-center">
+                    <Coins className="h-4 w-4 mr-1 text-amber-500" /> {profile.tokens}
+                  </span>
+                </div>
             </CardContent>
           </Card>
 

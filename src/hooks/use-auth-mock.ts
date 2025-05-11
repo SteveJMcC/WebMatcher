@@ -134,7 +134,7 @@ export const useAuthMock = (): AuthState => {
           setDesignerPhone(activeUserProfile.designerPhone);
           setDesignerCity(activeUserProfile.designerCity || null);
           setDesignerPostalCode(activeUserProfile.designerPostalCode || null);
-          setDesignerTokens(activeUserProfile.designerTokens ?? 200); 
+          setDesignerTokens(activeUserProfile.designerTokens ?? 200); // Ensure default to 200
         }
       } else {
         resetState();
@@ -163,7 +163,7 @@ export const useAuthMock = (): AuthState => {
       psc = existingProfile.profileSetupComplete;
       currentData = existingProfile;
     } else {
-      // New user signup
+      // New user signup: ensure designer tokens are set to 200 if it's a new designer
       currentData.designerTokens = type === 'designer' ? 200 : undefined;
     }
 
@@ -188,11 +188,11 @@ export const useAuthMock = (): AuthState => {
       designerPortfolioLinks: type === 'designer' ? (currentData.designerPortfolioLinks || [{title: "", url:""}]) : undefined,
       designerBudgetMin: type === 'designer' ? (currentData.designerBudgetMin ?? 0) : undefined,
       designerBudgetMax: type === 'designer' ? (currentData.designerBudgetMax ?? 0) : undefined,
-      designerEmail: type === 'designer' ? (currentData.designerEmail || loginEmail) : loginEmail,
-      designerPhone: type === 'designer' ? (currentData.designerPhone || '') : '',
+      designerEmail: type === 'designer' ? (currentData.designerEmail || loginEmail) : loginEmail, // Ensure designerEmail is set
+      designerPhone: type === 'designer' ? (currentData.designerPhone || '') : '', // Ensure designerPhone is set
       designerCity: type === 'designer' ? (currentData.designerCity || undefined) : undefined,
       designerPostalCode: type === 'designer' ? (currentData.designerPostalCode || undefined) : undefined,
-      designerTokens: type === 'designer' ? (existingProfile ? (existingProfile.designerTokens ?? 200) : 200) : undefined,
+      designerTokens: type === 'designer' ? (existingProfile ? (existingProfile.designerTokens ?? 200) : 200) : undefined, // Default to 200
     };
     
     // Update state
@@ -207,8 +207,9 @@ export const useAuthMock = (): AuthState => {
     if (type === 'user') {
       setCompanyName(newProfileData.companyName || null);
       setUserAvatarUrl(newProfileData.userAvatarUrl || null);
+      // Clear designer specific fields from state
       setDesignerHeadline(null); setDesignerAvatarUrl(null); setDesignerSkills(null); setDesignerBio(null); setDesignerPortfolioLinks(null); setDesignerBudgetMin(null); setDesignerBudgetMax(null); setDesignerContactEmail(null); setDesignerPhone(null); setDesignerCity(null); setDesignerPostalCode(null); setDesignerTokens(null);
-    } else {
+    } else { // type === 'designer'
       setDesignerHeadline(newProfileData.designerHeadline || null);
       setDesignerAvatarUrl(newProfileData.designerAvatarUrl || null);
       setDesignerSkills(newProfileData.designerSkills || null);
@@ -220,7 +221,8 @@ export const useAuthMock = (): AuthState => {
       setDesignerPhone(newProfileData.designerPhone);
       setDesignerCity(newProfileData.designerCity || null);
       setDesignerPostalCode(newProfileData.designerPostalCode || null);
-      setDesignerTokens(newProfileData.designerTokens ?? 200);
+      setDesignerTokens(newProfileData.designerTokens ?? 200); // Ensure state is updated with 200
+      // Clear user specific fields from state
       setCompanyName(null); setUserAvatarUrl(null);
     }
 
@@ -291,7 +293,7 @@ export const useAuthMock = (): AuthState => {
   const saveDesignerProfile = useCallback((profileData: DesignerProfileFormData) => {
     if (isAuthenticated && userType === 'designer' && email && userId && joinedDate ) { 
         const userKey = `${email}_${userType}`; 
-        const currentTokens = designerTokens ?? allProfiles[userKey]?.designerTokens ?? 200;
+        const currentTokens = designerTokens ?? allProfiles[userKey]?.designerTokens ?? 200; // Default to 200
         const avatar = profileData.avatarUrl || designerAvatarUrl || `https://i.pravatar.cc/150?u=${email}`;
 
         const updatedProfile: StoredAuthData = {
@@ -343,18 +345,20 @@ export const useAuthMock = (): AuthState => {
 
   const updateDesignerTokens = useCallback((count: number) => {
     if (isAuthenticated && userType === 'designer' && email && userId) {
-      const newTotalTokens = (designerTokens ?? 0) + count;
+      const newTotalTokens = (designerTokens ?? 0) + count; // Ensure designerTokens is not null
       setDesignerTokens(newTotalTokens);
 
       const userKey = `${email}_${userType}`;
-      const currentProfile = allProfiles[userKey] || {};
-      const updatedProfile = {
-        ...currentProfile,
-        designerTokens: newTotalTokens,
-      };
-      const newAllProfiles = { ...allProfiles, [userKey]: updatedProfile as StoredAuthData };
-      setAllProfiles(newAllProfiles);
-      localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(newAllProfiles));
+      const currentProfile = allProfiles[userKey]; // Should always exist if authenticated
+      if (currentProfile) {
+        const updatedProfile = {
+          ...currentProfile,
+          designerTokens: newTotalTokens,
+        };
+        const newAllProfiles = { ...allProfiles, [userKey]: updatedProfile as StoredAuthData };
+        setAllProfiles(newAllProfiles);
+        localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(newAllProfiles));
+      }
     }
   }, [isAuthenticated, userType, email, userId, designerTokens, allProfiles]);
 
