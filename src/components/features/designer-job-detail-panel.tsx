@@ -145,8 +145,8 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                 </CardDescription>
             </div>
             <div className="flex flex-col items-start md:items-end gap-2 self-start md:self-auto">
-                <Badge variant="secondary" className="text-base px-4 py-1.5 bg-primary/10 text-primary border-primary/30 whitespace-nowrap">
-                   Estimated budget: {job.budget}
+                <Badge variant="secondary" className="text-sm px-3 py-1 bg-primary/10 text-primary border-primary/30 whitespace-nowrap self-start md:self-auto">
+                   Est. budget: {job.budget}
                 </Badge>
                  {hasApplied ? (
                     <div className="flex items-center text-green-700 bg-green-500/10 px-3 py-1.5 rounded-md text-sm font-medium">
@@ -157,9 +157,9 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
                         Job Not Open for Applications
                     </Badge>
                 ) : (
-                    <div className="w-full md:w-auto max-w-xs">
+                    <div className="w-full md:w-auto max-w-[200px]">
                         <Button
-                            size="lg"
+                            size="default" 
                             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
                             onClick={handleApplyAndRevealContact}
                             disabled={isApplying || (designerTokens ?? 0) < tokenCost}
@@ -282,13 +282,13 @@ export function DesignerJobDetailPanel({ job }: DesignerJobDetailPanelProps) {
       </CardContent>
       <CardFooter className="border-t pt-6 flex flex-col items-stretch gap-3">
          {hasApplied ? (
-             <Button size="lg" variant="outline" disabled className="w-full text-base py-3">
-                <CheckCircle className="mr-2 h-5 w-5 text-green-500" /> Client Contact Details Unlocked
+             <Button size="default" variant="outline" disabled className="w-full text-base py-3 max-w-[200px] self-center">
+                <CheckCircle className="mr-2 h-5 w-5 text-green-500" /> Client Contact Unlocked
             </Button>
          ) : (
             <Button 
-                size="lg" 
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-3 max-w-md self-center"
+                size="default"
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground text-base py-3 max-w-[200px] self-center"
                 onClick={handleApplyAndRevealContact}
                 disabled={isApplying || (designerTokens ?? 0) < tokenCost || job.status !== 'open' || job.adminPaused === true}
             >
