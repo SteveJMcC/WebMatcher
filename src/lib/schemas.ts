@@ -53,9 +53,10 @@ export const DesignerProfileSchema = z.object({
   email: z.string().email("Invalid email address."),
   phone: z.string()
     .min(10, "Phone number must be at least 10 digits.")
-    .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format (e.g., +1234567890)."),
-  city: z.string().min(2, "City must be at least 2 characters.").max(50, "City must be at most 50 characters."),
-  postalCode: z.string().min(3, "Postal code must be at least 3 characters.").max(20, "Postal code must be at most 20 characters."),
+    .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format (e.g., +1234567890).")
+    .optional().or(z.literal('')),
+  city: z.string().min(2, "City must be at least 2 characters.").max(50, "City must be at most 50 characters.").optional().or(z.literal('')),
+  postalCode: z.string().min(3, "Postal code must be at least 3 characters.").max(20, "Postal code must be at most 20 characters.").optional().or(z.literal('')),
 }).refine(data => data.budgetMax >= data.budgetMin, {
   message: "Maximum budget cannot be less than minimum budget.",
   path: ["budgetMax"],
@@ -66,6 +67,15 @@ export const UserProfileSchema = z.object({
   companyName: z.string().max(100, "Company name must be at most 100 characters.").optional().or(z.literal('')),
 });
 
+export const SignupFormSchema = z.object({
+  email: z.string().email("Please enter a valid email address."),
+  displayName: z.string().min(2, "Display Name must be at least 2 characters.").max(50, "Display Name must be at most 50 characters."),
+  userType: z.enum(['user', 'designer'], {
+    required_error: "Please select an account type."
+  }),
+});
+
 export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
 export type DesignerProfileFormData = z.infer<typeof DesignerProfileSchema>;
 export type UserProfileFormData = z.infer<typeof UserProfileSchema>;
+export type SignupFormData = z.infer<typeof SignupFormSchema>;
