@@ -28,9 +28,11 @@ interface StoredAuthData {
   designerPortfolioLinks?: { title: string; url: string }[];
   designerBudgetMin?: number;
   designerBudgetMax?: number;
-  designerEmail?: string; 
-  designerPhone?: string;
-  designerTokens?: number; // Added designerTokens
+  designerEmail: string; 
+  designerPhone: string;
+  designerCity?: string;
+  designerPostalCode?: string;
+  designerTokens?: number; 
 }
 
 export interface AuthState {
@@ -54,13 +56,15 @@ export interface AuthState {
   designerBudgetMax: number | null;
   designerEmail: string | null; 
   designerPhone: string | null;
-  designerTokens: number | null; // Added designerTokens
+  designerCity: string | null;
+  designerPostalCode: string | null;
+  designerTokens: number | null; 
 
   login: (type: 'user' | 'designer', email: string, displayNameForSignup?: string, id?: string) => void;
   logout: () => void;
   saveClientProfile: (profileData: UserProfileFormData) => void;
   saveDesignerProfile: (profileData: DesignerProfileFormData) => void;
-  updateDesignerTokens: (count: number) => void; // Added updateDesignerTokens
+  updateDesignerTokens: (count: number) => void; 
 }
 
 export const useAuthMock = (): AuthState => {
@@ -82,7 +86,9 @@ export const useAuthMock = (): AuthState => {
   const [designerBudgetMax, setDesignerBudgetMax] = useState<number | null>(null);
   const [designerContactEmail, setDesignerContactEmail] = useState<string | null>(null); 
   const [designerPhone, setDesignerPhone] = useState<string | null>(null);
-  const [designerTokens, setDesignerTokens] = useState<number | null>(null); // Added designerTokens state
+  const [designerCity, setDesignerCity] = useState<string | null>(null);
+  const [designerPostalCode, setDesignerPostalCode] = useState<string | null>(null);
+  const [designerTokens, setDesignerTokens] = useState<number | null>(null); 
 
 
   const [allProfiles, setAllProfiles] = useState<Record<string, StoredAuthData>>({});
@@ -115,9 +121,11 @@ export const useAuthMock = (): AuthState => {
           setDesignerPortfolioLinks(activeUserProfile.designerPortfolioLinks || null);
           setDesignerBudgetMin(activeUserProfile.designerBudgetMin ?? null);
           setDesignerBudgetMax(activeUserProfile.designerBudgetMax ?? null);
-          setDesignerContactEmail(activeUserProfile.designerEmail || null); 
-          setDesignerPhone(activeUserProfile.designerPhone || null);
-          setDesignerTokens(activeUserProfile.designerTokens ?? 25); // Load tokens, default 25
+          setDesignerContactEmail(activeUserProfile.designerEmail); 
+          setDesignerPhone(activeUserProfile.designerPhone);
+          setDesignerCity(activeUserProfile.designerCity || null);
+          setDesignerPostalCode(activeUserProfile.designerPostalCode || null);
+          setDesignerTokens(activeUserProfile.designerTokens ?? 25); 
         }
       } else {
         // Reset to a logged-out state
@@ -137,7 +145,9 @@ export const useAuthMock = (): AuthState => {
         setDesignerBudgetMax(null);
         setDesignerContactEmail(null);
         setDesignerPhone(null);
-        setDesignerTokens(null); // Reset tokens
+        setDesignerCity(null);
+        setDesignerPostalCode(null);
+        setDesignerTokens(null); 
       }
     } catch (error) {
       console.error("Failed to load auth state from localStorage", error);
@@ -160,7 +170,9 @@ export const useAuthMock = (): AuthState => {
         setDesignerBudgetMax(null);
         setDesignerContactEmail(null);
         setDesignerPhone(null);
-        setDesignerTokens(null); // Reset tokens
+        setDesignerCity(null);
+        setDesignerPostalCode(null);
+        setDesignerTokens(null); 
     }
     setIsLoading(false);
   }, []);
@@ -182,7 +194,9 @@ export const useAuthMock = (): AuthState => {
     let desBudgetMax: number | null = null;
     let desContactEmail: string | null = null;
     let desPhone: string | null = null;
-    let desTokens: number | null = type === 'designer' ? 25 : null; // Default tokens for new designer
+    let desCity: string | null = null;
+    let desPostalCode: string | null = null;
+    let desTokens: number | null = type === 'designer' ? 25 : null; 
 
 
     if (existingProfile) {
@@ -198,9 +212,11 @@ export const useAuthMock = (): AuthState => {
         desPortfolio = existingProfile.designerPortfolioLinks || null;
         desBudgetMin = existingProfile.designerBudgetMin ?? null;
         desBudgetMax = existingProfile.designerBudgetMax ?? null;
-        desContactEmail = existingProfile.designerEmail || null;
-        desPhone = existingProfile.designerPhone || null;
-        desTokens = existingProfile.designerTokens ?? 25; // Load existing tokens or default
+        desContactEmail = existingProfile.designerEmail;
+        desPhone = existingProfile.designerPhone;
+        desCity = existingProfile.designerCity || null;
+        desPostalCode = existingProfile.designerPostalCode || null;
+        desTokens = existingProfile.designerTokens ?? 25; 
       }
     }
 
@@ -213,7 +229,7 @@ export const useAuthMock = (): AuthState => {
 
     if (type === 'user') {
       setCompanyName(compName);
-      setDesignerHeadline(null); setDesignerAvatarUrl(null); setDesignerSkills(null); setDesignerBio(null); setDesignerPortfolioLinks(null); setDesignerBudgetMin(null); setDesignerBudgetMax(null); setDesignerContactEmail(null); setDesignerPhone(null); setDesignerTokens(null);
+      setDesignerHeadline(null); setDesignerAvatarUrl(null); setDesignerSkills(null); setDesignerBio(null); setDesignerPortfolioLinks(null); setDesignerBudgetMin(null); setDesignerBudgetMax(null); setDesignerContactEmail(null); setDesignerPhone(null); setDesignerCity(null); setDesignerPostalCode(null); setDesignerTokens(null);
     } else if (type === 'designer') {
       setDesignerHeadline(desHeadline);
       setDesignerAvatarUrl(desAvatar);
@@ -224,7 +240,9 @@ export const useAuthMock = (): AuthState => {
       setDesignerBudgetMax(desBudgetMax);
       setDesignerContactEmail(desContactEmail);
       setDesignerPhone(desPhone);
-      setDesignerTokens(desTokens); // Set designer tokens state
+      setDesignerCity(desCity);
+      setDesignerPostalCode(desPostalCode);
+      setDesignerTokens(desTokens); 
       setCompanyName(null);
     }
 
@@ -245,9 +263,11 @@ export const useAuthMock = (): AuthState => {
         designerPortfolioLinks: type === 'designer' ? desPortfolio : undefined,
         designerBudgetMin: type === 'designer' ? desBudgetMin : undefined,
         designerBudgetMax: type === 'designer' ? desBudgetMax : undefined,
-        designerEmail: type === 'designer' ? desContactEmail : undefined, 
-        designerPhone: type === 'designer' ? desPhone : undefined,
-        designerTokens: type === 'designer' ? desTokens : undefined, // Store tokens
+        designerEmail: type === 'designer' ? desContactEmail : (existingProfile?.designerEmail || loginEmail), // ensure designerEmail is set
+        designerPhone: type === 'designer' ? desPhone : (existingProfile?.designerPhone || ''), // ensure designerPhone is set
+        designerCity: type === 'designer' ? desCity : undefined,
+        designerPostalCode: type === 'designer' ? desPostalCode : undefined,
+        designerTokens: type === 'designer' ? desTokens : undefined, 
       };
       const newAllProfiles = { ...allProfiles, [userKey]: updatedProfileData };
       setAllProfiles(newAllProfiles); 
@@ -275,7 +295,9 @@ export const useAuthMock = (): AuthState => {
     setDesignerBudgetMax(null);
     setDesignerContactEmail(null);
     setDesignerPhone(null);
-    setDesignerTokens(null); // Clear tokens
+    setDesignerCity(null);
+    setDesignerPostalCode(null);
+    setDesignerTokens(null); 
 
 
     try {
@@ -307,8 +329,10 @@ export const useAuthMock = (): AuthState => {
         designerPortfolioLinks: undefined,
         designerBudgetMin: undefined,
         designerBudgetMax: undefined,
-        designerEmail: undefined, 
-        designerPhone: undefined,
+        designerEmail: email, 
+        designerPhone: '',
+        designerCity: undefined,
+        designerPostalCode: undefined,
         designerTokens: undefined,
       };
 
@@ -343,9 +367,11 @@ export const useAuthMock = (): AuthState => {
             designerPortfolioLinks: profileData.portfolioLinks || undefined,
             designerBudgetMin: profileData.budgetMin,
             designerBudgetMax: profileData.budgetMax,
-            designerEmail: profileData.email || undefined, 
-            designerPhone: profileData.phone || undefined,
-            designerTokens: currentTokens, // Preserve existing tokens
+            designerEmail: profileData.email, 
+            designerPhone: profileData.phone,
+            designerCity: profileData.city,
+            designerPostalCode: profileData.postalCode,
+            designerTokens: currentTokens, 
         };
         const newAllProfiles = { ...allProfiles, [userKey]: updatedProfile };
         setAllProfiles(newAllProfiles); 
@@ -359,9 +385,11 @@ export const useAuthMock = (): AuthState => {
         setDesignerPortfolioLinks(profileData.portfolioLinks || null);
         setDesignerBudgetMin(profileData.budgetMin);
         setDesignerBudgetMax(profileData.budgetMax);
-        setDesignerContactEmail(profileData.email || null); 
-        setDesignerPhone(profileData.phone || null);
-        setDesignerTokens(currentTokens); // Update state for tokens
+        setDesignerContactEmail(profileData.email); 
+        setDesignerPhone(profileData.phone);
+        setDesignerCity(profileData.city);
+        setDesignerPostalCode(profileData.postalCode);
+        setDesignerTokens(currentTokens); 
         setProfileSetupComplete(true);
     }
   }, [isAuthenticated, userType, email, userId, allProfiles, designerTokens]);
@@ -402,12 +430,13 @@ export const useAuthMock = (): AuthState => {
     designerBudgetMax,
     designerEmail: designerContactEmail, 
     designerPhone,
-    designerTokens, // Expose designerTokens
+    designerCity,
+    designerPostalCode,
+    designerTokens, 
     login, 
     logout, 
     saveClientProfile,
     saveDesignerProfile,
-    updateDesignerTokens, // Expose updateDesignerTokens
+    updateDesignerTokens, 
   };
 };
-

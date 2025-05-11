@@ -14,7 +14,7 @@ export const JobPostingSchema = z.object({
     required_error: "Please select a budget range.",
   }).describe("The estimated budget range for this project."),
   clientEmail: z.string().email("Please enter a valid email address for client contact."),
-  clientPhone: z.string().min(10, "Phone number must be at least 10 digits.").regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format (e.g., +1234567890)."),
+  clientPhone: z.string().min(10, "Phone number must be at least 10 digits.").regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format (e.g., +1234567890).").or(z.literal("")),
   clientCity: z.string().min(2, "City must be at least 2 characters.").max(50, "City must be at most 50 characters."),
   clientPostalCode: z.string().min(3, "Postal code must be at least 3 characters.").max(20, "Postal code must be at most 20 characters."),
   skillsRequired: z.array(z.object({ id: z.string(), text: z.string() })).optional().default([]),
@@ -50,11 +50,12 @@ export const DesignerProfileSchema = z.object({
   })).max(5, "You can add up to 5 portfolio links.").optional().default([{ title: "", url: "" }]),
   budgetMin: z.coerce.number().min(0, "Minimum budget must be a non-negative number."),
   budgetMax: z.coerce.number().min(0, "Maximum budget must be a non-negative number."),
-  email: z.string().email("Invalid email address.").optional().or(z.literal('')),
+  email: z.string().email("Invalid email address."),
   phone: z.string()
-    .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format (e.g., +1234567890).")
-    .optional()
-    .or(z.literal('')),
+    .min(10, "Phone number must be at least 10 digits.")
+    .regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format (e.g., +1234567890)."),
+  city: z.string().min(2, "City must be at least 2 characters.").max(50, "City must be at most 50 characters."),
+  postalCode: z.string().min(3, "Postal code must be at least 3 characters.").max(20, "Postal code must be at most 20 characters."),
 }).refine(data => data.budgetMax >= data.budgetMin, {
   message: "Maximum budget cannot be less than minimum budget.",
   path: ["budgetMax"],
@@ -68,4 +69,3 @@ export const UserProfileSchema = z.object({
 export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
 export type DesignerProfileFormData = z.infer<typeof DesignerProfileSchema>;
 export type UserProfileFormData = z.infer<typeof UserProfileSchema>;
-

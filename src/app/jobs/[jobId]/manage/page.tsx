@@ -38,15 +38,10 @@ async function getJobDetails(jobId: string, userId: string): Promise<JobPosting 
 
 
 async function getFullDesignerProfile(designerId: string): Promise<DesignerProfile | null> {
-    // In a real app, this would fetch from a DB or a more robust localStorage structure for designer profiles.
-    // For now, we'll try to retrieve it from the combined profiles in localStorage.
     if (typeof window !== 'undefined') {
         const profilesString = localStorage.getItem('mockUserProfiles');
         if (profilesString) {
             const allProfiles = JSON.parse(profilesString) as Record<string, any>;
-            // Designer profiles might be stored under a key like 'email_designer'
-            // And their userId is 'mock-designer-email'
-            // This lookup is a bit fragile and depends on how designer IDs are formed and stored.
             const designerEntry = Object.values(allProfiles).find(
                 (p) => p.userType === 'designer' && p.userId === designerId
             );
@@ -63,20 +58,21 @@ async function getFullDesignerProfile(designerId: string): Promise<DesignerProfi
                     portfolioLinks: designerEntry.designerPortfolioLinks || [],
                     budgetMin: designerEntry.designerBudgetMin ?? 0,
                     budgetMax: designerEntry.designerBudgetMax ?? 0,
-                    email: designerEntry.designerEmail || designerEntry.email,
+                    email: designerEntry.designerEmail,
                     phone: designerEntry.designerPhone,
+                    city: designerEntry.designerCity || "Not specified",
+                    postalCode: designerEntry.designerPostalCode || "N/A",
                     tokens: designerEntry.designerTokens ?? 0,
                     joinedDate: designerEntry.joinedDate || new Date().toISOString(), 
                 };
             }
         }
     }
-
-    // Fallback mock data if not found - this part might become less relevant as localStorage becomes source of truth
+    // Fallback mock data if not found
     const profiles: Record<string, DesignerProfile> = {
-        "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design, focusing on creating intuitive and high-converting user experiences. Over 5 years of experience helping businesses grow their online presence.", budgetMin: 2000, budgetMax: 6000, email: "alice.w@example.com", phone: "+15551110000", portfolioLinks: [{title: "Portfolio", url: "https://example.com/alice"}], tokens: 50, joinedDate: new Date('2022-03-10T10:00:00.000Z').toISOString() },
-        "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer & Developer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}, {id:"react", text:"React"}], bio: "Building engaging mobile-first web experiences for startups and established companies. Proficient in modern JavaScript frameworks and responsive design principles.", budgetMin: 2500, budgetMax: 7000, email: "bob.builder@example.com", phone: "+15552220000", portfolioLinks: [{title: "GitHub", url:"https://github.com/bob"}], tokens: 35, joinedDate: new Date('2021-08-15T10:00:00.000Z').toISOString() },
-        "designer-C": { id: "designer-C", userId: "user-C", name: "Carol Danvers", headline: "Modern & Affordable Web Designer", avatarUrl: "https://picsum.photos/seed/carol/100/100", skills: [{id:"web-design", text:"Web Design"}, {id:"figma", text:"Figma"}, {id:"wordpress", text:"WordPress"}], bio: "Delivering fresh design perspectives at great value. Specializing in WordPress and Figma, I help small businesses and individuals create a strong online presence.", budgetMin: 1500, budgetMax: 4000, email: "carol.d@example.com", phone: undefined, portfolioLinks: [], tokens: 20, joinedDate: new Date('2023-01-20T10:00:00.000Z').toISOString() },
+        "designer-A": { id: "designer-A", userId: "user-A", name: "Alice Wonderland", headline: "E-commerce UI/UX Specialist", avatarUrl: "https://picsum.photos/seed/alice/100/100", skills: [{id:"e-commerce", text:"E-commerce"}, {id:"figma", text:"Figma"}], bio: "Expert in e-commerce design, focusing on creating intuitive and high-converting user experiences. Over 5 years of experience helping businesses grow their online presence.", budgetMin: 2000, budgetMax: 6000, email: "alice.w@example.com", phone: "+15551110000", city: "Wonderland City", postalCode: "W1DER", portfolioLinks: [{title: "Portfolio", url: "https://example.com/alice"}], tokens: 50, joinedDate: new Date('2022-03-10T10:00:00.000Z').toISOString() },
+        "designer-B": { id: "designer-B", userId: "user-B", name: "Bob The Builder", headline: "Mobile-First Web Designer & Developer", avatarUrl: "https://picsum.photos/seed/bob/100/100", skills: [{id:"mobile-design", text:"Mobile Design"}, {id:"ux", text:"UX"}, {id:"react", text:"React"}], bio: "Building engaging mobile-first web experiences for startups and established companies. Proficient in modern JavaScript frameworks and responsive design principles.", budgetMin: 2500, budgetMax: 7000, email: "bob.builder@example.com", phone: "+15552220000", city: "Builderville", postalCode: "B1LD ER", portfolioLinks: [{title: "GitHub", url:"https://github.com/bob"}], tokens: 35, joinedDate: new Date('2021-08-15T10:00:00.000Z').toISOString() },
+        "designer-C": { id: "designer-C", userId: "user-C", name: "Carol Danvers", headline: "Modern & Affordable Web Designer", avatarUrl: "https://picsum.photos/seed/carol/100/100", skills: [{id:"web-design", text:"Web Design"}, {id:"figma", text:"Figma"}, {id:"wordpress", text:"WordPress"}], bio: "Delivering fresh design perspectives at great value. Specializing in WordPress and Figma, I help small businesses and individuals create a strong online presence.", budgetMin: 1500, budgetMax: 4000, email: "carol.d@example.com", phone: "+15553330000", city: "Galaxy Town", postalCode:"G4LAXY", portfolioLinks: [], tokens: 20, joinedDate: new Date('2023-01-20T10:00:00.000Z').toISOString() },
     };
     return profiles[designerId] || null;
 }
@@ -84,13 +80,7 @@ async function getFullDesignerProfile(designerId: string): Promise<DesignerProfi
 async function getDesignerProfileForAI(designerId: string): Promise<string> {
     const designer = await getFullDesignerProfile(designerId);
     if (!designer) return "Web Professional profile not available.";
-    let profileString = `Name: ${designer.name}. Headline: ${designer.headline}. Skills: ${designer.skills.map(s => typeof s === 'string' ? s : s.text).join(', ')}. Experience: ${designer.bio.substring(0,100)}... Budget Range: £${designer.budgetMin}-£${designer.budgetMax}.`;
-    if (designer.email) {
-        profileString += ` Email: ${designer.email}.`;
-    }
-    if (designer.phone) {
-        profileString += ` Phone: ${designer.phone}.`;
-    }
+    let profileString = `Name: ${designer.name}. Headline: ${designer.headline}. Skills: ${designer.skills.map(s => typeof s === 'string' ? s : s.text).join(', ')}. Experience: ${designer.bio.substring(0,100)}... Budget Range: £${designer.budgetMin}-£${designer.budgetMax}. Email: ${designer.email}. Phone: ${designer.phone}. Location: ${designer.city}, ${designer.postalCode}.`;
     return profileString;
 }
 

@@ -20,14 +20,14 @@ import { DesignerProfileSchema, type DesignerProfileFormData } from "@/lib/schem
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
 import { useRouter } from "next/navigation";
-import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palette, Mail, Phone } from "lucide-react";
+import { UserCircle, Briefcase, LinkIcon, DollarSign, Trash2, PlusCircle, Palette, Mail, Phone, HomeIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { MultiSelect } from "@/components/ui/multi-select-tag";
 import type { Tag } from "@/lib/types";
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { allSkillsOptions } from "@/lib/constants"; // Import from constants
+import { allSkillsOptions } from "@/lib/constants"; 
 
-const STABLE_EMPTY_PROFILE_VALUES: Omit<DesignerProfileFormData, 'name' | 'email' | 'phone'> & { name?: string; email?: string; phone?: string; } = {
+const STABLE_EMPTY_PROFILE_VALUES: Omit<DesignerProfileFormData, 'name' | 'email' | 'phone' | 'city' | 'postalCode'> & { name?: string; email?: string; phone?: string; city?: string; postalCode?: string; } = {
   headline: "",
   avatarUrl: "",
   skills: [],
@@ -55,6 +55,8 @@ export function DesignerProfileForm() {
       budgetMax: 0,
       email: auth.designerEmail || auth.email || "",
       phone: auth.designerPhone || "",
+      city: auth.designerCity || "",
+      postalCode: auth.designerPostalCode || "",
     };
 
     if (auth.profileSetupComplete && auth.userType === 'designer') {
@@ -69,6 +71,8 @@ export function DesignerProfileForm() {
         budgetMax: auth.designerBudgetMax ?? 0,
         email: auth.designerEmail || auth.email || "",
         phone: auth.designerPhone || "",
+        city: auth.designerCity || "",
+        postalCode: auth.designerPostalCode || "",
       };
     }
     return baseValues;
@@ -86,6 +90,8 @@ export function DesignerProfileForm() {
     auth.designerBudgetMax,
     auth.designerEmail,
     auth.designerPhone,
+    auth.designerCity,
+    auth.designerPostalCode,
   ]);
 
 
@@ -99,9 +105,7 @@ export function DesignerProfileForm() {
   });
 
   useEffect(() => {
-    // Only reset if initialFormValues itself changes identity (deep comparison might be too much)
-    // or if the form isn't dirty and values differ, to avoid resetting during user input.
-    if (!form.formState.isDirty) {
+    if (!form.formState.isDirty || JSON.stringify(form.getValues()) !== JSON.stringify(initialFormValues)) {
         form.reset(initialFormValues);
         setSelectedSkills(initialFormValues.skills || []);
         setAvatarPreview(initialFormValues.avatarUrl || "");
@@ -227,7 +231,7 @@ export function DesignerProfileForm() {
                       <Input type="email" placeholder="your.contact.email@example.com" {...field} value={field.value || ""} className="pl-10 text-base py-6" />
                     </FormControl>
                   </div>
-                  <FormDescription>This email will be displayed on your public profile for clients to contact you. It can be different from your login email.</FormDescription>
+                  <FormDescription>This email will be displayed on your public profile for clients to contact you.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -238,7 +242,7 @@ export function DesignerProfileForm() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg">Contact Phone (Optional, Public)</FormLabel>
+                  <FormLabel className="text-lg">Contact Phone (Public)</FormLabel>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <FormControl>
@@ -250,6 +254,38 @@ export function DesignerProfileForm() {
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="city"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-lg flex items-center"><HomeIcon className="mr-2 h-5 w-5 text-primary"/>City</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., New York" {...field} value={field.value || ""} className="text-base py-6" />
+                    </FormControl>
+                    <FormDescription>Your city for location-based matching if preferred.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="postalCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-lg">Postal Code</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., 10001" {...field} value={field.value || ""} className="text-base py-6" />
+                    </FormControl>
+                    <FormDescription>Your postal code for more precise local matching.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
 
             <FormField

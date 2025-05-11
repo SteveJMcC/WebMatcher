@@ -32,7 +32,9 @@ async function getDesignerProfile(id: string): Promise<DesignerProfile | null> {
       budgetMax: 8000,
       tokens: 25,
       email: "elena.rodriguez@example.com",
-      phone: "+15551234567", // Added phone
+      phone: "+15551234567", 
+      city: "New York",
+      postalCode: "10001",
       joinedDate: new Date('2021-06-15T10:00:00.000Z').toISOString(),
     };
   }

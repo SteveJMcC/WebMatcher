@@ -35,8 +35,10 @@ export interface DesignerProfileCore {
   portfolioLinks: { title: string; url: string }[];
   budgetMin: number;
   budgetMax: number;
-  email?: string;
-  phone?: string; 
+  email: string;
+  phone: string; 
+  city: string;
+  postalCode: string;
 }
 
 export interface DesignerProfile extends DesignerProfileCore {

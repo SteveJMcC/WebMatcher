@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Briefcase, DollarSign, ExternalLink, Mail, MapPin, Palette, Star, CheckCircle, Award, Phone, UserCircle as UserIconLucide } from "lucide-react";
+import { Briefcase, DollarSign, ExternalLink, Mail, MapPin, Palette, Star, CheckCircle, Award, Phone, UserCircle as UserIconLucide, HomeIcon } from "lucide-react";
 import Image from "next/image";
 
 interface DesignerProfileViewProps {
@@ -35,9 +35,9 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
             <div className="mt-4 md:mt-0 md:pb-2 flex-grow">
               <h1 className="text-3xl font-bold text-foreground">{profile.name}</h1>
               <p className="text-lg text-primary">{profile.headline}</p>
-              {/* Placeholder for location/rating */}
               <div className="flex items-center justify-center md:justify-start space-x-2 text-sm text-muted-foreground mt-1">
-                <MapPin className="h-4 w-4" /> <span>Global</span>
+                <MapPin className="h-4 w-4" /> 
+                <span>{profile.city && profile.postalCode ? `${profile.city}, ${profile.postalCode}` : 'Global'}</span>
                 <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" /> <span>4.9 (120 reviews)</span> {/* Placeholder */}
               </div>
             </div>
@@ -131,7 +131,15 @@ export function DesignerProfileView({ profile }: DesignerProfileViewProps) {
                   <span className="text-foreground">{profile.phone}</span>
                 </div>
               )}
-              {(!profile.email && !profile.phone) && (
+               {(profile.city || profile.postalCode) && (
+                <div className="flex items-center">
+                  <HomeIcon className="mr-2 h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-foreground">
+                    {profile.city}{profile.city && profile.postalCode && ", "}{profile.postalCode}
+                  </span>
+                </div>
+              )}
+              {(!profile.email && !profile.phone && !profile.city && !profile.postalCode) && (
                 <p className="text-muted-foreground italic">No contact details publicly shared.</p>
               )}
             </CardContent>
