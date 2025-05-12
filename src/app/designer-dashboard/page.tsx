@@ -180,11 +180,18 @@ export default function DesignerDashboardPage() {
     <div className="container mx-auto px-4 py-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
         <div className="mb-4 sm:mb-0">
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary flex items-center">
-                <LayoutDashboard className="mr-3 h-7 w-7 md:h-8 md:w-8" /> 
-                {displayName ? `${displayName}'s Web Professional Dashboard` : 'Web Professional Dashboard'}
-            </h1>
-            <p className="text-md md:text-lg text-muted-foreground mt-1">Discover opportunities and manage your profile.</p>
+            <div className="flex items-center">
+                <LayoutDashboard className="mr-3 h-8 w-8 text-primary" />
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">
+                    {displayName ? `${displayName} | Dashboard` : 'Web Professional Dashboard'}
+                </h1>
+            </div>
+            {displayName && (
+                <p className="text-md text-muted-foreground pl-11">
+                    Web Professional
+                </p>
+            )}
+            <p className="text-lg text-muted-foreground mt-1">Discover opportunities and manage your profile.</p>
         </div>
         <div className="flex gap-2 mt-4 sm:mt-0">
             <Button asChild variant="outline">

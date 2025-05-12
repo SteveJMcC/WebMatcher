@@ -84,11 +84,18 @@ export default function UserDashboardPage() {
     <div className="container mx-auto px-4 py-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
         <div className="mb-4 sm:mb-0">
-          <h1 className="text-3xl font-bold tracking-tight text-primary flex items-center">
-            <LayoutDashboard className="mr-3 h-8 w-8" /> 
-            {displayName ? `${displayName}'s Client Dashboard` : 'Client Dashboard'}
-          </h1>
-          <p className="text-lg text-muted-foreground mt-1">Manage your job postings and view designer bids.</p>
+            <div className="flex items-center">
+                <LayoutDashboard className="mr-3 h-8 w-8 text-primary" />
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">
+                    {displayName ? `${displayName} | Dashboard` : 'Client Dashboard'}
+                </h1>
+            </div>
+            {displayName && (
+                <p className="text-md text-muted-foreground pl-11">
+                    Client
+                </p>
+            )}
+            <p className="text-lg text-muted-foreground mt-1">Manage your job postings and view designer bids.</p>
         </div>
         <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
           <Link href="/post-job">
