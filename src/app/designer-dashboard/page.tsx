@@ -191,7 +191,6 @@ export default function DesignerDashboardPage() {
                     Web Professional
                 </p>
             )}
-            <p className="text-lg text-muted-foreground mt-1">Discover opportunities and manage your profile.</p>
         </div>
         <div className="flex gap-2 mt-4 sm:mt-0">
             <Button asChild variant="outline">
@@ -207,30 +206,34 @@ export default function DesignerDashboardPage() {
         </div>
       </div>
 
-    <div className="grid md:grid-cols-3 gap-6 mb-8"> {/* Reduced mb-10 to mb-8 */}
+    <div className="grid md:grid-cols-3 gap-6 mb-8">
         <Card className="shadow-md">
-            <CardHeader className="px-4 py-3">
+            <CardHeader className="px-4 pt-3 pb-1">
                 <CardTitle className="text-base text-muted-foreground">Profile Views (30d)</CardTitle>
             </CardHeader>
-            <CardContent className="px-4 py-3">
-                <p className="text-3xl font-bold text-primary">{mockDesignerStats.profileViews}</p>
+            <CardContent className="px-4 pt-0 pb-3">
+                <p className="text-2xl font-bold text-primary">{mockDesignerStats.profileViews}</p>
             </CardContent>
         </Card>
         <Card className="shadow-md">
-            <CardHeader className="px-4 py-3">
-                <CardTitle className="text-base text-muted-foreground">Active Applications</CardTitle>
+            <CardHeader className="px-4 pt-3 pb-1">
+                <CardTitle className="text-base text-muted-foreground">Active Responses</CardTitle>
             </CardHeader>
-            <CardContent className="px-4 py-3">
-                <p className="text-3xl font-bold text-primary">{mockDesignerStats.activeApplications}</p>
+            <CardContent className="px-4 pt-0 pb-3">
+                <p className="text-2xl font-bold text-primary">{mockDesignerStats.activeApplications}</p>
             </CardContent>
         </Card>
         <Card className="shadow-md">
-            <CardHeader className="px-4 py-3">
+            <CardHeader className="px-4 pt-3 pb-1">
                 <CardTitle className="text-base text-muted-foreground">Tokens Remaining</CardTitle>
             </CardHeader>
-            <CardContent className="px-4 py-3">
-                <p className="text-3xl font-bold text-primary">{mockDesignerStats.tokensRemaining}</p>
-                 <Button variant="link" asChild className="p-0 text-xs text-accent mt-0.5"><Link href="/pricing">Buy More Tokens</Link></Button>
+            <CardContent className="px-4 pt-0 pb-3">
+                 <div className="flex items-center justify-between">
+                    <p className="text-2xl font-bold text-primary">{mockDesignerStats.tokensRemaining}</p>
+                    <Button size="sm" variant="outline" asChild className="text-accent border-accent hover:bg-accent/10 hover:text-accent">
+                        <Link href="/pricing">Buy More</Link>
+                    </Button>
+                </div>
             </CardContent>
         </Card>
     </div>
