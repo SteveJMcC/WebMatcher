@@ -101,7 +101,7 @@ export default function AdminPage() {
 
   const confirmDeleteUser = () => {
     if (!userToDelete || !userToDelete.userId) return;
-    // ... (existing user deletion logic) ...
+
     const userIdToDelete = userToDelete.userId;
     const userTypeToDelete = userToDelete.userType;
 
@@ -273,16 +273,16 @@ export default function AdminPage() {
         <p className="text-lg text-muted-foreground mt-1">Manage users, jobs, and site content.</p>
       </header>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {/* Clients List */}
-        <Card className="shadow-lg lg:col-span-1">
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl flex items-center"><Users className="mr-2 h-6 w-6 text-primary"/> Clients ({clients.length})</CardTitle>
             <CardDescription>List of all registered clients.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
             {clients.length > 0 ? clients.map(client => (
-              <Card key={client.userId} className="p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+              <Card key={client.userId} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-4">
                    <Avatar className="h-12 w-12 border">
                     <AvatarImage src={client.userAvatarUrl || `https://i.pravatar.cc/150?u=${client.email}`} alt={client.displayName || 'Client'} data-ai-hint="client avatar"/>
@@ -293,7 +293,7 @@ export default function AdminPage() {
                     <p className="text-sm text-muted-foreground">{client.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 self-stretch sm:self-center justify-end w-full sm:w-auto">
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/client/${client.userId}`}>
                        <Eye className="mr-1.5 h-4 w-4" /> View
@@ -309,14 +309,14 @@ export default function AdminPage() {
         </Card>
 
         {/* Web Professionals List */}
-        <Card className="shadow-lg lg:col-span-1">
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl flex items-center"><Briefcase className="mr-2 h-6 w-6 text-primary"/> Web Professionals ({designers.length})</CardTitle>
             <CardDescription>List of all registered designers.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
             {designers.length > 0 ? designers.map(designer => (
-              <Card key={designer.userId} className="p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+              <Card key={designer.userId} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-4">
                   <Avatar className="h-12 w-12 border">
                     <AvatarImage src={designer.designerAvatarUrl || `https://i.pravatar.cc/150?u=${designer.email}`} alt={designer.displayName || 'Designer'} data-ai-hint="designer avatar" />
@@ -327,7 +327,7 @@ export default function AdminPage() {
                     <p className="text-sm text-muted-foreground">{designer.email}</p>
                   </div>
                 </div>
-                 <div className="flex items-center gap-2">
+                 <div className="flex items-center gap-2 self-stretch sm:self-center justify-end w-full sm:w-auto">
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/designer/${designer.userId}`}>
                       <Eye className="mr-1.5 h-4 w-4" /> View
@@ -343,7 +343,7 @@ export default function AdminPage() {
         </Card>
 
         {/* All Jobs List */}
-        <Card className="shadow-lg lg:col-span-1">
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl flex items-center"><ListChecks className="mr-2 h-6 w-6 text-primary"/> All Job Postings ({allJobs.length})</CardTitle>
             <CardDescription>Manage all job postings on the platform.</CardDescription>
@@ -362,7 +362,7 @@ export default function AdminPage() {
                 <p className="text-xs text-muted-foreground flex items-center">
                     <CalendarDays className="h-3 w-3 mr-1"/> Posted: {new Date(job.createdAt).toLocaleDateString()}
                 </p>
-                <div className="flex items-center gap-2 mt-3 justify-end">
+                <div className="flex flex-wrap justify-start sm:justify-end items-center gap-2 mt-3">
                   <Button asChild variant="outline" size="sm">
                     <Link href={`/jobs/${job.id}/manage`}>
                        <Eye className="mr-1.5 h-4 w-4" /> View
