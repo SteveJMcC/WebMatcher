@@ -142,7 +142,7 @@ export default function DesignerDashboardPage() {
   const mockDesignerStats = {
     profileViews: 156,
     activeApplications: selectedJob?.applicants?.filter(app => app.status !== 'designer_deleted').length || 0,
-    tokensRemaining: designerTokens ?? 0, // Use designerTokens from useAuth, default to 0 if null/undefined
+    tokensRemaining: designerTokens ?? 0, 
   };
 
   if (authIsLoading || (!authIsLoading && (!isAuthenticated || userType !== 'designer' || !profileSetupComplete))) {
@@ -150,7 +150,7 @@ export default function DesignerDashboardPage() {
        <div className="container mx-auto px-4 py-12 space-y-10">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10">
                 <Skeleton className="h-16 w-3/5" />
-                <div className="flex gap-2">
+                <div className="flex gap-2 mt-4 sm:mt-0">
                     <Skeleton className="h-10 w-32" />
                     <Skeleton className="h-10 w-36" />
                 </div>
@@ -160,9 +160,16 @@ export default function DesignerDashboardPage() {
                 <Skeleton className="h-32 w-full" />
                 <Skeleton className="h-32 w-full" />
             </div>
-            <div className="grid md:grid-cols-3 gap-6">
-                <Skeleton className="md:col-span-1 h-96 w-full" />
-                <Skeleton className="md:col-span-2 h-96 w-full" />
+            <div className="flex flex-col gap-8">
+                 <div> {/* Skeleton for scroller */}
+                    <Skeleton className="h-8 w-1/2 mb-4" /> {/* Title skeleton */}
+                    <div className="flex space-x-4 overflow-x-auto py-2">
+                        {[1,2,3].map(i => <Skeleton key={`skel-job-card-${i}`} className="h-56 w-72 flex-shrink-0 rounded-lg" />)}
+                    </div>
+                </div>
+                <div> {/* Skeleton for detail panel */}
+                    <Skeleton className="h-96 w-full rounded-lg" />
+                </div>
             </div>
         </div>
     );
@@ -222,19 +229,20 @@ export default function DesignerDashboardPage() {
     </div>
       
     {pageLoading ? (
-        <div className="grid md:grid-cols-3 gap-6">
-             <div className="md:col-span-1 space-y-6">
-                <Skeleton className="h-8 w-2/3 mb-4" />
-                <Skeleton className="h-40 w-full" />
-                <Skeleton className="h-40 w-full" />
+        <div className="flex flex-col gap-8">
+            <div> {/* Skeleton for scroller */}
+                <Skeleton className="h-8 w-1/2 mb-4" /> {/* Title skeleton */}
+                <div className="flex space-x-4 overflow-x-auto py-2">
+                    {[1,2,3].map(i => <Skeleton key={`skel-job-card-loading-${i}`} className="h-56 w-72 flex-shrink-0 rounded-lg" />)}
+                </div>
             </div>
-            <div className="md:col-span-2">
-                 <Skeleton className="h-96 w-full" />
+            <div> {/* Skeleton for detail panel */}
+                <Skeleton className="h-96 w-full rounded-lg" />
             </div>
         </div>
     ) : (
-         <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 space-y-8 lg:overflow-y-auto lg:max-h-[calc(100vh-20rem)] lg:pr-2"> 
+         <div className="flex flex-col gap-8">
+            <div className="w-full"> 
                 <DesignerJobList 
                     jobs={matchedJobs} 
                     title="Available Job Postings" 
@@ -243,16 +251,18 @@ export default function DesignerDashboardPage() {
                     selectedJobId={selectedJob?.id}
                 />
                 {generalJobs.length > 0 && ( 
-                    <DesignerJobList 
-                        jobs={generalJobs} 
-                        title="Other Job Postings"
-                        emptyStateMessage="No other general job postings at the moment."
-                        onJobSelect={handleJobSelect}
-                        selectedJobId={selectedJob?.id}
-                    />
+                    <div className="mt-8">
+                        <DesignerJobList 
+                            jobs={generalJobs} 
+                            title="Other Job Postings"
+                            emptyStateMessage="No other general job postings at the moment."
+                            onJobSelect={handleJobSelect}
+                            selectedJobId={selectedJob?.id}
+                        />
+                    </div>
                 )}
             </div>
-            <div className="lg:col-span-2 lg:sticky lg:top-24 lg:overflow-y-auto lg:max-h-[calc(100vh-7rem)]"> 
+            <div className="w-full"> 
                 <DesignerJobDetailPanel job={selectedJob} />
             </div>
         </div>
