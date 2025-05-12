@@ -130,7 +130,8 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <>
+            // Login/Signup buttons for md+ screens
+            <div className="hidden md:flex items-center gap-2">
               <Button variant="ghost" asChild>
                 <Link href="/login">
                   <LogIn className="mr-2 h-4 w-4" /> Login
@@ -139,7 +140,7 @@ export function Header() {
               <Button asChild>
                 <Link href="/signup">Sign Up</Link>
               </Button>
-            </>
+            </div>
           )}
            {/* Mobile Menu Trigger */}
            <div className="md:hidden">
