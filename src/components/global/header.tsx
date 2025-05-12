@@ -63,7 +63,7 @@ export function Header() {
           </Button>
           <Button variant="ghost" asChild>
             <Link href="/designers">
-              <Users className="mr-2 h-4 w-4" /> Find Talent
+              <Users className="mr-2 h-4 w-4" /> Find A Web Pro
             </Link>
           </Button>
           <Button variant="ghost" asChild>
@@ -153,7 +153,7 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem asChild><Link href="/post-job">Post a Job</Link></DropdownMenuItem>
-                <DropdownMenuItem asChild><Link href="/designers">Find Talent</Link></DropdownMenuItem>
+                <DropdownMenuItem asChild><Link href="/designers">Find A Web Pro</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/pricing">Pricing</Link></DropdownMenuItem>
                 <DropdownMenuItem asChild><Link href="/admin">Admin</Link></DropdownMenuItem>
                  <DropdownMenuSeparator />

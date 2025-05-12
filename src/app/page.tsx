@@ -19,7 +19,7 @@ export default function HomePage() {
       title: "Discover Top Talent",
       description: "Browse profiles of skilled designers, view their portfolios, and find the perfect match for your project.",
       link: "/designers",
-      linkText: "Find Designers",
+      linkText: "Find A Web Pro",
     },
     {
       icon: <Lightbulb className="h-10 w-10 text-primary" />,
