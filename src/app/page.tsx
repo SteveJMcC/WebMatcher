@@ -56,11 +56,11 @@ export default function HomePage() {
             WebMatcher is your premier platform for finding expert web designers or showcasing your design prowess.
             Effortless job posting, intelligent matching, and AI-powered insights.
           </p>
-          <div className="space-x-4">
-            <Button size="lg" asChild className="bg-primary hover:bg-primary/90 text-primary-foreground">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <Button size="lg" asChild className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-primary-foreground">
               <Link href="/login?userType=user">Login as a Client</Link>
             </Button>
-            <Button size="lg" variant="outline" asChild className="border-primary text-primary hover:bg-primary/10">
+            <Button size="lg" variant="outline" asChild className="w-full sm:w-auto border-primary text-primary hover:bg-primary/10">
               <Link href="/login?userType=designer">Login as a Web Pro</Link>
             </Button>
           </div>
@@ -140,11 +140,11 @@ export default function HomePage() {
           <p className="text-lg max-w-xl mx-auto mb-8">
             Join WebMatcher today and experience a seamless way to connect, collaborate, and create amazing web experiences.
           </p>
-          <div className="space-x-4">
-            <Button size="lg" variant="secondary" asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
+            <Button size="lg" variant="secondary" asChild className="w-full sm:w-auto bg-accent hover:bg-accent/90 text-accent-foreground">
               <Link href="/signup">Sign Up Now</Link>
             </Button>
-             <Button size="lg" variant="outline" asChild className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
+             <Button size="lg" variant="outline" asChild className="w-full sm:w-auto border-primary-foreground text-primary-foreground hover:bg-primary-foreground/10">
               <Link href="/pricing">Explore Pricing</Link>
             </Button>
           </div>

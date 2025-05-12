@@ -234,7 +234,7 @@ export default function DesignerDashboardPage() {
         </div>
     ) : (
          <div className="grid lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1 space-y-8 overflow-y-auto max-h-[calc(100vh-20rem)] pr-2"> 
+            <div className="lg:col-span-1 space-y-8 lg:overflow-y-auto lg:max-h-[calc(100vh-20rem)] lg:pr-2"> 
                 <DesignerJobList 
                     jobs={matchedJobs} 
                     title="Available Job Postings" 
@@ -252,7 +252,7 @@ export default function DesignerDashboardPage() {
                     />
                 )}
             </div>
-            <div className="lg:col-span-2"> 
+            <div className="lg:col-span-2 lg:sticky lg:top-24 lg:overflow-y-auto lg:max-h-[calc(100vh-7rem)]"> 
                 <DesignerJobDetailPanel job={selectedJob} />
             </div>
         </div>

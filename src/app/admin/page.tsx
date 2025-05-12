@@ -280,7 +280,7 @@ export default function AdminPage() {
             <CardTitle className="text-2xl flex items-center"><Users className="mr-2 h-6 w-6 text-primary"/> Clients ({clients.length})</CardTitle>
             <CardDescription>List of all registered clients.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
+          <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
             {clients.length > 0 ? clients.map(client => (
               <Card key={client.userId} className="p-4 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-4">
@@ -314,7 +314,7 @@ export default function AdminPage() {
             <CardTitle className="text-2xl flex items-center"><Briefcase className="mr-2 h-6 w-6 text-primary"/> Web Professionals ({designers.length})</CardTitle>
             <CardDescription>List of all registered designers.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
+          <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
             {designers.length > 0 ? designers.map(designer => (
               <Card key={designer.userId} className="p-4 flex items-center justify-between hover:shadow-md transition-shadow">
                 <div className="flex items-center gap-4">
@@ -348,7 +348,7 @@ export default function AdminPage() {
             <CardTitle className="text-2xl flex items-center"><ListChecks className="mr-2 h-6 w-6 text-primary"/> All Job Postings ({allJobs.length})</CardTitle>
             <CardDescription>Manage all job postings on the platform.</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 max-h-[600px] overflow-y-auto">
+          <CardContent className="space-y-4 max-h-[70vh] overflow-y-auto">
             {allJobs.length > 0 ? allJobs.map(job => (
               <Card key={job.id} className="p-4 hover:shadow-md transition-shadow">
                 <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2 mb-2">
