@@ -1,21 +1,41 @@
-"use client";
+'use client';
 
-import type { ReactNode } from 'react';
-import React, { createContext, useContext } from 'react';
-import { useAuth } from '@/hooks/use-auth'; // ✅ real hook now
+import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
-const AuthContext = createContext<ReturnType<typeof useAuth> | undefined>(undefined);
+interface AuthContextType {
+  user: User | null;
+  loading: boolean;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const auth = useAuth();
-  return <AuthContext.Provider value={auth}>{children}</AuthContext.Provider>;
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  return (
+    <AuthContext.Provider value={{ user, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuthContext = () => {
+export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };
+
 
