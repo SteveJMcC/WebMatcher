@@ -70,10 +70,12 @@ export const UserProfileSchema = z.object({
 export const SignupFormSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
   displayName: z.string().min(2, "Display Name must be at least 2 characters.").max(50, "Display Name must be at most 50 characters."),
+  password: z.string().min(6, "Password must be at least 6 characters."),
   userType: z.enum(['user', 'designer'], {
     required_error: "Please select an account type."
   }),
 });
+
 
 export type JobPostingFormData = z.infer<typeof JobPostingSchema>;
 export type DesignerProfileFormData = z.infer<typeof DesignerProfileSchema>;

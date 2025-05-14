@@ -2,9 +2,9 @@
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext } from 'react';
-import { useAuthMock, type AuthState } from '@/hooks/use-auth-mock';
+import { useAuth } from '@/hooks/use-auth';
 
-const AuthContext = createContext<AuthState | undefined>(undefined);
+const AuthContext = createContext<ReturnType<typeof useAuth> | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const auth = useAuthMock();

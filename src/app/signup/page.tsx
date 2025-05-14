@@ -1,5 +1,5 @@
 
-'use client';
+"use client";
 
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useAuth } from '@/context/auth-context';
+import { useAuthContext } from '@/context/auth-context';
 import { SignupFormSchema, type SignupFormData } from "@/lib/schemas";
 import { UserPlus, Mail, User as UserIcon } from 'lucide-react'; 
 import Link from 'next/link';
@@ -19,8 +19,8 @@ import Link from 'next/link';
 function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login } = useAuth();
-  
+  const { signup } = useAuthContext();
+
   const typeFromQuery = searchParams.get('userType');
   const initialUserType = (typeFromQuery === 'designer' || typeFromQuery === 'user') ? typeFromQuery : 'user';
 
@@ -29,6 +29,7 @@ function SignupPage() {
     defaultValues: {
       email: '',
       displayName: '',
+      password: '',
       userType: initialUserType,
     },
   });
@@ -40,13 +41,19 @@ function SignupPage() {
     }
   }, [searchParams, form]);
 
-  function onSubmit(data: SignupFormData) {
-    login(data.userType, data.email.trim(), data.displayName.trim()); 
-    
-    if (data.userType === 'designer') {
-      router.push('/designer/setup-profile');
-    } else {
-      router.push('/user/setup-profile');
+  async function onSubmit(data: SignupFormData) {
+    try {
+      await signup(
+        data.email.trim(),
+        data.password,
+        data.displayName.trim(),
+        data.userType
+      );
+      alert("Signup successful! Please check your email inbox to verify your account.");
+      router.push('/login');
+    } catch (err) {
+      console.error("Signup failed:", err);
+      alert("Signup failed. Please try again.");
     }
   }
 
@@ -97,7 +104,21 @@ function SignupPage() {
                   </FormItem>
                 )}
               />
-            
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Enter your password" {...field} className="pl-3 text-base py-3" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="userType"
@@ -128,6 +149,7 @@ function SignupPage() {
                   </FormItem>
                 )}
               />
+
               <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-lg py-6" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? "Signing Up..." : "Sign Up"}
               </Button>
@@ -147,7 +169,7 @@ function SignupPage() {
   );
 }
 
-// ✅ Suspense wrapper to avoid Firebase build crash
+// ✅ Suspense wrapper
 export default function SignupPageWrapper() {
   return (
     <Suspense fallback={<div>Loading signup...</div>}>
@@ -155,5 +177,6 @@ export default function SignupPageWrapper() {
     </Suspense>
   );
 }
+
 
 
