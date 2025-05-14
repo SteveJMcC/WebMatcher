@@ -1,7 +1,6 @@
+'use client';
 
-"use client";
-
-import { useState, type FormEvent, useEffect } from 'react';
+import { useState, type FormEvent, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,15 +13,15 @@ import Link from 'next/link';
 type LoginStep = 'roleSelection' | 'emailInput';
 type UserRole = 'user' | 'designer';
 
-export default function LoginPage() {
+function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
 
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
-  const [loginStep, setLoginStep] = useState<LoginStep>('emailInput'); // Default, will be adjusted in useEffect
-  const [currentUserType, setCurrentUserType] = useState<UserRole>('user'); // Default role
+  const [loginStep, setLoginStep] = useState<LoginStep>('emailInput');
+  const [currentUserType, setCurrentUserType] = useState<UserRole>('user');
   const [cameFromRoleSelection, setCameFromRoleSelection] = useState(false);
 
   useEffect(() => {
@@ -32,7 +31,6 @@ export default function LoginPage() {
       setLoginStep('emailInput');
       setCameFromRoleSelection(false);
     } else {
-      // No valid userType from query, or no query param, so user needs to select a role first
       setLoginStep('roleSelection');
       setCameFromRoleSelection(true);
     }
@@ -49,7 +47,6 @@ export default function LoginPage() {
   const handleRoleSelection = (selectedType: UserRole) => {
     setCurrentUserType(selectedType);
     setLoginStep('emailInput');
-    // Email and error should be clean for the new role context
     setEmail('');
     setError('');
   };
@@ -67,7 +64,7 @@ export default function LoginPage() {
     setError('');
 
     login(currentUserType, email.trim());
-    
+
     const redirectPath = searchParams.get('redirect');
     if (redirectPath) {
       router.push(redirectPath);
@@ -113,7 +110,6 @@ export default function LoginPage() {
     );
   }
 
-  // loginStep === 'emailInput'
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-10rem)] py-12">
       <Card className="w-full max-w-md shadow-xl">
@@ -123,17 +119,17 @@ export default function LoginPage() {
           <CardDescription>
             Log in to your {currentUserType === 'designer' ? 'Web Professional' : 'Client'} account.
             {cameFromRoleSelection && (
-                 <Button 
-                    variant="link" 
-                    onClick={() => { 
-                        setLoginStep('roleSelection'); 
-                        setEmail(''); 
-                        setError(''); 
-                    }} 
-                    className="p-0 ml-1 text-sm text-primary hover:underline"
-                 >
-                    (Change role)
-                 </Button>
+              <Button
+                variant="link"
+                onClick={() => {
+                  setLoginStep('roleSelection');
+                  setEmail('');
+                  setError('');
+                }}
+                className="p-0 ml-1 text-sm text-primary hover:underline"
+              >
+                (Change role)
+              </Button>
             )}
           </CardDescription>
         </CardHeader>
@@ -165,7 +161,9 @@ export default function LoginPage() {
           <p className="text-sm text-muted-foreground">
             Don't have an account?{' '}
             <Button variant="link" asChild className="p-0 text-primary">
-              <Link href={`/signup?userType=${currentUserType}`}>Sign up as {currentUserType === 'designer' ? 'Web Pro' : 'Client'}</Link>
+              <Link href={`/signup?userType=${currentUserType}`}>
+                Sign up as {currentUserType === 'designer' ? 'Web Pro' : 'Client'}
+              </Link>
             </Button>
           </p>
         </CardFooter>
@@ -173,4 +171,16 @@ export default function LoginPage() {
     </div>
   );
 }
+
+// ✅ Export a Suspense-wrapped version
+
+
+export default function LoginPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading login...</div>}>
+      <LoginPage />
+    </Suspense>
+  );
+}
+
 

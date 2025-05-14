@@ -1,7 +1,7 @@
 
-"use client";
+'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,8 +16,7 @@ import { SignupFormSchema, type SignupFormData } from "@/lib/schemas";
 import { UserPlus, Mail, User as UserIcon } from 'lucide-react'; 
 import Link from 'next/link';
 
-
-export default function SignupPage() {
+function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
@@ -40,7 +39,6 @@ export default function SignupPage() {
       form.setValue('userType', typeFromQuery);
     }
   }, [searchParams, form]);
-
 
   function onSubmit(data: SignupFormData) {
     login(data.userType, data.email.trim(), data.displayName.trim()); 
@@ -119,7 +117,7 @@ export default function SignupPage() {
                           <Label htmlFor="user" className="font-normal">Client (Looking for talent)</Label>
                         </FormItem>
                         <FormItem className="flex items-center space-x-2">
-                           <FormControl>
+                          <FormControl>
                             <RadioGroupItem value="designer" id="designer" />
                           </FormControl>
                           <Label htmlFor="designer" className="font-normal">Web Pro (Offering services)</Label>
@@ -148,4 +146,14 @@ export default function SignupPage() {
     </div>
   );
 }
+
+// ✅ Suspense wrapper to avoid Firebase build crash
+export default function SignupPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading signup...</div>}>
+      <SignupPage />
+    </Suspense>
+  );
+}
+
 
