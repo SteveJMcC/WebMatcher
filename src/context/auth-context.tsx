@@ -1,12 +1,17 @@
 'use client';
 
 import { ReactNode, createContext, useContext } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+// Alias the Firebase hook so it doesn’t collide with the context hook
+import { useAuth as useFirebaseAuth } from '@/hooks/use-auth';
 
-const AuthContext = createContext<ReturnType<typeof useAuth> | null>(null);
+type FirebaseAuthReturn = ReturnType<typeof useFirebaseAuth>;
+
+const AuthContext = createContext<FirebaseAuthReturn | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const auth = useAuth();
+  // Call the aliased Firebase hook here
+  const auth = useFirebaseAuth();
+
   return (
     <AuthContext.Provider value={auth}>
       {children}
@@ -21,3 +26,4 @@ export const useAuth = () => {
   }
   return context;
 };
+
