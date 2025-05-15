@@ -1,5 +1,7 @@
 
-"use client";
+'use client';
+export const dynamic = 'force-dynamic';
+
 
 import { JobPostingForm } from "@/components/forms/job-posting-form";
 import { useAuth } from "@/context/auth-context";

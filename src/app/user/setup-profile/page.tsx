@@ -1,4 +1,6 @@
-"use client";
+'use client';
+export const dynamic = 'force-dynamic';
+
 
 import { UserProfileForm } from "@/components/forms/user-profile-form";
 import { useAuth } from "@/context/auth-context";

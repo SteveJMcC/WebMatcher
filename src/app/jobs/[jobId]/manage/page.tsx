@@ -1,5 +1,7 @@
 
-"use client"; 
+'use client';
+export const dynamic = 'force-dynamic';
+
 
 import { JobBidsDisplay } from "@/components/features/job-bids-display";
 import type { JobPosting, Bid, DesignerProfile } from "@/lib/types";

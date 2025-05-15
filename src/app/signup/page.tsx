@@ -1,37 +1,56 @@
 
-"use client";
+'use client';
+export const dynamic = 'force-dynamic';
+
 
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { SignupFormSchema, SignupFormData } from '@/lib/schemas';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useAuthContext } from '@/context/auth-context';
-import { SignupFormSchema, type SignupFormData } from "@/lib/schemas";
-import { UserPlus, Mail, User as UserIcon } from 'lucide-react'; 
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form';
+import { useAuth } from '@/context/auth-context';
+import { Mail, Lock, UserPlus, User as UserIcon } from 'lucide-react';
 import Link from 'next/link';
 
 function SignupPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { signup } = useAuthContext();
+  const { signup } = useAuth();
 
   const typeFromQuery = searchParams.get('userType');
-  const initialUserType = (typeFromQuery === 'designer' || typeFromQuery === 'user') ? typeFromQuery : 'user';
+  const initialUserType =
+    typeFromQuery === 'designer' || typeFromQuery === 'user'
+      ? typeFromQuery
+      : 'user';
 
   const form = useForm<SignupFormData>({
     resolver: zodResolver(SignupFormSchema),
     defaultValues: {
       email: '',
-      displayName: '',
       password: '',
-      userType: initialUserType,
-    },
+      displayName: '',
+      userType: initialUserType
+    }
   });
 
   useEffect(() => {
@@ -45,15 +64,18 @@ function SignupPage() {
     try {
       await signup(
         data.email.trim(),
-        data.password,
+        data.password.trim(),
         data.displayName.trim(),
         data.userType
       );
-      alert("Signup successful! Please check your email inbox to verify your account.");
-      router.push('/login');
-    } catch (err) {
-      console.error("Signup failed:", err);
-      alert("Signup failed. Please try again.");
+
+      if (data.userType === 'designer') {
+        router.push('/designer/setup-profile');
+      } else {
+        router.push('/user/setup-profile');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
     }
   }
 
@@ -79,7 +101,34 @@ function SignupPage() {
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <FormControl>
-                        <Input type="email" placeholder="Enter your email address" {...field} className="pl-10 text-base py-3" />
+                        <Input
+                          type="email"
+                          placeholder="Enter your email"
+                          {...field}
+                          className="pl-10 text-base py-3"
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="Enter your password"
+                          {...field}
+                          className="pl-10 text-base py-3"
+                        />
                       </FormControl>
                     </div>
                     <FormMessage />
@@ -96,24 +145,14 @@ function SignupPage() {
                     <div className="relative">
                       <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <FormControl>
-                        <Input type="text" placeholder="Choose a public display name" {...field} className="pl-10 text-base py-3" />
+                        <Input
+                          type="text"
+                          placeholder="Choose a display name"
+                          {...field}
+                          className="pl-10 text-base py-3"
+                        />
                       </FormControl>
                     </div>
-                    <FormDescription className="text-xs text-muted-foreground">This name will be visible to other users.</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="Enter your password" {...field} className="pl-3 text-base py-3" />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -123,7 +162,7 @@ function SignupPage() {
                 control={form.control}
                 name="userType"
                 render={({ field }) => (
-                  <FormItem className="space-y-2">
+                  <FormItem>
                     <FormLabel>Sign up as</FormLabel>
                     <FormControl>
                       <RadioGroup
@@ -135,13 +174,17 @@ function SignupPage() {
                           <FormControl>
                             <RadioGroupItem value="user" id="user" />
                           </FormControl>
-                          <Label htmlFor="user" className="font-normal">Client (Looking for talent)</Label>
+                          <Label htmlFor="user" className="font-normal">
+                            Client
+                          </Label>
                         </FormItem>
                         <FormItem className="flex items-center space-x-2">
                           <FormControl>
                             <RadioGroupItem value="designer" id="designer" />
                           </FormControl>
-                          <Label htmlFor="designer" className="font-normal">Web Pro (Offering services)</Label>
+                          <Label htmlFor="designer" className="font-normal">
+                            Web Pro
+                          </Label>
                         </FormItem>
                       </RadioGroup>
                     </FormControl>
@@ -150,8 +193,12 @@ function SignupPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-lg py-6" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Signing Up..." : "Sign Up"}
+              <Button
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90 text-lg py-6"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting ? 'Signing Up...' : 'Sign Up'}
               </Button>
             </form>
           </Form>
@@ -169,7 +216,6 @@ function SignupPage() {
   );
 }
 
-// ✅ Suspense wrapper
 export default function SignupPageWrapper() {
   return (
     <Suspense fallback={<div>Loading signup...</div>}>

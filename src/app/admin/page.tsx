@@ -1,5 +1,11 @@
 
-"use client";
+// At the very top of src/app/admin/page.tsx
+'use client';
+export const dynamic = 'force-dynamic';
+
+import { useAuth } from '@/context/auth-context';
+// …rest of your code
+
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';

@@ -1,5 +1,7 @@
 
-"use client";
+'use client';
+export const dynamic = 'force-dynamic';
+
 
 import { DesignerJobList } from "@/components/features/designer-job-list";
 import type { JobPosting } from "@/lib/types";

@@ -1,3 +1,4 @@
+// src/hooks/use-auth.ts
 import { useState, useEffect } from "react";
 import {
   createUserWithEmailAndPassword,
@@ -23,7 +24,12 @@ export function useAuth() {
     return () => unsubscribe();
   }, []);
 
-  const signup = async (email: string, password: string, displayName: string, userType: string) => {
+  const signup = async (
+    email: string,
+    password: string,
+    displayName: string,
+    userType: string
+  ) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
@@ -65,3 +71,4 @@ export function useAuth() {
     logout,
   };
 }
+
